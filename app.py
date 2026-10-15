@@ -227,19 +227,14 @@ const charInfoData = {
     }
 };
 
-// Hàm đảo ngược chuỗi cho Blot nói ngược
-function reverseText(str) {
-    return str.split('').reverse().join('');
-}
-
 const introScript = {
     ENG: [
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: reverseText("(Nods silently, smiling gently in the corner of the room).") },
+        { speaker: "BLOT", text: "!enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Nods silently, smiling gently in the corner of the room)." },
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
-        { speaker: "BLOT", text: reverseText("Wait... The lights went out! Total blackout?!") },
+        { speaker: "BLOT", text: "1?! tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Wait... The lights went out! Total blackout?!)" },
         { speaker: "YATTA", text: "Huh... what is that glowing thing right in the middle of the floor? A strange red button..." },
         { speaker: "NARRATOR", text: "Out of curiosity, Yatta steps forward and accidentally touches the button..." },
         { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
@@ -251,9 +246,9 @@ const introScript = {
         { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", text: reverseText("(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng).") },
+        { speaker: "BLOT", text: ").moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)" },
         { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
-        { speaker: "BLOT", text: reverseText("Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!") },
+        { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!)" },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
         { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
@@ -302,32 +297,56 @@ function updateDialogue() {
     document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
 }
 
+// Vẽ Pixel Art chuẩn theo ảnh mẫu (Yatta: Vàng nhạt, 2 tai nhọn sọc hồng/xanh, mặt xanh, 4 đuôi hồng)
 function drawPixelCharacter(x, y, type) {
     ctx.save();
     ctx.translate(x, y);
 
     if (type === 'yatta') {
-        ctx.fillStyle = '#ff80ab';
-        ctx.fillRect(8, 10, 24, 22);
-        ctx.fillStyle = '#ff4081';
-        ctx.fillRect(4, 4, 8, 10);
-        ctx.fillRect(28, 4, 8, 10);
+        // Thân vàng nhạt (Cream/Yellow)
+        ctx.fillStyle = '#fff59d';
+        ctx.fillRect(8, 12, 24, 22);
+
+        // 2 tai nhọn chụm lên trên (sọc hồng/xanh)
+        ctx.fillStyle = '#ff80ab'; // Hồng tai
+        ctx.fillRect(4, 2, 8, 12);
+        ctx.fillRect(28, 2, 8, 12);
+        ctx.fillStyle = '#4fc3f7'; // Điểm xanh trên tai
+        ctx.fillRect(6, 4, 4, 5);
+        ctx.fillRect(30, 4, 4, 5);
+
+        // Khuôn mặt màu xanh dương nhạt đặc trưng
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(10, 16, 20, 14);
+
+        // Mắt tròn to trắng đen
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(11, 14, 6, 7);
-        ctx.fillRect(23, 14, 6, 7);
+        ctx.fillRect(11, 17, 6, 8);
+        ctx.fillRect(23, 17, 6, 8);
         ctx.fillStyle = '#111111';
-        ctx.fillRect(13, 16, 3, 4);
-        ctx.fillRect(25, 16, 3, 4);
+        ctx.fillRect(13, 20, 3, 4);
+        ctx.fillRect(25, 20, 3, 4);
+
+        // 4 cái đuôi dài màu hồng rực rỡ uốn lượn phía sau
         ctx.strokeStyle = '#ff4081';
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(8, 28);
-        ctx.quadraticCurveTo(-4, 25, -8, 15);
+        // Đuôi 1
+        ctx.moveTo(8, 30); ctx.quadraticCurveTo(-6, 28, -12, 18);
+        // Đuôi 2
+        ctx.moveTo(8, 32); ctx.quadraticCurveTo(-8, 34, -14, 26);
+        // Đuôi 3
+        ctx.moveTo(8, 34); ctx.quadraticCurveTo(-6, 40, -12, 36);
+        // Đuôi 4
+        ctx.moveTo(8, 35); ctx.quadraticCurveTo(-4, 45, -10, 42);
         ctx.stroke();
-        ctx.fillStyle = '#29b6f6';
-        ctx.fillRect(8, 32, 24, 20);
-        ctx.fillStyle = '#ffeb3b';
-        ctx.fillRect(14, 38, 12, 4);
+
+        // Trang phục piñata sọc hồng/xanh
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(8, 34, 24, 18);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(12, 34, 4, 18);
+        ctx.fillRect(20, 34, 4, 18);
     } 
     else if (type === 'looey') {
         ctx.fillStyle = '#ffee58';
@@ -353,7 +372,7 @@ function drawPixelCharacter(x, y, type) {
         ctx.fillRect(25, 16, 3, 3);
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(8, 34, 24, 18);
-        ctx.fillStyle, ctx.fillStyle = '#000000';
+        ctx.fillStyle = '#000000';
         ctx.fillRect(12, 34, 4, 18);
         ctx.fillRect(20, 34, 4, 18);
     }
@@ -396,13 +415,13 @@ function gameLoop() {
     ctx.strokeStyle = '#7c4dff';
     ctx.lineWidth = 3;
     ctx.strokeRect(60, 150, 70, 156);
-    ctx.fillStyle = '#ffb74d'; // Tay nắm cửa
+    ctx.fillStyle = '#ffb74d';
     ctx.fillRect(115, 230, 6, 10);
 
     // Vẽ Rương vật phẩm (Chest) bên phải
     ctx.fillStyle = '#4e342e';
     ctx.fillRect(680, 260, 50, 46);
-    ctx.fillStyle = '#ffb74d'; // Khóa rương vàng
+    ctx.fillStyle = '#ffb74d';
     ctx.fillRect(698, 275, 14, 10);
 
     // Sàn nhà

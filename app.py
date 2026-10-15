@@ -17,294 +17,453 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = (
-    "<!DOCTYPE html>\n"
-    "<html lang='en'>\n"
-    "<head>\n"
-    "    <meta charset='UTF-8'>\n"
-    "    <title>Escape Gardenview: Halloween Special</title>\n"
-    "    <style>\n"
-    "        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }\n"
-    "        body {\n"
-    "            background-color: #030105;\n"
-    "            color: #fff;\n"
-    "            font-family: 'Courier New', Courier, monospace;\n"
-    "            display: flex;\n"
-    "            justify-content: center;\n"
-    "            align-items: center;\n"
-    "            min-height: 100vh;\n"
-    "            overflow: hidden;\n"
-    "        }\n"
-    "        #game-box {\n"
-    "            position: relative;\n"
-    "            width: 800px;\n"
-    "            height: 600px;\n"
-    "            background: #000;\n"
-    "            border: 4px solid #512da8;\n"
-    "            box-shadow: 0 0 35px rgba(81, 45, 168, 0.6);\n"
-    "            display: flex;\n"
-    "            flex-direction: column;\n"
-    "        }\n"
-    "        #top-ui {\n"
-    "            height: 40px;\n"
-    "            background: #0b0514;\n"
-    "            border-bottom: 2px solid #512da8;\n"
-    "            display: flex;\n"
-    "            justify-content: space-between;\n"
-    "            align-items: center;\n"
-    "            padding: 0 12px;\n"
-    "            z-index: 20;\n"
-    "        }\n"
-    "        .title { color: #ff7043; font-weight: bold; font-size: 11px; letter-spacing: 1px; }\n"
-    "        .ui-right-group { display: flex; gap: 6px; align-items: center; }\n"
-    "        .hud-buttons { display: flex; gap: 4px; }\n"
-    "        .toon-btn {\n"
-    "            background: #1a0b2e; color: #d1c4e9; border: 1px solid #7c4dff;\n"
-    "            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px;\n"
-    "        }\n"
-    "        .toon-btn.active { background: #651fff; color: #fff; font-weight: bold; }\n"
-    "        .lang-btn {\n"
-    "            background: #311b92; color: #ffeb3b; border: 1px solid #ab47bc;\n"
-    "            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;\n"
-    "        }\n"
-    "        #canvas-holder {\n"
-    "            position: relative;\n"
-    "            width: 800px;\n"
-    "            height: 360px;\n"
-    "            background: #05020a;\n"
-    "        }\n"
-    "        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }\n"
-    "        #crt-overlay {\n"
-    "            position: absolute; top: 0; left: 0; width: 100%; height: 100%;\n"
-    "            pointer-events: none;\n"
-    "            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);\n"
-    "            background-size: 100% 4px;\n"
-    "        }\n"
-    "        #info-popup {\n"
-    "            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);\n"
-    "            background: rgba(15, 5, 30, 0.95); border: 2px solid #00e676;\n"
-    "            padding: 8px 16px; border-radius: 6px; text-align: center; z-index: 30; display: none;\n"
-    "            box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);\n"
-    "        }\n"
-    "        #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }\n"
-    "        #info-desc { color: #e0f2f1; font-size: 10px; }\n"
-    "        #dialogue-area {\n"
-    "            height: 200px; background: #080312; border-top: 3px solid #512da8;\n"
-    "            padding: 12px 18px; display: flex; flex-direction: column; justify-content: space-between;\n"
-    "            position: relative;\n"
-    "        }\n"
-    "        #portrait-box {\n"
-    "            position: absolute; left: 20px; top: -125px; width: 140px; height: 140px;\n"
-    "            background: #0b0514; border: 3px solid #7c4dff; border-radius: 8px; overflow: hidden;\n"
-    "            box-shadow: 0 0 20px rgba(124, 77, 255, 0.6);\n"
-    "        }\n"
-    "        #portrait-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }\n"
-    "        #speaker-tag {\n"
-    "            position: absolute; right: 20px; top: -26px; background: #311b92;\n"
-    "            border: 2px solid #7c4dff; color: #ffb74d; font-weight: bold; font-size: 12px;\n"
-    "            padding: 3px 12px; border-radius: 4px;\n"
-    "        }\n"
-    "        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.5; height: 70px; margin-top: 10px; }\n"
-    "        .dialogue-btns { display: flex; justify-content: flex-end; gap: 10px; }\n"
-    "        .action-btn {\n"
-    "            background: #311b92; color: #ede7f6; border: 1px solid #7c4dff;\n"
-    "            padding: 4px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;\n"
-    "        }\n"
-    "        .action-btn:hover { background: #512da8; }\n"
-    "    </style>\n"
-    "</head>\n"
-    "<body>\n"
-    "<div id='game-box'>\n"
-    "    <div id='top-ui'>\n"
-    "        <div class='title' id='game-title'>GARDENVIEW: HALLOWEEN ESCAPE</div>\n"
-    "        <div class='ui-right-group'>\n"
-    "            <div class='hud-buttons'>\n"
-    "                <button class='toon-btn' id='btn-yatta' onclick='switchCharacter(\"yatta\")'>[1] Yatta</button>\n"
-    "                <button class='toon-btn' id='btn-looey' onclick='switchCharacter(\"looey\")'>[2] Looey</button>\n"
-    "                <button class='toon-btn' id='btn-blot' onclick='switchCharacter(\"blot\")'>[3] Blot</button>\n"
-    "                <button class='toon-btn active' id='btn-trio' onclick='switchCharacter(\"trio\")'>[4] Trio</button>\n"
-    "            </div>\n"
-    "            <button class='lang-btn' id='lang-btn' onclick='toggleLanguage()'>ENG / VIE</button>\n"
-    "        </div>\n"
-    "    </div>\n"
-    "    <div id='canvas-holder'>\n"
-    "        <canvas id='gameCanvas' width='800' height='360'></canvas>\n"
-    "        <div id='crt-overlay'></div>\n"
-    "        <div id='info-popup'>\n"
-    "            <div id='info-title'>CHARACTER INFO</div>\n"
-    "            <div id='info-desc'>Description here...</div>\n"
-    "        </div>\n"
-    "    </div>\n"
-    "    <div id='dialogue-area'>\n"
-    "        <div id='portrait-box'>\n"
-    "            <img id='portrait-img' src='YOUR_IMAGE_URL_HERE' alt='Looey Sketch'>\n"
-    "        </div>\n"
-    "        <div id='speaker-tag'>NARRATOR</div>\n"
-    "        <div><div id='dialogue-text'>Loading introduction...</div></div>\n"
-    "        <div class='dialogue-btns'>\n"
-    "            <button class='action-btn' id='next-btn' onclick='nextLine()'>Next [Space] ></button>\n"
-    "        </div>\n"
-    "    </div>\n"
-    "</div>\n"
-    "<script>\n"
-    "const canvas = document.getElementById('gameCanvas');\n"
-    "const ctx = canvas.getContext('2d');\n"
-    "let currentLang = 'ENG', currentStep = 0, activeChar = 'trio', popupTimer = null, gamePhase = 'DRESSING_ROOM';\n"
-    "let yattaPos = { x: 320, y: 290, vx: 0, vy: 0, grounded: true };\n"
-    "let looeyPos = { x: 360, y: 290, vx: 0, vy: 0, grounded: true };\n"
-    "let blotPos  = { x: 400, y: 290, vx: 0, vy: 0, grounded: true };\n"
-    "let speed = 3.5, jumpPower = -9;\n"
-    "let redButton = { x: 0, active: false };\n"
-    "let portalAnimProgress = 0;\n"
-    "const keys = { left: false, right: false };\n"
-    "window.addEventListener('keydown', (e) => {\n"
-    "    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;\n"
-    "    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;\n"
-    "    if (e.code === 'KeyW' || e.code === 'ArrowUp') {\n"
-    "        if (gamePhase !== 'PORTAL_ANIM') {\n"
-    "            if (activeChar === 'yatta' && yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }\n"
-    "            if (activeChar === 'looey' && looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }\n"
-    "            if (activeChar === 'blot'  && blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }\n"
-    "            if (activeChar === 'trio') {\n"
-    "                if (yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }\n"
-    "                if (looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }\n"
-    "                if (blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }\n"
-    "            }\n"
-    "        }\n"
-    "    }\n"
-    "    if (e.code === 'Space') {\n"
-    "        if (!((gamePhase === 'DRESSING_ROOM' && currentStep === 4) || (gamePhase === 'BUTTON_PHASE' && currentStep === 8))) {\n"
-    "            nextLine();\n"
-    "        }\n"
-    "    }\n"
-    "    if (e.code === 'Digit1') switchCharacter('yatta');\n"
-    "    if (e.code === 'Digit2') switchCharacter('looey');\n"
-    "    if (e.code === 'Digit3') switchCharacter('blot');\n"
-    "    if (e.code === 'Digit4') switchCharacter('trio');\n"
-    "    if (e.code === 'KeyE') {\n"
-    "        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;\n"
-    "        if (gamePhase === 'DRESSING_ROOM' && currentStep === 4 && leadX < 140) {\n"
-    "            gamePhase = 'BLACKOUT'; currentStep = 5; updateDialogue();\n"
-    "        } else if (gamePhase === 'BUTTON_PHASE' && redButton.active && Math.abs(leadX - redButton.x) < 40) {\n"
-    "            redButton.active = false; gamePhase = 'PORTAL_ANIM'; portalAnimProgress = 0; currentStep = 9; updateDialogue();\n"
-    "        }\n"
-    "    }\n"
-    "});\n"
-    "window.addEventListener('keyup', (e) => {\n"
-    "    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;\n"
-    "    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;\n"
-    "});\n"
-    "const charInfoData = {\n"
-    "    ENG: {\n"
-    "        yatta: { name: 'YATTA (Acrobatic)', desc: 'Flexible, agile, specialized in climbing high areas.' },\n"
-    "        looey: { name: 'LOOEY (Fast Runner)', desc: 'Runs extremely fast to escape pursuing Twisted toons.' },\n"
-    "        blot: { name: 'BLOT (Mime & Clone)', desc: 'Completely silent, capable of creating clones.' },\n"
-    "        trio: { name: 'CIRCUS TRIO', desc: 'The united power of all three members to survive in Gardenview!' }\n"
-    "    },\n"
-    "    VIE: {\n"
-    "        yatta: { name: 'YATTA (Dẻo dai)', desc: 'Linh hoạt, chuyên leo trèo các khu vực cao.' },\n"
-    "        looey: { name: 'LOOEY (Chạy nhanh)', desc: 'Chạy cực nhanh để né tránh các Twisted.' },\n"
-    "        blot: { name: 'BLOT (Hề câm & Tạo clone)', desc: 'Im lặng tuyệt đối, tạo phân thân đánh lừa quái.' },\n"
-    "        trio: { name: 'CIRCUS TRIO', desc: 'Sức mạnh đoàn kết cả ba thành viên trong Gardenview!' }\n"
-    "    }\n"
-    "};\n"
-    "const introScript = {\n"
-    "    ENG: [\n"
-    "        { speaker: 'NARRATOR', text: 'The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room.' },\n"
-    "        { speaker: 'YATTA', text: 'Whew... that was a blast today! The Toon crowd was so energetic.' },\n"
-    "        { speaker: 'LOOEY', text: 'My balloons almost popped right at the finale! Haha!' },\n"
-    "        { speaker: 'BLOT', text: 'Nods silently, smiling gently in the corner of the room.' },\n"
-    "        { speaker: 'SYSTEM', text: 'Interact with the door: Move near the dressing room door and press [E].' },\n"
-    "        { speaker: 'NARRATOR', text: 'SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut!' },\n"
-    "        { speaker: 'BLOT', text: 'Wait... The lights went out! Total blackout?!' },\n"
-    "        { speaker: 'YATTA', text: 'Huh... what is that glowing red button right under us? A strange red button...' },\n"
-    "        { speaker: 'SYSTEM', text: 'Interact with the red button: Walk to it and press [E].' },\n"
-    "        { speaker: 'NARRATOR', text: 'WHOOSH! A swirling virtual portal opens wide! The trio gets sucked in...' },\n"
-    "        { speaker: 'NARRATOR', text: '...And finally, they are spit out into a cold, desolate place. Gardenview?' },\n"
-    "        { speaker: 'SYSTEM', text: 'WELCOME TO GARDENVIEW ESCAPE. COLLECT 8 GOLDEN KEYS TO ESCAPE!' },\n"
-    "        { speaker: 'SYSTEM', text: 'Controls: [A/D] Move, [W/Up] Jump, [Space] Next, [E] Interact, [1-4] Switch Toon.' }\n"
-    "    ],\n"
-    "    VIE: [\n"
-    "        { speaker: 'DẪN CHUYỆN', text: 'Buổi biểu diễn vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ nghỉ ngơi.' },\n"
-    "        { speaker: 'YATTA', text: 'Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê.' },\n"
-    "        { speaker: 'LOOEY', text: 'Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!' },\n"
-    "        { speaker: 'BLOT', text: 'Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng.' },\n"
-    "        { speaker: 'HỆ THỐNG', text: 'Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ và nhấn [E].' },\n"
-    "        { speaker: 'DẪN CHUYỆN', text: 'RẦM! Cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!' },\n"
-    "        { speaker: 'BLOT', text: 'Khoan đã... Đèn tắt hết rồi! Mất điện toàn tập rồi sao?!' },\n"
-    "        { speaker: 'YATTA', text: 'Ơ kìa... cái gì đang phát sáng đỏ rực ngay dưới chân tụi mình thế kia?' },\n"
-    "        { speaker: 'HỆ THỐNG', text: 'Nhiệm vụ: Di chuyển đến sát cái nút bấm và nhấn [E].' },\n"
-    "        { speaker: 'DẪN CHUYỆN', text: 'VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra rồi hút cả nhóm vào trong...' },\n"
-    "        { speaker: 'DẪN CHUYỆN', text: '...Và rồi nhóm bị nhả xuống đất lạnh lẽo. Gardenview đây sao? Âm u rợn ngáy!' },\n"
-    "        { speaker: 'HỆ THỐNG', text: 'CHÀO MỪNG ĐẾN TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG!' },\n"
-    "        { speaker: 'HỆ THỐNG', text: 'Điều khiển: [A/D] Di chuyển, [W] Nhảy, [Space] Tiếp, [E] Tương tác, [1-4] Đổi toon.' }\n"
-    "    ]\n"
-    "};\n"
-    "function toggleLanguage() {\n"
-    "    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';\n"
-    "    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';\n"
-    "    updateDialogue(); showCharPopup(activeChar);\n"
-    "}\n"
-    "function switchCharacter(char) {\n"
-    "    activeChar = char;\n"
-    "    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));\n"
-    "    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';\n"
-    "    document.getElementById(btnId).classList.add('active');\n"
-    "    showCharPopup(char);\n"
-    "}\n"
-    "function showCharPopup(char) {\n"
-    "    const info = charInfoData[currentLang][char];\n"
-    "    const popup = document.getElementById('info-popup');\n"
-    "    document.getElementById('info-title').innerText = info.name;\n"
-    "    document.getElementById('info-desc').innerText = info.desc;\n"
-    "    popup.style.display = 'block';\n"
-    "    if (popupTimer) clearTimeout(popupTimer);\n"
-    "    popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);\n"
-    "}\n"
-    "function nextLine() {\n"
-    "    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) return;\n"
-    "    if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) return;\n"
-    "    if (gamePhase === 'PORTAL_ANIM') return;\n"
-    "    currentStep++;\n"
-    "    const maxSteps = introScript[currentLang].length;\n"
-    "    if (currentStep >= maxSteps) currentStep = maxSteps - 1;\n"
-    "    if (currentStep === 4) gamePhase = 'DRESSING_ROOM';\n"
-    "    else if (currentStep === 8) {\n"
-    "        gamePhase = 'BUTTON_PHASE';\n"
-    "        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;\n"
-    "        redButton.x = leadX + 10; redButton.active = true;\n"
-    "    } else if (currentStep === 10) {\n"
-    "        gamePhase = 'EXPLORE';\n"
-    "        yattaPos.x = 100; yattaPos.y = 290;\n"
-    "        looeyPos.x = 135; looeyPos.y = 290;\n"
-    "        blotPos.x  = 170; blotPos.y  = 290;\n"
-    "    }\n"
-    "    updateDialogue();\n"
-    "}\n"
-    "function updateDialogue() {\n"
-    "    const data = introScript[currentLang][currentStep];\n"
-    "    document.getElementById('speaker-tag').innerText = data.speaker;\n"
-    "    document.getElementById('dialogue-text').innerText = data.text;\n"
-    "    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) {\n"
-    "        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? '[Interact with Door (E)]' : '[Tương tác cửa (E)]';\n"
-    "    } else if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) {\n"
-    "        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? '[Interact Button (E)]' : '[Tương tác nút (E)]';\n"
-    "    } else {\n"
-    "        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? 'Next [Space] >' : 'Tiếp [Space] >';\n"
-    "    }\n"
-    "}\n"
-    "function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false) {\n"
-    "    ctx.save(); ctx.translate(x, y); ctx.rotate(angle); ctx.scale(scale, scale);\n"
-    "    if (isSelected && activeChar !== 'trio') {\n"
-    "        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(0, -65); ctx.lineTo(-6, -75); ctx.lineTo(6, -75); ctx.closePath(); ctx.fill();\n"
-    "    }\n"
-    "    if (type === 'yatta') {\n"
-    "        ctx.fillStyle = '#fff59d'; ctx.fillRect(-12, -40, 24, 32);\n"
-    "        ctx.fillStyle = '#ff80ab'; ctx.fillRect(-16, -52, 8, 14); ctx.fillRect(8, -52, 8, 14);\n"
-    "        ctx.fillStyle = '#4fc3f7'; ctx.fillRect(-14, -49, 4, 6); ctx.fillRect(10, -49, 4, 6);\n"
-    "        ctx.fillStyle = '#4fc3f7'; ctx.fillRect(-10, -34, 20, 16);\n"
-    "        ctx.fillStyle = '#ffffff'; ctx.fillRect(-9, -32, 6, 8); ctx.fillRect(3, -32, 6, 8);\n"
-    "        ctx.fillStyle = '#111111'; ctx.fillRect(-7, -29, 3, 4); ctx.fillRect(5, -29, 3, 4);\n"
-    "        ctx.fillStyle = '#ff80ab'; ctx.fillRect(-12, -8, 24, 18);\n"
-    "    } else if (type === 'looey') {\n"
-    "        ctx.fillStyle = '#ffee58'; ctx.fillRect(-14, -38, 28, 30);\
+game_code = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Escape Gardenview: Halloween Special</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: #030105;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-box {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background: #000;
+            border: 4px solid #512da8;
+            box-shadow: 0 0 35px rgba(81, 45, 168, 0.6);
+            display: flex;
+            flex-direction: column;
+        }
+        #top-ui {
+            height: 40px;
+            background: #0b0514;
+            border-bottom: 2px solid #512da8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 12px;
+            z-index: 20;
+        }
+        .title { color: #ff7043; font-weight: bold; font-size: 11px; letter-spacing: 1px; }
+        .ui-right-group { display: flex; gap: 6px; align-items: center; }
+        .hud-buttons { display: flex; gap: 4px; }
+        .toon-btn {
+            background: #1a0b2e; color: #d1c4e9; border: 1px solid #7c4dff;
+            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px;
+        }
+        .toon-btn.active { background: #651fff; color: #fff; font-weight: bold; }
+        .lang-btn {
+            background: #311b92; color: #ffeb3b; border: 1px solid #ab47bc;
+            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;
+        }
+        #canvas-holder {
+            position: relative;
+            width: 800px;
+            height: 360px;
+            background: #05020a;
+        }
+        canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+        #crt-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
+            background-size: 100% 4px;
+        }
+        #info-popup {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 5, 30, 0.95); border: 2px solid #00e676;
+            padding: 8px 16px; border-radius: 6px; text-align: center; z-index: 30; display: none;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);
+        }
+        #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+        #info-desc { color: #e0f2f1; font-size: 10px; }
+        #dialogue-area {
+            height: 200px; background: #080312; border-top: 3px solid #512da8;
+            padding: 12px 18px; display: flex; flex-direction: column; justify-content: space-between;
+            position: relative;
+        }
+        #portrait-box {
+            position: absolute; left: 20px; top: -125px; width: 140px; height: 140px;
+            background: #0b0514; border: 3px solid #7c4dff; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.6);
+        }
+        #portrait-box img { width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+        #speaker-tag {
+            position: absolute; right: 20px; top: -26px; background: #311b92;
+            border: 2px solid #7c4dff; color: #ffb74d; font-weight: bold; font-size: 12px;
+            padding: 3px 12px; border-radius: 4px;
+        }
+        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.5; height: 70px; margin-top: 10px; }
+        .dialogue-btns { display: flex; justify-content: flex-end; gap: 10px; }
+        .action-btn {
+            background: #311b92; color: #ede7f6; border: 1px solid #7c4dff;
+            padding: 4px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;
+        }
+        .action-btn:hover { background: #512da8; }
+    </style>
+</head>
+<body>
+
+<div id="game-box">
+    <div id="top-ui">
+        <div class="title" id="game-title">GARDENVIEW: HALLOWEEN ESCAPE</div>
+        <div class="ui-right-group">
+            <div class="hud-buttons">
+                <button class="toon-btn" id="btn-yatta" onclick="switchCharacter('yatta')">[1] Yatta</button>
+                <button class="toon-btn" id="btn-looey" onclick="switchCharacter('looey')">[2] Looey</button>
+                <button class="toon-btn" id="btn-blot" onclick="switchCharacter('blot')">[3] Blot</button>
+                <button class="toon-btn active" id="btn-trio" onclick="switchCharacter('trio')">[4] Trio</button>
+            </div>
+            <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">ENG / VIE</button>
+        </div>
+    </div>
+
+    <div id="canvas-holder">
+        <canvas id="gameCanvas" width="800" height="360"></canvas>
+        <div id="crt-overlay"></div>
+        <div id="info-popup">
+            <div id="info-title">CHARACTER INFO</div>
+            <div id="info-desc">Description here...</div>
+        </div>
+    </div>
+
+    <div id="dialogue-area">
+        <div id="portrait-box">
+            <img id="portrait-img" src="YOUR_IMAGE_URL_HERE" alt="Looey Sketch">
+        </div>
+        <div id="speaker-tag">NARRATOR</div>
+        <div>
+            <div id="dialogue-text">Loading introduction...</div>
+        </div>
+        <div class="dialogue-btns">
+            <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let currentLang = 'ENG'; 
+let currentStep = 0;
+let activeChar = 'trio'; 
+let popupTimer = null;
+let gamePhase = 'DRESSING_ROOM'; 
+
+let yattaPos = { x: 320, y: 290, vx: 0, vy: 0, grounded: true };
+let looeyPos = { x: 360, y: 290, vx: 0, vy: 0, grounded: true };
+let blotPos  = { x: 400, y: 290, vx: 0, vy: 0, grounded: true };
+
+let speed = 3.5;
+let jumpPower = -9;
+let redButton = { x: 0, active: false };
+let portalAnimProgress = 0;
+
+const keys = { left: false, right: false };
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+    
+    if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+        if (gamePhase !== 'PORTAL_ANIM') {
+            if (activeChar === 'yatta' && yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }
+            if (activeChar === 'looey' && looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }
+            if (activeChar === 'blot'  && blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }
+            if (activeChar === 'trio') {
+                if (yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }
+                if (looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }
+                if (blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }
+            }
+        }
+    }
+    
+    if (e.code === 'Space') {
+        if (!((gamePhase === 'DRESSING_ROOM' && currentStep === 4) || (gamePhase === 'BUTTON_PHASE' && currentStep === 8))) {
+            nextLine();
+        }
+    }
+
+    if (e.code === 'Digit1') switchCharacter('yatta');
+    if (e.code === 'Digit2') switchCharacter('looey');
+    if (e.code === 'Digit3') switchCharacter('blot');
+    if (e.code === 'Digit4') switchCharacter('trio');
+
+    if (e.code === 'KeyE') {
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (gamePhase === 'DRESSING_ROOM' && currentStep === 4 && leadX < 140) {
+            gamePhase = 'BLACKOUT';
+            currentStep = 5; 
+            updateDialogue();
+        } else if (gamePhase === 'BUTTON_PHASE' && redButton.active && Math.abs(leadX - redButton.x) < 40) {
+            redButton.active = false;
+            gamePhase = 'PORTAL_ANIM';
+            portalAnimProgress = 0;
+            currentStep = 9; 
+            updateDialogue();
+        }
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+});
+
+const charInfoData = {
+    ENG: {
+        yatta: { name: "YATTA (Acrobatic)", desc: "Flexible, agile, specialized in climbing high areas." },
+        looey: { name: "LOOEY (Fast Runner)", desc: "Runs extremely fast to escape pursuing Twisted toons." },
+        blot: { name: "BLOT (Mime & Clone)", desc: "Completely silent, capable of creating clones to trick monsters." },
+        trio: { name: "CIRCUS TRIO", desc: "The united power of all three members to survive in Gardenview!" }
+    },
+    VIE: {
+        yatta: { name: "YATTA (Dẻo dai)", desc: "Linh hoạt, chuyên leo trèo các khu vực cao." },
+        looey: { name: "LOOEY (Chạy nhanh)", desc: "Chạy cực nhanh để né tránh các Twisted bám đuổi." },
+        blot: { name: "BLOT (Hề câm & Tạo clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân đánh lừa quái." },
+        trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
+    }
+};
+
+const introScript = {
+    ENG: [
+        { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
+        { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
+        { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
+        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." },
+        { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." },
+        { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
+        { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Trans: Wait... The lights went out! Total blackout?!)" },
+        { speaker: "YATTA", text: "Huh... what is that glowing red button right under us? A strange red button..." },
+        { speaker: "SYSTEM", text: "Interact with the red button: Walk to it and press [E]." },
+        { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, swirling and getting sucked in..." },
+        { speaker: "NARRATOR", text: "...And finally, they are spit out from the top-left portal into a cold, desolate place. Is this Gardenview? No... it's rundown and eerie!" },
+        { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
+        { speaker: "SYSTEM", text: "Controls: [A/D] Move, [W/Up] Jump, [Space] Next Dialogue, [E] Interact, [1-4] Switch Toon." }
+    ],
+    VIE: [
+        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
+        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
+        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+        { speaker: "BLOT", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
+        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cánh cửa phòng thay đồ và nhấn [E] để tương tác." },
+        { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+        { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Dịch: Khoan đã... Đèn tắt hết rồi! Mất điện toàn tập rồi sao?!)" },
+        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng đỏ rực ngay dưới chân tụi mình thế kia? Một cái nút bấm kỳ lạ..." },
+        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển đến sát cái nút bấm và nhấn [E] để tương tác." },
+        { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [1-4] Đổi nhân vật." }
+    ]
+};
+
+function toggleLanguage() {
+    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
+    updateDialogue();
+    showCharPopup(activeChar);
+}
+
+function switchCharacter(char) {
+    activeChar = char;
+    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
+    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
+    document.getElementById(btnId).classList.add('active');
+    showCharPopup(char);
+}
+
+function showCharPopup(char) {
+    const info = charInfoData[currentLang][char];
+    const popup = document.getElementById('info-popup');
+    document.getElementById('info-title').innerText = info.name;
+    document.getElementById('info-desc').innerText = info.desc;
+    popup.style.display = 'block';
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
+}
+
+function nextLine() {
+    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) return;
+    if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) return;
+    if (gamePhase === 'PORTAL_ANIM') return;
+
+    currentStep++;
+    const maxSteps = introScript[currentLang].length;
+    if (currentStep >= maxSteps) {
+        currentStep = maxSteps - 1;
+    }
+
+    if (currentStep === 4) {
+        gamePhase = 'DRESSING_ROOM';
+    } else if (currentStep === 8) {
+        gamePhase = 'BUTTON_PHASE';
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        redButton.x = leadX + 10;
+        redButton.active = true;
+    } else if (currentStep === 10) {
+        gamePhase = 'EXPLORE';
+        yattaPos.x = 100; yattaPos.y = 290;
+        looeyPos.x = 135; looeyPos.y = 290;
+        blotPos.x  = 170; blotPos.y  = 290;
+    }
+
+    updateDialogue();
+}
+
+function updateDialogue() {
+    const data = introScript[currentLang][currentStep];
+    document.getElementById('speaker-tag').innerText = data.speaker;
+    document.getElementById('dialogue-text').innerText = data.text;
+    
+    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) {
+        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Door (Press E)]" : "[Interact with Door (Bấm E)]";
+    } else if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) {
+        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Red Button (Press E)]" : "[Interact with Red Button (Bấm E)]";
+    } else {
+        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+    }
+}
+
+function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.scale(scale, scale);
+
+    if (isSelected && activeChar !== 'trio') {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, -65);
+        ctx.lineTo(-6, -75);
+        ctx.lineTo(6, -75);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    if (type === 'yatta') {
+        ctx.fillStyle = '#fff59d';
+        ctx.fillRect(-12, -40, 24, 32);
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(-16, -52, 8, 14);
+        ctx.fillRect(8, -52, 8, 14);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-14, -49, 4, 6);
+        ctx.fillRect(10, -49, 4, 6);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-10, -34, 20, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-9, -32, 6, 8);
+        ctx.fillRect(3, -32, 6, 8);
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(-7, -29, 3, 4);
+        ctx.fillRect(5, -29, 3, 4);
+        
+        ctx.strokeStyle = '#ff4081';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(10, -15); ctx.quadraticCurveTo(22, -18, 30, -5);
+        ctx.moveTo(10, -12); ctx.quadraticCurveTo(24, -10, 32, 2);
+        ctx.moveTo(10, -9);  ctx.quadraticCurveTo(20, -2, 28, 10);
+        ctx.moveTo(10, -6);  ctx.quadraticCurveTo(18, 6, 26, 16);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(4, -8, 4, 18);
+    } 
+    else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58';
+        ctx.fillRect(-14, -38, 28, 30);
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(-10, -56, 8, 18);
+        ctx.fillStyle = '#ab47bc';
+        ctx.fillRect(2, -56, 8, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -28, 4, 6);
+        ctx.fillRect(4, -28, 4, 6);
+        ctx.fillStyle = '#ff7043';
+        ctx.fillRect(-12, -8, 24, 18);
+    } 
+    else if (type === 'blot') {
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(-12, -38, 24, 32);
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(-12, -38, 14, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(2, -30, 8, 8);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(5, -27, 3, 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(0, -8, 4, 18);
+    }
+    ctx.restore();
+}
+
+function gameLoop() {
+    if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
+        let moveX = 0;
+        if (keys.left) moveX = -speed;
+        if (keys.right) moveX = speed;
+
+        if (activeChar === 'trio') {
+            yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX;
+        } else if (activeChar === 'yatta') {
+            yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0;
+        } else if (activeChar === 'looey') {
+            yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0;
+        } else if (activeChar === 'blot') {
+            yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX;
+        }
+
+        [yattaPos, looeyPos, blotPos].forEach(p => {
+            p.vy += 0.4;
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y >= 290) {
+                p.y = 290;
+                p.vy = 0;
+                p.grounded = true;
+            }
+            if (p.x < 20) p.x = 20;
+            if (p.x > 740) p.x = 740;
+        });
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
+    ctx.fillRect(0, 0, 800, 360);
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 360; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
+        ctx.fillStyle = '#311b92';
+        ctx.fillRect(60, 140, 70, 150);
+        ctx.strokeStyle = '#7c4dff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(60, 140, 70, 150);
+        ctx.fillStyle = '#ffb74d';
+        ctx.fillRect(115, 210, 6, 10);
+
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.

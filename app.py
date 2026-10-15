@@ -442,4 +442,32 @@ function gameLoop() {
     if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
         ctx.fillStyle = '#311b92';
         ctx.fillRect(60, 140, 70, 150);
-        ctx
+        ctx.strokeStyle = '#7c4dff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(60, 140, 70, 150);
+        ctx.fillStyle = '#ffb74d';
+        ctx.fillRect(115, 210, 6, 10);
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
+    ctx.fillRect(0, 290, 800, 70);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 290, 800, 4);
+
+    if (gamePhase !== 'PORTAL_ANIM') {
+        drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta', 0, 1, activeChar === 'yatta');
+        drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey', 0, 1, activeChar === 'looey');
+        drawPixelCharacter(blotPos.x, blotPos.y, 'blot', 0, 1, activeChar === 'blot');
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

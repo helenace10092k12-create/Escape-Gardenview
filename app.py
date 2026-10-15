@@ -17,7 +17,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = r"""
+game_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -107,7 +107,7 @@ game_code = r"""
         #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
         #info-desc { color: #e0f2f1; font-size: 10px; }
 
-        /* KHUNG CHẶT TÍCH HỢP ẢNH VẼ TAY THẬT CỦA BỒ */
+        /* KHUNG CHAT */
         #dialogue-area {
             height: 200px;
             background: #080312;
@@ -119,7 +119,6 @@ game_code = r"""
             position: relative;
         }
 
-        /* Khung hiển thị ảnh phác thảo thực tế của bồ */
         #portrait-box {
             position: absolute;
             left: 20px;
@@ -136,7 +135,6 @@ game_code = r"""
             width: 100%;
             height: 100%;
             object-fit: cover;
-            /* Hiệu ứng pixelated cho ảnh phác thảo khớp chất game retro */
             image-rendering: pixelated; 
         }
 
@@ -194,7 +192,6 @@ game_code = r"""
 
     <div id="dialogue-area">
         <div id="portrait-box">
-            <!-- Bồ thay link ảnh phác thảo của bồ vào chỗ src bên dưới nhé -->
             <img id="portrait-img" src="YOUR_IMAGE_URL_HERE" alt="Looey Sketch">
         </div>
         <div id="speaker-tag">NARRATOR</div>
@@ -305,7 +302,7 @@ const introScript = {
         { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển đến sát cái nút bấm và nhấn [E] để tương tác." },
         { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
         { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
-        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
         { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [1-4] Đổi nhân vật." }
     ]
 };
@@ -322,7 +319,7 @@ function updateDialogue() {
     document.getElementById('dialogue-text').innerText = data.text;
 }
 
-function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false) {
+function drawPixelCharacter(x, y, type, angle, scale, isSelected) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
@@ -403,4 +400,46 @@ function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false
 }
 
 function gameLoop() {
-    if (gamePhase !== '
+    if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
+        let moveX = 0;
+        if (keys.left) moveX = -speed;
+        if (keys.right) moveX = speed;
+
+        if (activeChar === 'trio') {
+            yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX;
+        } else if (activeChar === 'yatta') {
+            yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0;
+        } else if (activeChar === 'looey') {
+            yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0;
+        } else if (activeChar === 'blot') {
+            yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX;
+        }
+
+        [yattaPos, looeyPos, blotPos].forEach(p => {
+            p.vy += 0.4;
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y >= 290) {
+                p.y = 290;
+                p.vy = 0;
+                p.grounded = true;
+            }
+            if (p.x < 20) p.x = 20;
+            if (p.x > 740) p.x = 740;
+        });
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
+    ctx.fillRect(0, 0, 800, 360);
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
+        ctx.fillStyle = '#311b92';
+        ctx.fillRect(60, 140, 70, 150);
+        ctx

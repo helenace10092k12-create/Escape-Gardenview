@@ -227,14 +227,19 @@ const charInfoData = {
     }
 };
 
+// Hàm đảo ngược chuỗi cho Blot nói ngược
+function reverseText(str) {
+    return str.split('').reverse().join('');
+}
+
 const introScript = {
     ENG: [
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: "(Nods silently, smiling gently in the corner of the room)." },
+        { speaker: "BLOT", text: reverseText("(Nods silently, smiling gently in the corner of the room).") },
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
-        { speaker: "BLOT", text: "Wait... The lights went out! Total blackout?!" },
+        { speaker: "BLOT", text: reverseText("Wait... The lights went out! Total blackout?!") },
         { speaker: "YATTA", text: "Huh... what is that glowing thing right in the middle of the floor? A strange red button..." },
         { speaker: "NARRATOR", text: "Out of curiosity, Yatta steps forward and accidentally touches the button..." },
         { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
@@ -246,9 +251,9 @@ const introScript = {
         { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
+        { speaker: "BLOT", text: reverseText("(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng).") },
         { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
-        { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
+        { speaker: "BLOT", text: reverseText("Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!") },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
         { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
@@ -348,7 +353,7 @@ function drawPixelCharacter(x, y, type) {
         ctx.fillRect(25, 16, 3, 3);
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(8, 34, 24, 18);
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle, ctx.fillStyle = '#000000';
         ctx.fillRect(12, 34, 4, 18);
         ctx.fillRect(20, 34, 4, 18);
     }
@@ -373,9 +378,11 @@ function gameLoop() {
     if (player.x < 20) player.x = 20;
     if (player.x > 740) player.x = 740;
 
+    // --- RENDER BACKGROUND & DECORATIONS ---
     ctx.fillStyle = '#06030c';
     ctx.fillRect(0, 0, 800, 380);
 
+    // Gạch nền ô vuông FNAF retro
     ctx.fillStyle = '#0f071a';
     for(let x = 0; x < 800; x += 40) {
         for(let y = 0; y < 380; y += 40) {
@@ -383,11 +390,28 @@ function gameLoop() {
         }
     }
 
+    // Vẽ Cửa ra vào (Door) bên trái
+    ctx.fillStyle = '#311b92';
+    ctx.fillRect(60, 150, 70, 156);
+    ctx.strokeStyle = '#7c4dff';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(60, 150, 70, 156);
+    ctx.fillStyle = '#ffb74d'; // Tay nắm cửa
+    ctx.fillRect(115, 230, 6, 10);
+
+    // Vẽ Rương vật phẩm (Chest) bên phải
+    ctx.fillStyle = '#4e342e';
+    ctx.fillRect(680, 260, 50, 46);
+    ctx.fillStyle = '#ffb74d'; // Khóa rương vàng
+    ctx.fillRect(698, 275, 14, 10);
+
+    // Sàn nhà
     ctx.fillStyle = '#281145';
     ctx.fillRect(0, 306, 800, 74);
     ctx.fillStyle = '#7c4dff';
     ctx.fillRect(0, 306, 800, 4);
 
+    // Vẽ nhân vật tương ứng
     if (activeChar === 'yatta') {
         drawPixelCharacter(player.x, player.y, 'yatta');
     } else if (activeChar === 'looey') {

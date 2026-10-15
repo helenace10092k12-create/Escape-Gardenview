@@ -8,7 +8,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Giao diện tối giản
 st.markdown("""
     <style>
         #MainMenu {visibility: hidden;}
@@ -18,12 +17,11 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-fnaf_mario_code = """
+game_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gardenview - Floor 1</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -100,7 +98,7 @@ fnaf_mario_code = """
 
 <div id="game-box">
     <div id="top-ui">
-        <div class="title">FLOOR 1: GARDENVIEW ENTRANCE (FNAF-MARIO STYLE)</div>
+        <div class="title">FLOOR 1: GARDENVIEW ENTRANCE</div>
         <button class="btn-lang" onclick="toggleLang()">VIE / ENG</button>
     </div>
 
@@ -117,7 +115,7 @@ fnaf_mario_code = """
     <div id="dialogue-area">
         <div>
             <div id="speaker">SYSTEM</div>
-            <div id="dialogue-text">Use [A/D] to move, [W/Space] to JUMP, [1][2][3] to switch Toon! Collect 3 Ichor Canisters to unlock Elevator!</div>
+            <div id="dialogue-text">Use [A/D] or [Left/Right] to move, [W/Space] to JUMP, [1][2][3] to switch Toon! Collect 3 Ichor Canisters.</div>
         </div>
     </div>
 </div>
@@ -129,7 +127,6 @@ let activeChar = 'yatta';
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Game State (Mario Platformer Logic)
 let player = {
     x: 40, y: 280, w: 22, h: 32,
     vx: 0, vy: 0,
@@ -138,23 +135,22 @@ let player = {
 };
 
 let items = [
-    { x: 220, y: 220, w: 12, h: 16, collected: false, type: 'ichor' },
-    { x: 450, y: 150, w: 12, h: 16, collected: false, type: 'ichor' },
-    { x: 680, y: 220, w: 12, h: 16, collected: false, type: 'ichor' }
+    { x: 220, y: 220, w: 12, h: 16, collected: false },
+    { x: 450, y: 150, w: 12, h: 16, collected: false },
+    { x: 680, y: 220, w: 12, h: 16, collected: false }
 ];
 
 let elevator = { x: 730, y: 260, w: 40, h: 60, open: false };
 
-// 8-bit Platforms (Bệ đứng kiểu Mario / FNAF)
 let platforms = [
-    { x: 0, y: 320, w: 800, h: 60 },   // Sàn nhà chính
-    { x: 180, y: 250, w: 100, h: 12 },  // Bệ 1
-    { x: 380, y: 190, w: 120, h: 12 },  // Bệ 2
-    { x: 630, y: 250, w: 100, h: 12 }   // Bệ 3
+    { x: 0, y: 320, w: 800, h: 60 },
+    { x: 180, y: 250, w: 100, h: 12 },
+    { x: 380, y: 190, w: 120, h: 12 },
+    { x: 630, y: 250, w: 100, h: 12 }
 ];
 
 let ichorCount = 0;
-const keys = { left: false, right: false, up: false };
+const keys = { left: false, right: false };
 
 window.addEventListener('keydown', e => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
@@ -178,9 +174,8 @@ window.addEventListener('keyup', e => {
 function setChar(c) {
     activeChar = c;
     document.querySelectorAll('.hud-card').forEach(el => el.classList.remove('active'));
-    document.getElementById(`c-${c}`).classList.add('active');
+    document.getElementById('c-' + c).classList.add('active');
     
-    // Đặc tính nhân vật
     if (c === 'yatta') { player.speed = 3.2; player.jumpPower = -10; }
     else if (c === 'looey') { player.speed = 4.0; player.jumpPower = -8.8; }
     else if (c === 'blot') { player.speed = 2.8; player.jumpPower = -9.0; }
@@ -194,25 +189,25 @@ function toggleLang() {
 }
 
 function updateText() {
-    const txt = {
-        ENG: `[CHAR: ${activeChar.toUpperCase()}] Collect all 3 Ichor Canisters! (${ichorCount}/3). ${elevator.open ? "ELEVATOR UNLOCKED! RUN TO THE DOOR!" : ""}`,
-        VIE: `[NHÂN VẬT: ${activeChar.toUpperCase()}] Thu thập đủ 3 bình Ichor! (${ichorCount}/3). ${elevator.open ? "CỬA THANG MÁY ĐÃ MỞ! CHẠY VỀ CỬA MAU!" : ""}`
-    };
+    let t = '';
+    if (lang === 'ENG') {
+        t = `[CHAR: ${activeChar.toUpperCase()}] Collect all 3 Ichor Canisters! (${ichorCount}/3). ${elevator.open ? "ELEVATOR UNLOCKED! GO TO THE DOOR!" : ""}`;
+    } else {
+        t = `[NHÂN VẬT: ${activeChar.toUpperCase()}] Thu thập đủ 3 bình Ichor! (${ichorCount}/3). ${elevator.open ? "CỬA THANG MÁY ĐÃ MỞ! CHẠY VỀ CỬA MAU!" : ""}`;
+    }
     document.getElementById('speaker').innerText = activeChar.toUpperCase();
-    document.getElementById('dialogue-text').innerText = txt[lang];
+    document.getElementById('dialogue-text').innerText = t;
 }
 
 function loop() {
-    // Di chuyển
     if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
     else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
     else { player.vx = 0; }
 
-    player.vy += 0.45; // Trọng lực
+    player.vy += 0.45;
     player.x += player.vx;
     player.y += player.vy;
 
-    // Va chạm Bệ đứng (Platform Collision)
     player.grounded = false;
     platforms.forEach(p => {
         if (player.x + player.w > p.x && player.x < p.x + p.w &&
@@ -223,11 +218,70 @@ function loop() {
         }
     });
 
-    // Giới hạn màn hình
     if (player.x < 0) player.x = 0;
     if (player.x + player.w > 800) player.x = 800 - player.w;
 
-    // Nhặt đồ (Ichor)
     items.forEach(it => {
         if (!it.collected && player.x < it.x + it.w && player.x + player.w > it.x &&
-            player.y < it.y + it.h && player.y + player.h >
+            player.y < it.y + it.h && player.y + player.h > it.y) {
+            it.collected = true;
+            ichorCount++;
+            if (ichorCount >= 3) elevator.open = true;
+            updateText();
+        }
+    });
+
+    // RENDER
+    ctx.fillStyle = '#05020a';
+    ctx.fillRect(0, 0, 800, 380);
+
+    ctx.fillStyle = '#11081a';
+    for(let x = 0; x < 800; x += 32) {
+        for(let y = 0; y < 380; y += 32) {
+            if ((x/32 + y/32) % 2 === 0) ctx.fillRect(x, y, 32, 32);
+        }
+    }
+
+    platforms.forEach(p => {
+        ctx.fillStyle = '#311b92';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.fillStyle = '#7c4dff';
+        ctx.fillRect(p.x, p.y, p.w, 3);
+    });
+
+    items.forEach(it => {
+        if (!it.collected) {
+            ctx.fillStyle = '#ff1744';
+            ctx.fillRect(it.x, it.y, it.w, it.h);
+            ctx.fillStyle = '#00e676';
+            ctx.fillRect(it.x + 3, it.y + 4, 6, 8);
+        }
+    });
+
+    ctx.fillStyle = elevator.open ? '#00e676' : '#d50000';
+    ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(elevator.x + 4, elevator.y + 4, elevator.w - 8, elevator.h - 4);
+
+    if (activeChar === 'yatta') ctx.fillStyle = '#ffb74d';
+    else if (activeChar === 'looey') ctx.fillStyle = '#fff176';
+    else ctx.fillStyle = '#78909c';
+
+    ctx.fillRect(player.x, player.y, player.w, player.h);
+    
+    ctx.fillStyle = '#ffffff';
+    let eyeX = player.facing === 'right' ? player.x + 14 : player.x + 2;
+    ctx.fillRect(eyeX, player.y + 6, 6, 6);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(eyeX + (player.facing === 'right' ? 3 : 0), player.y + 8, 3, 3);
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=580)

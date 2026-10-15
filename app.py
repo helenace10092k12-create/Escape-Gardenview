@@ -362,4 +362,202 @@ function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
-    ctx.scale(scale
+    ctx.scale(scale, scale);
+
+    // Vẽ mũi tên trắng trỏ xuống đầu nhân vật đang được chọn lẻ
+    if (isSelected && activeChar !== 'trio') {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, -65);
+        ctx.lineTo(-6, -75);
+        ctx.lineTo(6, -75);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    if (type === 'yatta') {
+        ctx.fillStyle = '#fff59d';
+        ctx.fillRect(-12, -40, 24, 32);
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(-16, -52, 8, 14);
+        ctx.fillRect(8, -52, 8, 14);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-14, -49, 4, 6);
+        ctx.fillRect(10, -49, 4, 6);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-10, -34, 20, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-9, -32, 6, 8);
+        ctx.fillRect(3, -32, 6, 8);
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(-7, -29, 3, 4);
+        ctx.fillRect(5, -29, 3, 4);
+        
+        ctx.strokeStyle = '#ff4081';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(10, -15); ctx.quadraticCurveTo(22, -18, 30, -5);
+        ctx.moveTo(10, -12); ctx.quadraticCurveTo(24, -10, 32, 2);
+        ctx.moveTo(10, -9);  ctx.quadraticCurveTo(20, -2, 28, 10);
+        ctx.moveTo(10, -6);  ctx.quadraticCurveTo(18, 6, 26, 16);
+        ctx.stroke();
+
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(4, -8, 4, 18);
+    } 
+    else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58';
+        ctx.fillRect(-14, -38, 28, 30);
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(-10, -56, 8, 18);
+        ctx.fillStyle = '#ab47bc';
+        ctx.fillRect(2, -56, 8, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -28, 4, 6);
+        ctx.fillRect(4, -28, 4, 6);
+        ctx.fillStyle = '#ff7043';
+        ctx.fillRect(-12, -8, 24, 18);
+    } 
+    else if (type === 'blot') {
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(-12, -38, 24, 32);
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(-12, -38, 14, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(2, -30, 8, 8);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(5, -27, 3, 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(0, -8, 4, 18);
+    }
+    ctx.restore();
+}
+
+function gameLoop() {
+    if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
+        let moveX = 0;
+        if (keys.left) moveX = -speed;
+        if (keys.right) moveX = speed;
+
+        // Xử lý di chuyển & đóng băng (freeze) các nhân vật không được chọn
+        if (activeChar === 'trio') {
+            yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX;
+        } else if (activeChar === 'yatta') {
+            yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0;
+        } else if (activeChar === 'looey') {
+            yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0;
+        } else if (activeChar === 'blot') {
+            yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX;
+        }
+
+        // Cập nhật tọa độ vật lý cho từng đứa
+        [yattaPos, looeyPos, blotPos].forEach(p => {
+            p.vy += 0.4;
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y >= 306) {
+                p.y = 306;
+                p.vy = 0;
+                p.grounded = true;
+            }
+            if (p.x < 20) p.x = 20;
+            if (p.x > 740) p.x = 740;
+        });
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
+    ctx.fillRect(0, 0, 800, 380);
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
+        ctx.fillStyle = '#311b92';
+        ctx.fillRect(60, 150, 70, 156);
+        ctx.strokeStyle = '#7c4dff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(60, 150, 70, 156);
+        ctx.fillStyle = '#ffb74d';
+        ctx.fillRect(115, 230, 6, 10);
+
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (currentStep === 4 && leadX < 140) {
+            ctx.fillStyle = '#00e676';
+            ctx.font = '11px Courier New';
+            ctx.fillText("Interact with door [E]", 50, 140);
+        }
+    }
+
+    if (gamePhase === 'BUTTON_PHASE' && redButton.active) {
+        ctx.fillStyle = '#d50000';
+        ctx.fillRect(redButton.x, 298, 24, 8);
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(redButton.x + 4, 294, 16, 4);
+
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (Math.abs(leadX - redButton.x) < 40) {
+            ctx.fillStyle = '#00e676';
+            ctx.font = '11px Courier New';
+            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 280);
+        }
+    }
+
+    if (gamePhase === 'PORTAL_ANIM') {
+        portalAnimProgress += 0.05;
+        let rot = portalAnimProgress * 10;
+        let scale = Math.max(0.1, 1 - portalAnimProgress * 0.3);
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(400, 250, Math.min(100, portalAnimProgress * 40), 0, Math.PI * 2);
+        ctx.fill();
+
+        drawPixelCharacter(400 + Math.sin(rot)*30, 250 + Math.cos(rot)*30, activeChar, rot, scale, false);
+
+        if (portalAnimProgress > 3) {
+            gamePhase = 'GARDENVIEW_SPIT';
+            currentStep = 10; 
+            updateDialogue();
+        }
+    }
+
+    if (gamePhase === 'GARDENVIEW_SPIT' || gamePhase === 'EXPLORE') {
+        ctx.fillStyle = '#00e676';
+        ctx.beginPath();
+        ctx.ellipse(100, 230, 30, 45, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
+    ctx.fillRect(0, 306, 800, 74);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 306, 800, 4);
+
+    if (gamePhase !== 'PORTAL_ANIM') {
+        drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta', 0, 1, activeChar === 'yatta');
+        drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey', 0, 1, activeChar === 'looey');
+        drawPixelCharacter(blotPos.x, blotPos.y, 'blot', 0, 1, activeChar === 'blot');
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+showCharPopup('trio'); // Mặc định hiện thông tin Trio lúc đầu
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

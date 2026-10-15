@@ -38,7 +38,7 @@ game_code = r"""
         #game-box {
             position: relative;
             width: 800px;
-            height: 580px;
+            height: 600px;
             background: #000;
             border: 4px solid #512da8;
             box-shadow: 0 0 35px rgba(81, 45, 168, 0.6);
@@ -107,26 +107,62 @@ game_code = r"""
         #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
         #info-desc { color: #e0f2f1; font-size: 10px; }
 
+        /* KHUNG CHAT MỚI THEO THIẾT KẾ PHÁC THẢO CỦA BỒ */
         #dialogue-area {
-            height: 160px;
+            height: 180px;
             background: #080312;
             border-top: 3px solid #512da8;
-            padding: 12px 18px;
+            padding: 10px 16px;
+            display: flex;
+            position: relative;
+            gap: 16px;
+        }
+        
+        /* Khung hiển thị Portrait Nhân Vật vẽ theo tranh phác thảo */
+        #portrait-box {
+            width: 140px;
+            height: 160px;
+            background: #110726;
+            border: 2px solid #7c4dff;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        #portrait-canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        #chat-content {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            position: relative;
         }
-        #speaker { color: #ffb74d; font-weight: bold; font-size: 13px; margin-bottom: 4px; }
-        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.4; height: 60px; }
+
+        #speaker-tag {
+            align-self: flex-end;
+            background: #311b92;
+            border: 1px solid #7c4dff;
+            color: #ffb74d;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.5; height: 80px; }
         
         .dialogue-btns {
             display: flex;
+            justify-content: flex-end;
             gap: 10px;
         }
         .action-btn {
             background: #311b92; color: #ede7f6; border: 1px solid #7c4dff;
-            padding: 4px 10px; font-size: 11px; cursor: pointer; border-radius: 4px;
+            padding: 4px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;
         }
         .action-btn:hover { background: #512da8; }
     </style>
@@ -156,13 +192,17 @@ game_code = r"""
         </div>
     </div>
 
+    <!-- KHUNG CHAT THIẾT KẾ CHUẨN TRANH BỒ VẼ -->
     <div id="dialogue-area">
-        <div>
-            <div id="speaker">NARRATOR</div>
-            <div id="dialogue-text">Loading introduction...</div>
+        <div id="portrait-box">
+            <canvas id="portraitCanvas" width="140" height="160"></canvas>
         </div>
-        <div class="dialogue-btns">
-            <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
+        <div id="chat-content">
+            <div id="speaker-tag">NARRATOR</div>
+            <div id="dialogue-text">Loading introduction...</div>
+            <div class="dialogue-btns">
+                <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
+            </div>
         </div>
     </div>
 </div>
@@ -170,6 +210,9 @@ game_code = r"""
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+const pCanvas = document.getElementById('portraitCanvas');
+const pCtx = pCanvas.getContext('2d');
 
 let currentLang = 'ENG'; 
 let currentStep = 0;
@@ -257,7 +300,7 @@ const introScript = {
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." }, // Đã đổi tên người nói thành BLOT đúng ý bồ
+        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." },
         { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." },
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
         { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Trans: Wait... The lights went out! Total blackout?!)" },
@@ -338,11 +381,87 @@ function nextLine() {
     updateDialogue();
 }
 
+// VẼ CHÂN DUNG LỘT TẢ CHUẨN NÉT PHÁC THẢO CỦA BỒ (LOOEY, YATTA, BLOT, NARRATOR)
+function drawPortrait(speaker) {
+    pCtx.clearRect(0, 0, 140, 160);
+    pCtx.fillStyle = '#110726';
+    pCtx.fillRect(0, 0, 140, 160);
+
+    if (speaker === 'LOOEY') {
+        // LOOEY TÔ MÀU CHUẨN NÉT BỒ VẼ: Tai bóng bay uốn cong, mũi hề, vệt mắt sọc & khăn quàng polka dots
+        pCtx.save();
+        pCtx.translate(70, 85);
+
+        // 2 tai bóng bay uốn cong ngộ nghĩnh (màu xanh lục & tím)
+        pCtx.fillStyle = '#66bb6a'; // Tai trái
+        pCtx.beginPath(); pCtx.ellipse(-25, -55, 12, 22, -Math.PI/6, 0, Math.PI*2); pCtx.fill();
+        pCtx.fillStyle = '#ab47bc'; // Tai phải
+        pCtx.beginPath(); pCtx.ellipse(25, -55, 12, 22, Math.PI/6, 0, Math.PI*2); pCtx.fill();
+
+        // Thân & Khăn quàng chấm bi Polka Dot (Màu cam chanh)
+        pCtx.fillStyle = '#ff7043';
+        pCtx.beginPath(); pCtx.moveTo(-35, 45); pCtx.lineTo(0, 10); pCtx.lineTo(35, 45); pCtx.closePath(); pCtx.fill();
+        pCtx.fillStyle = '#ffffff'; // Chấm bi trên khăn
+        pCtx.beginPath(); pCtx.arc(-15, 30, 4, 0, Math.PI*2); pCtx.fill();
+        pCtx.beginPath(); pCtx.arc(12, 35, 5, 0, Math.PI*2); pCtx.fill();
+
+        // Đầu hề màu vàng nhạt
+        pCtx.fillStyle = '#ffee58';
+        pCtx.beginPath(); pCtx.arc(0, -10, 32, 0, Math.PI*2); pCtx.fill();
+
+        // Mắt hề long lanh có vệt sọc dọc
+        pCtx.fillStyle = '#111111';
+        pCtx.beginPath(); pCtx.ellipse(-14, -12, 7, 12, 0, 0, Math.PI*2); pCtx.fill();
+        pCtx.beginPath(); pCtx.ellipse(14, -12, 7, 12, 0, 0, Math.PI*2); pCtx.fill();
+        pCtx.fillStyle = '#ffffff';
+        pCtx.fillRect(-15, -18, 2, 12); pCtx.fillRect(13, -18, 2, 12);
+
+        // Mũi đỏ tròn phát sáng & Miệng cười
+        pCtx.fillStyle = '#ff1744';
+        pCtx.beginPath(); pCtx.arc(0, -2, 6, 0, Math.PI*2); pCtx.fill();
+        pCtx.strokeStyle = '#111'; pCtx.lineWidth = 2;
+        pCtx.beginPath(); pCtx.arc(0, 8, 10, 0, Math.PI); pCtx.stroke();
+
+        pCtx.restore();
+    } 
+    else if (speaker === 'YATTA') {
+        // Yatta: Vàng nhạt, mặt xanh, tai nhọn sọc
+        pCtx.save();
+        pCtx.translate(70, 85);
+        pCtx.fillStyle = '#fff59d'; pCtx.beginPath(); pCtx.arc(0, -5, 30, 0, Math.PI*2); pCtx.fill();
+        pCtx.fillStyle = '#ff80ab'; // Tai nhọn
+        pCtx.fillRect(-32, -45, 10, 20); pCtx.fillRect(22, -45, 10, 20);
+        pCtx.fillStyle = '#4fc3f7'; // Mặt xanh
+        pCtx.beginPath(); pCtx.arc(0, 0, 22, 0, Math.PI); pCtx.fill();
+        pCtx.restore();
+    } 
+    else if (speaker === 'BLOT') {
+        // Blot: Hề câm Mime trắng đen bí ẩn
+        pCtx.save();
+        pCtx.translate(70, 85);
+        pCtx.fillStyle = '#37474f'; pCtx.beginPath(); pCtx.arc(0, -5, 30, 0, Math.PI*2); pCtx.fill();
+        pCtx.fillStyle = '#ffffff'; pCtx.fillRect(-15, -15, 30, 20);
+        pCtx.fillStyle = '#000000'; pCtx.fillRect(-10, -10, 8, 8); pCtx.fillRect(2, -10, 8, 8);
+        pCtx.restore();
+    } 
+    else {
+        // Narrator / System
+        pCtx.fillStyle = '#7c4dff';
+        pCtx.font = '12px Courier New';
+        pCtx.textAlign = 'center';
+        pCtx.fillText("SYSTEM", 70, 85);
+    }
+}
+
 function updateDialogue() {
     const data = introScript[currentLang][currentStep];
-    document.getElementById('speaker').innerText = data.speaker;
+    const speakerTag = document.getElementById('speaker-tag');
+    speakerTag.innerText = data.speaker;
     document.getElementById('dialogue-text').innerText = data.text;
     
+    // Vẽ lại Portrait cho nhân vật đang nói
+    drawPortrait(data.speaker);
+
     if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) {
         document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Door (Press E)]" : "[Interact with Door (Bấm E)]";
     } else if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) {
@@ -551,4 +670,4 @@ gameLoop();
 </html>
 """
 
-components.html(game_code, height=620)
+components.html(game_code, height=640)

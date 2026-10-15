@@ -177,7 +177,7 @@ let activeChar = 'yatta';
 let popupTimer = null;
 
 let player = {
-    x: 100, y: 270, w: 24, h: 50,
+    x: 360, y: 245, w: 40, h: 56,
     vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
     grounded: false, facing: 'right'
 };
@@ -198,12 +198,8 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit3') switchCharacter('blot');
     if (e.code === 'Digit4') switchCharacter('trio');
 
-    if (e.code === 'KeyE') {
-        console.log("Interacted with [E]");
-    }
-    if (e.code === 'KeyZ') {
-        console.log("Used Skill / Weapon with [Z]");
-    }
+    if (e.code === 'KeyE') console.log("Interacted with [E]");
+    if (e.code === 'KeyZ') console.log("Used Skill with [Z]");
 });
 
 window.addEventListener('keyup', (e) => {
@@ -250,114 +246,4 @@ const introScript = {
         { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
-        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
-        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
-        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
-        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Space] Nhảy, [E] Tương tác, [Z] Kỹ năng/Vũ khí, [1-4] Đổi nhân vật." }
-    ]
-};
-
-function toggleLanguage() {
-    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
-    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
-    updateDialogue();
-    showCharPopup(activeChar);
-}
-
-function switchCharacter(char) {
-    activeChar = char;
-    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
-    
-    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
-    document.getElementById(btnId).classList.add('active');
-    
-    showCharPopup(char);
-}
-
-function showCharPopup(char) {
-    const info = charInfoData[currentLang][char];
-    const popup = document.getElementById('info-popup');
-    document.getElementById('info-title').innerText = info.name;
-    document.getElementById('info-desc').innerText = info.desc;
-    
-    popup.style.display = 'block';
-    
-    if (popupTimer) clearTimeout(popupTimer);
-    popupTimer = setTimeout(() => {
-        popup.style.display = 'none';
-    }, 10000);
-}
-
-function nextLine() {
-    currentStep++;
-    const maxSteps = introScript[currentLang].length;
-    if (currentStep >= maxSteps) {
-        currentStep = maxSteps - 1;
-    }
-    updateDialogue();
-}
-
-function updateDialogue() {
-    const data = introScript[currentLang][currentStep];
-    document.getElementById('speaker').innerText = data.speaker;
-    document.getElementById('dialogue-text').innerText = data.text;
-    document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
-}
-
-function gameLoop() {
-    if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
-    else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
-    else { player.vx = 0; }
-
-    player.vy += 0.4;
-    player.x += player.vx;
-    player.y += player.vy;
-
-    if (player.y >= 270) {
-        player.y = 270;
-        player.vy = 0;
-        player.grounded = true;
-    }
-
-    if (player.x < 20) player.x = 20;
-    if (player.x > 750) player.x = 750;
-
-    ctx.fillStyle = '#06030c';
-    ctx.fillRect(0, 0, 800, 380);
-
-    ctx.fillStyle = '#0f071a';
-    for(let x = 0; x < 800; x += 40) {
-        for(let y = 0; y < 380; y += 40) {
-            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
-        }
-    }
-
-    ctx.fillStyle = '#281145';
-    ctx.fillRect(0, 320, 800, 60);
-    ctx.fillStyle = '#7c4dff';
-    ctx.fillRect(0, 320, 800, 4);
-
-    if (activeChar === 'yatta') {
-        ctx.fillStyle = '#ffb74d'; ctx.fillRect(player.x, player.y, 24, 50);
-    } else if (activeChar === 'looey') {
-        ctx.fillStyle = '#fff176'; ctx.fillRect(player.x, player.y, 26, 52);
-    } else if (activeChar === 'blot') {
-        ctx.fillStyle = '#78909c'; ctx.fillRect(player.x, player.y, 24, 48);
-    } else {
-        ctx.fillStyle = '#ffb74d'; ctx.fillRect(player.x - 30, player.y, 20, 50);
-        ctx.fillStyle = '#fff176'; ctx.fillRect(player.x, player.y - 2, 22, 52);
-        ctx.fillStyle = '#78909c'; ctx.fillRect(player.x + 30, player.y + 2, 20, 48);
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-updateDialogue();
-showCharPopup('yatta');
-gameLoop();
-</script>
-</body>
-</html>
-"""
-
-components.html(game_code, height=620)
+        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá

@@ -55,24 +55,24 @@ game_code = """
             padding: 0 12px;
             z-index: 20;
         }
-        .title { color: #ff7043; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
+        .title { color: #ff7043; font-weight: bold; font-size: 11px; letter-spacing: 1px; }
         .ui-right-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             align-items: center;
         }
         .hud-buttons {
             display: flex;
-            gap: 5px;
+            gap: 4px;
         }
         .toon-btn {
             background: #1a0b2e; color: #d1c4e9; border: 1px solid #7c4dff;
-            padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 3px;
+            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px;
         }
         .toon-btn.active { background: #651fff; color: #fff; font-weight: bold; }
         .lang-btn {
             background: #311b92; color: #ffeb3b; border: 1px solid #ab47bc;
-            padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;
+            padding: 3px 6px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;
         }
         
         #canvas-holder {
@@ -95,17 +95,17 @@ game_code = """
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 5, 30, 0.92);
+            background: rgba(15, 5, 30, 0.95);
             border: 2px solid #00e676;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 6px;
             text-align: center;
             z-index: 30;
             display: none;
             box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);
         }
-        #info-title { color: #00e676; font-size: 13px; font-weight: bold; margin-bottom: 3px; }
-        #info-desc { color: #e0f2f1; font-size: 11px; }
+        #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+        #info-desc { color: #e0f2f1; font-size: 10px; }
 
         #dialogue-area {
             height: 160px;
@@ -117,8 +117,8 @@ game_code = """
             justify-content: space-between;
             position: relative;
         }
-        #speaker { color: #ffb74d; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        #dialogue-text { color: #00e676; font-size: 13px; line-height: 1.4; height: 60px; }
+        #speaker { color: #ffb74d; font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.4; height: 60px; }
         
         .dialogue-btns {
             display: flex;
@@ -126,7 +126,7 @@ game_code = """
         }
         .action-btn {
             background: #311b92; color: #ede7f6; border: 1px solid #7c4dff;
-            padding: 5px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;
+            padding: 4px 10px; font-size: 11px; cursor: pointer; border-radius: 4px;
         }
         .action-btn:hover { background: #512da8; }
     </style>
@@ -171,12 +171,11 @@ game_code = """
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let currentLang = 'ENG'; // Mặc định tiếng Anh
+let currentLang = 'ENG';
 let currentStep = 0;
 let activeChar = 'yatta';
 let popupTimer = null;
 
-// Tọa độ người chơi cho Side-view platformer
 let player = {
     x: 100, y: 270, w: 24, h: 50,
     vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
@@ -185,7 +184,6 @@ let player = {
 
 const keys = { left: false, right: false };
 
-// Bắt sự kiện bàn phím di chuyển và đổi nhân vật
 window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
@@ -201,11 +199,9 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit4') switchCharacter('trio');
 
     if (e.code === 'KeyE') {
-        // Tương tác (Interact)
         console.log("Interacted with [E]");
     }
     if (e.code === 'KeyZ') {
-        // Sử dụng vũ khí / Kỹ năng (Skill / Weapon)
         console.log("Used Skill / Weapon with [Z]");
     }
 });
@@ -252,7 +248,7 @@ const introScript = {
         { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
         { speaker: "DẪN CHUYỆN", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
         { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
-        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thếkiye? Một cái nút màu đỏ kỳ lạ..." },
+        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
         { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
         { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
@@ -262,4 +258,60 @@ const introScript = {
 };
 
 function toggleLanguage() {
-    currentLang = currentLang === 'ENG' ? 'VIE' : '
+    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
+    updateDialogue();
+    showCharPopup(activeChar);
+}
+
+function switchCharacter(char) {
+    activeChar = char;
+    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
+    
+    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
+    document.getElementById(btnId).classList.add('active');
+    
+    showCharPopup(char);
+}
+
+function showCharPopup(char) {
+    const info = charInfoData[currentLang][char];
+    const popup = document.getElementById('info-popup');
+    document.getElementById('info-title').innerText = info.name;
+    document.getElementById('info-desc').innerText = info.desc;
+    
+    popup.style.display = 'block';
+    
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => {
+        popup.style.display = 'none';
+    }, 10000);
+}
+
+function nextLine() {
+    currentStep++;
+    const maxSteps = introScript[currentLang].length;
+    if (currentStep >= maxSteps) {
+        currentStep = maxSteps - 1;
+    }
+    updateDialogue();
+}
+
+function updateDialogue() {
+    const data = introScript[currentLang][currentStep];
+    document.getElementById('speaker').innerText = data.speaker;
+    document.getElementById('dialogue-text').innerText = data.text;
+    document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+}
+
+function gameLoop() {
+    if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
+    else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
+    else { player.vx = 0; }
+
+    player.vy += 0.4;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    if (player.y >= 270) {
+        player.y = 270;

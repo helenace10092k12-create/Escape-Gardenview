@@ -17,7 +17,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = r"""
+game_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -177,7 +177,7 @@ let activeChar = 'yatta';
 let popupTimer = null;
 
 let player = {
-    x: 360, y: 245, w: 40, h: 56,
+    x: 360, y: 250, w: 40, h: 56,
     vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
     grounded: false, facing: 'right'
 };
@@ -246,4 +246,156 @@ const introScript = {
         { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
-        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá
+        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Space] Nhảy, [E] Tương tác, [Z] Kỹ năng/Vũ khí, [1-4] Đổi nhân vật." }
+    ]
+};
+
+function toggleLanguage() {
+    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
+    updateDialogue();
+    showCharPopup(activeChar);
+}
+
+function switchCharacter(char) {
+    activeChar = char;
+    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
+    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
+    document.getElementById(btnId).classList.add('active');
+    showCharPopup(char);
+}
+
+function showCharPopup(char) {
+    const info = charInfoData[currentLang][char];
+    const popup = document.getElementById('info-popup');
+    document.getElementById('info-title').innerText = info.name;
+    document.getElementById('info-desc').innerText = info.desc;
+    popup.style.display = 'block';
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
+}
+
+function nextLine() {
+    currentStep++;
+    const maxSteps = introScript[currentLang].length;
+    if (currentStep >= maxSteps) currentStep = maxSteps - 1;
+    updateDialogue();
+}
+
+function updateDialogue() {
+    const data = introScript[currentLang][currentStep];
+    document.getElementById('speaker').innerText = data.speaker;
+    document.getElementById('dialogue-text').innerText = data.text;
+    document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+}
+
+function drawPixelCharacter(x, y, type) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    if (type === 'yatta') {
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(8, 8, 24, 24);
+        ctx.fillStyle = '#ff4081';
+        ctx.fillRect(4, 2, 8, 10);
+        ctx.fillRect(28, 2, 8, 10);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(12, 14, 6, 6);
+        ctx.fillRect(22, 14, 6, 6);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(14, 16, 2, 2);
+        ctx.fillRect(24, 16, 2, 2);
+        ctx.fillStyle = '#29b6f6';
+        ctx.fillRect(8, 32, 24, 20);
+    } 
+    else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58';
+        ctx.fillRect(6, 10, 28, 24);
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(10, -8, 8, 18);
+        ctx.fillStyle = '#ab47bc';
+        ctx.fillRect(22, -8, 8, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(12, 18, 4, 6);
+        ctx.fillRect(24, 18, 4, 6);
+        ctx.fillStyle = '#ff7043';
+        ctx.fillRect(8, 34, 24, 18);
+    } 
+    else if (type === 'blot') {
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(8, 8, 24, 26);
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(8, 8, 14, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(22, 14, 8, 8);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(25, 16, 3, 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(8, 34, 24, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(12, 34, 4, 18);
+        ctx.fillRect(20, 34, 4, 18);
+    }
+    ctx.restore();
+}
+
+function gameLoop() {
+    if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
+    else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
+    else { player.vx = 0; }
+
+    player.vy += 0.4;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    if (player.y >= 250) {
+        player.y = 250;
+        player.vy = 0;
+        player.grounded = true;
+    }
+
+    if (player.x < 20) player.x = 20;
+    if (player.x > 740) player.x = 740;
+
+    ctx.fillStyle = '#06030c';
+    ctx.fillRect(0, 0, 800, 380);
+
+    ctx.fillStyle = '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    ctx.fillStyle = '#281145';
+    ctx.fillRect(0, 306, 800, 74);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 306, 800, 4);
+
+    if (activeChar === 'yatta') {
+        drawPixelCharacter(player.x, player.y, 'yatta');
+    } else if (activeChar === 'looey') {
+        drawPixelCharacter(player.x, player.y, 'looey');
+    } else if (activeChar === 'blot') {
+        drawPixelCharacter(player.x, player.y, 'blot');
+    } else {
+        drawPixelCharacter(player.x - 50, player.y + 5, 'yatta');
+        drawPixelCharacter(player.x, player.y, 'looey');
+        drawPixelCharacter(player.x + 50, player.y + 5, 'blot');
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+showCharPopup('yatta');
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

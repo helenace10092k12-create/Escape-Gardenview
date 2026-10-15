@@ -17,7 +17,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = """
+game_code = r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,7 +188,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
     
-    // Gỡ phím Space ra khỏi nút nhảy, chỉ dùng W hoặc Mũi tên Lên để nhảy
+    // Chỉ dùng W hoặc Mũi tên Lên để nhảy, bỏ Space ra khỏi nút nhảy
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (player.grounded) {
             player.vy = player.jumpPower;
@@ -249,5 +249,85 @@ const introScript = {
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
         { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
-        { speaker: "DẪN CHUYỆN", text: "*
-    
+        { speaker: "DẪN CHUYỆN", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+        { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
+        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
+        { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
+        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [Z] Kỹ năng, [1-4] Đổi nhân vật." }
+    ]
+};
+
+function toggleLanguage() {
+    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
+    updateDialogue();
+    showCharPopup(activeChar);
+}
+
+function switchCharacter(char) {
+    activeChar = char;
+    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
+    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
+    document.getElementById(btnId).classList.add('active');
+    showCharPopup(char);
+}
+
+function showCharPopup(char) {
+    const info = charInfoData[currentLang][char];
+    const popup = document.getElementById('info-popup');
+    document.getElementById('info-title').innerText = info.name;
+    document.getElementById('info-desc').innerText = info.desc;
+    popup.style.display = 'block';
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
+}
+
+function nextLine() {
+    currentStep++;
+    const maxSteps = introScript[currentLang].length;
+    if (currentStep >= maxSteps) currentStep = maxSteps - 1;
+    updateDialogue();
+}
+
+function updateDialogue() {
+    const data = introScript[currentLang][currentStep];
+    document.getElementById('speaker').innerText = data.speaker;
+    document.getElementById('dialogue-text').innerText = data.text;
+    document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+}
+
+function drawPixelCharacter(x, y, type) {
+    ctx.save();
+    ctx.translate(x, y);
+
+    if (type === 'yatta') {
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(8, 10, 24, 22);
+        ctx.fillStyle = '#ff4081';
+        ctx.fillRect(4, 4, 8, 10);
+        ctx.fillRect(28, 4, 8, 10);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(11, 14, 6, 7);
+        ctx.fillRect(23, 14, 6, 7);
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(13, 16, 3, 4);
+        ctx.fillRect(25, 16, 3, 4);
+        ctx.strokeStyle = '#ff4081';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(8, 28);
+        ctx.quadraticCurveTo(-4, 25, -8, 15);
+        ctx.stroke();
+        ctx.fillStyle = '#29b6f6';
+        ctx.fillRect(8, 32, 24, 20);
+        ctx.fillStyle = '#ffeb3b';
+        ctx.fillRect(14, 38, 12, 4);
+    } 
+    else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58';
+        ctx.fillRect(6, 10, 28, 24);
+        ctx.fillStyle = '#66bb6a';
+        ctx.fillRect(10,

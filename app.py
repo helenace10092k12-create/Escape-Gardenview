@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 st.set_page_config(
-    page_title="Escape Gardenview - Floor 1",
+    page_title="Escape Gardenview - Circus Trio",
     page_icon="🎪",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -13,7 +13,7 @@ st.markdown("""
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
-        .block-container {padding-top: 0.5rem; padding-bottom: 0rem;}
+        .block-container {padding-top: 0rem; padding-bottom: 0rem;}
     </style>
 """, unsafe_allow_html=True)
 
@@ -22,11 +22,11 @@ game_code = """
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Gardenview - Floor 1</title>
+    <title>Escape Gardenview: Halloween Special</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
-            background-color: #05020a;
+            background-color: #030105;
             color: #fff;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -38,250 +38,239 @@ game_code = """
         #game-box {
             position: relative;
             width: 800px;
-            height: 560px;
+            height: 580px;
             background: #000;
-            border: 4px solid #4a148c;
-            box-shadow: 0 0 30px rgba(138, 43, 226, 0.4);
+            border: 4px solid #512da8;
+            box-shadow: 0 0 35px rgba(81, 45, 168, 0.6);
             display: flex;
             flex-direction: column;
         }
         #top-ui {
-            height: 36px;
-            background: #0a0512;
-            border-bottom: 2px solid #4a148c;
+            height: 40px;
+            background: #0b0514;
+            border-bottom: 2px solid #512da8;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 12px;
-            z-index: 10;
+            z-index: 20;
         }
-        .title { color: #d84315; font-weight: bold; font-size: 13px; letter-spacing: 1px; }
-        .btn-lang {
-            background: #1a0033; color: #ea80fc; border: 1px solid #ab47bc;
-            padding: 3px 8px; font-size: 11px; cursor: pointer; border-radius: 3px;
+        .title { color: #ff7043; font-weight: bold; font-size: 13px; letter-spacing: 1px; }
+        .hud-buttons {
+            display: flex;
+            gap: 5px;
         }
+        .toon-btn {
+            background: #1a0b2e; color: #d1c4e9; border: 1px solid #7c4dff;
+            padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 3px;
+        }
+        .toon-btn.active { background: #651fff; color: #fff; border-weight: bold; }
+        
         #canvas-holder {
             position: relative;
             width: 800px;
             height: 380px;
-            background: #000;
+            background: #05020a;
         }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
+        
         #crt-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.3) 50%);
             background-size: 100% 4px;
         }
+
+        /* Character Info Pop-up (Hiển thị 10 giây khi đổi nhân vật) */
+        #info-popup {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 5, 30, 0.92);
+            border: 2px solid #00e676;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-align: center;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.5);
+        }
+        #info-title { color: #00e676; font-size: 13px; font-weight: bold; margin-bottom: 3px; }
+        #info-desc { color: #e0f2f1; font-size: 11px; }
+
         #dialogue-area {
-            height: 144px;
-            background: #090510;
-            border-top: 3px solid #4a148c;
-            padding: 10px 15px;
+            height: 160px;
+            background: #080312;
+            border-top: 3px solid #512da8;
+            padding: 12px 18px;
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
             position: relative;
         }
-        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.5; width: 660px; }
         #speaker { color: #ffb74d; font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-        #char-hud {
-            position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 5;
+        #dialogue-text { color: #00e676; font-size: 13px; line-height: 1.4; height: 60px; }
+        
+        .dialogue-btns {
+            display: flex;
+            gap: 10px;
         }
-        .hud-card {
-            background: #120a1c; border: 1px solid #4a148c; padding: 3px 6px;
-            font-size: 10px; color: #888; cursor: pointer; border-radius: 3px;
+        .action-btn {
+            background: #311b92; color: #ede7f6; border: 1px solid #7c4dff;
+            padding: 5px 12px; font-size: 11px; cursor: pointer; border-radius: 4px;
         }
-        .hud-card.active { border-color: #ffb74d; color: #fff; background: #311b92; }
+        .action-btn:hover { background: #512da8; }
     </style>
 </head>
 <body>
 
 <div id="game-box">
     <div id="top-ui">
-        <div class="title">FLOOR 1: GARDENVIEW ENTRANCE</div>
-        <button class="btn-lang" onclick="toggleLang()">VIE / ENG</button>
+        <div class="title">GARDENVIEW: HALLOWEEN ESCAPE (LOCKED AWAY)</div>
+        <div class="hud-buttons">
+            <button class="toon-btn active" id="btn-yatta" onclick="switchCharacter('yatta')">Yatta</button>
+            <button class="toon-btn" id="btn-looey" onclick="switchCharacter('looey')">Looey</button>
+            <button class="toon-btn" id="btn-blot" onclick="switchCharacter('blot')">Blot</button>
+            <button class="toon-btn" id="btn-trio" onclick="switchCharacter('trio')">Circus Trio</button>
+        </div>
     </div>
 
     <div id="canvas-holder">
         <canvas id="gameCanvas" width="800" height="380"></canvas>
         <div id="crt-overlay"></div>
-        <div id="char-hud">
-            <div class="hud-card active" id="c-yatta" onclick="setChar('yatta')">[1] YATTA</div>
-            <div class="hud-card" id="c-looey" onclick="setChar('looey')">[2] LOOEY</div>
-            <div class="hud-card" id="c-blot" onclick="setChar('blot')">[3] BLOT</div>
+        
+        <!-- Bảng thông tin nhân vật xuất hiện 10 giây -->
+        <div id="info-popup">
+            <div id="info-title">CHARACTER INFO</div>
+            <div id="info-desc">Description here...</div>
         </div>
     </div>
 
     <div id="dialogue-area">
         <div>
-            <div id="speaker">SYSTEM</div>
-            <div id="dialogue-text">Use [A/D] or [Left/Right] to move, [W/Space] to JUMP, [1][2][3] to switch Toon! Collect 3 Ichor Canisters.</div>
+            <div id="speaker">NARRATOR</div>
+            <div id="dialogue-text">Loading introduction...</div>
+        </div>
+        <div class="dialogue-btns">
+            <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
         </div>
     </div>
 </div>
 
 <script>
-let lang = 'ENG';
-let activeChar = 'yatta';
-
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let player = {
-    x: 40, y: 280, w: 22, h: 32,
-    vx: 0, vy: 0,
-    speed: 3, jumpPower: -9.5,
-    grounded: false, facing: 'right'
+let currentStep = 0;
+let activeChar = 'yatta';
+let popupTimer = null;
+
+// Thông tin chi tiết nhân vật khi chọn
+const charInfoData = {
+    yatta: { name: "YATTA (Acrobatic)", desc: "Dẻo dai, linh hoạt, chuyên leo trèo các khu vực cao." },
+    looey: { name: "LOOEY (Fast Runner)", desc: "Chạy cực nhanh, né tránh các Twisted bám đuổi sát nút." },
+    blot: { name: "BLOT (Mime & Clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân (clone) đánh lừa quái." },
+    trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
 };
 
-let items = [
-    { x: 220, y: 220, w: 12, h: 16, collected: false },
-    { x: 450, y: 150, w: 12, h: 16, collected: false },
-    { x: 680, y: 220, w: 12, h: 16, collected: false }
+// Cốt truyện mở đầu
+const introScript = [
+    { speaker: "NARRATOR", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
+    { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
+    { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+    { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
+    { speaker: "NARRATOR", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+    { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
+    { speaker: "Yatta", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
+    { speaker: "NARRATOR", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
+    { speaker: "NARRATOR", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
+    { speaker: "NARRATOR", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+    { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
+    { speaker: "SYSTEM", text: "Nhiệm vụ của bạn: Khám phá các căn phòng, mở rương, né tránh các Twisted nguy hiểm và tìm kiếm trợ giúp từ các Toon còn sống sót!" }
 ];
 
-let elevator = { x: 730, y: 260, w: 40, h: 60, open: false };
-
-let platforms = [
-    { x: 0, y: 320, w: 800, h: 60 },
-    { x: 180, y: 250, w: 100, h: 12 },
-    { x: 380, y: 190, w: 120, h: 12 },
-    { x: 630, y: 250, w: 100, h: 12 }
-];
-
-let ichorCount = 0;
-const keys = { left: false, right: false };
-
-window.addEventListener('keydown', e => {
-    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
-    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
-    if (e.code === 'KeyW' || e.code === 'Space' || e.code === 'ArrowUp') {
-        if (player.grounded) {
-            player.vy = player.jumpPower;
-            player.grounded = false;
-        }
-    }
-    if (e.code === 'Digit1') setChar('yatta');
-    if (e.code === 'Digit2') setChar('looey');
-    if (e.code === 'Digit3') setChar('blot');
-});
-
-window.addEventListener('keyup', e => {
-    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
-    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
-});
-
-function setChar(c) {
-    activeChar = c;
-    document.querySelectorAll('.hud-card').forEach(el => el.classList.remove('active'));
-    document.getElementById('c-' + c).classList.add('active');
+function switchCharacter(char) {
+    activeChar = char;
+    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('btn-' + char).classList.add('active');
     
-    if (c === 'yatta') { player.speed = 3.2; player.jumpPower = -10; }
-    else if (c === 'looey') { player.speed = 4.0; player.jumpPower = -8.8; }
-    else if (c === 'blot') { player.speed = 2.8; player.jumpPower = -9.0; }
+    showCharPopup(char);
+}
+
+function showCharPopup(char) {
+    const info = charInfoData[char];
+    const popup = document.getElementById('info-popup');
+    document.getElementById('info-title').innerText = info.name;
+    document.getElementById('info-desc').innerText = info.desc;
     
-    updateText();
+    popup.style.display = 'block';
+    
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => {
+        popup.style.display = 'none';
+    }, 10000); // Ẩn sau 10 giây đúng yêu cầu
 }
 
-function toggleLang() {
-    lang = lang === 'ENG' ? 'VIE' : 'ENG';
-    updateText();
-}
-
-function updateText() {
-    let t = '';
-    if (lang === 'ENG') {
-        t = `[CHAR: ${activeChar.toUpperCase()}] Collect all 3 Ichor Canisters! (${ichorCount}/3). ${elevator.open ? "ELEVATOR UNLOCKED! GO TO THE DOOR!" : ""}`;
-    } else {
-        t = `[NHÂN VẬT: ${activeChar.toUpperCase()}] Thu thập đủ 3 bình Ichor! (${ichorCount}/3). ${elevator.open ? "CỬA THANG MÁY ĐÃ MỞ! CHẠY VỀ CỬA MAU!" : ""}`;
+function nextLine() {
+    currentStep++;
+    if (currentStep >= introScript.length) {
+        currentStep = introScript.length - 1;
+        document.getElementById('dialogue-text.innerText') = "Đã vào sảnh chính Gardenview bỏ hoang! Hãy sẵn sàng khám phá màn chơi tiếp theo...";
     }
-    document.getElementById('speaker').innerText = activeChar.toUpperCase();
-    document.getElementById('dialogue-text').innerText = t;
+    updateDialogue();
 }
 
-function loop() {
-    if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
-    else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
-    else { player.vx = 0; }
+function updateDialogue() {
+    const data = introScript[currentStep];
+    document.getElementById('speaker').innerText = data.speaker;
+    document.getElementById('dialogue-text').innerText = data.text;
+}
 
-    player.vy += 0.45;
-    player.x += player.vx;
-    player.y += player.vy;
-
-    player.grounded = false;
-    platforms.forEach(p => {
-        if (player.x + player.w > p.x && player.x < p.x + p.w &&
-            player.y + player.h >= p.y && player.y + player.h <= p.y + p.h + player.vy) {
-            player.y = p.y - player.h;
-            player.vy = 0;
-            player.grounded = true;
-        }
-    });
-
-    if (player.x < 0) player.x = 0;
-    if (player.x + player.w > 800) player.x = 800 - player.w;
-
-    items.forEach(it => {
-        if (!it.collected && player.x < it.x + it.w && player.x + player.w > it.x &&
-            player.y < it.y + it.h && player.y + player.h > it.y) {
-            it.collected = true;
-            ichorCount++;
-            if (ichorCount >= 3) elevator.open = true;
-            updateText();
-        }
-    });
-
-    // RENDER
-    ctx.fillStyle = '#05020a';
+// Render Side-view nền tảng phòng thay đồ / Gardenview
+function gameLoop() {
+    ctx.fillStyle = '#06030c';
     ctx.fillRect(0, 0, 800, 380);
 
-    ctx.fillStyle = '#11081a';
-    for(let x = 0; x < 800; x += 32) {
-        for(let y = 0; y < 380; y += 32) {
-            if ((x/32 + y/32) % 2 === 0) ctx.fillRect(x, y, 32, 32);
+    // Vẽ nền ô vuông retro FNAF
+    ctx.fillStyle = '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
         }
     }
 
-    platforms.forEach(p => {
-        ctx.fillStyle = '#311b92';
-        ctx.fillRect(p.x, p.y, p.w, p.h);
-        ctx.fillStyle = '#7c4dff';
-        ctx.fillRect(p.x, p.y, p.w, 3);
-    });
+    // Vẽ sàn nhà
+    ctx.fillStyle = '#281145';
+    ctx.fillRect(0, 320, 800, 60);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 320, 800, 4);
 
-    items.forEach(it => {
-        if (!it.collected) {
-            ctx.fillStyle = '#ff1744';
-            ctx.fillRect(it.x, it.y, it.w, it.h);
-            ctx.fillStyle = '#00e676';
-            ctx.fillRect(it.x + 3, it.y + 4, 6, 8);
-        }
-    });
+    // Vẽ nhóm Circus Trio đứng tương ứng nhân vật active
+    let drawX = 350;
+    if (activeChar === 'yatta') {
+        ctx.fillStyle = '#ffb74d'; ctx.fillRect(drawX, 260, 24, 60); // Yatta
+    } else if (activeChar === 'looey') {
+        ctx.fillStyle = '#fff176'; ctx.fillRect(drawX, 255, 26, 65); // Looey
+    } else if (activeChar === 'blot') {
+        ctx.fillStyle = '#78909c'; ctx.fillRect(drawX, 262, 24, 58); // Blot
+    } else {
+        // Circus Trio (cả 3 đứng chung)
+        ctx.fillStyle = '#ffb74d'; ctx.fillRect(drawX - 40, 260, 22, 60);
+        ctx.fillStyle = '#fff176'; ctx.fillRect(drawX, 255, 24, 65);
+        ctx.fillStyle = '#78909c'; ctx.fillRect(drawX + 40, 262, 22, 58);
+    }
 
-    ctx.fillStyle = elevator.open ? '#00e676' : '#d50000';
-    ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(elevator.x + 4, elevator.y + 4, elevator.w - 8, elevator.h - 4);
-
-    if (activeChar === 'yatta') ctx.fillStyle = '#ffb74d';
-    else if (activeChar === 'looey') ctx.fillStyle = '#fff176';
-    else ctx.fillStyle = '#78909c';
-
-    ctx.fillRect(player.x, player.y, player.w, player.h);
-    
-    ctx.fillStyle = '#ffffff';
-    let eyeX = player.facing === 'right' ? player.x + 14 : player.x + 2;
-    ctx.fillRect(eyeX, player.y + 6, 6, 6);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(eyeX + (player.facing === 'right' ? 3 : 0), player.y + 8, 3, 3);
-
-    requestAnimationFrame(loop);
+    requestAnimationFrame(gameLoop);
 }
 
-loop();
+// Khởi tạo
+updateDialogue();
+showCharPopup('yatta'); // Hiện bảng Yatta lúc đầu 10s
+gameLoop();
 </script>
 </body>
 </html>
 """
 
-components.html(game_code, height=580)
+components.html(game_code, height=620)

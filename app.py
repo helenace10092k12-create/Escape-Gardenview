@@ -107,7 +107,7 @@ game_code = r"""
         #info-title { color: #00e676; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
         #info-desc { color: #e0f2f1; font-size: 10px; }
 
-        /* KHUNG CHAT TÍCH HỢP ẢNH PIXEL LOOEY NHÔ LÊN TRÊN GÓC PHẢI GIỐNG BẢN PHÁC THẢO */
+        /* KHUNG CHẶT TÍCH HỢP ẢNH VẼ TAY THẬT CỦA BỒ */
         #dialogue-area {
             height: 200px;
             background: #080312;
@@ -119,26 +119,27 @@ game_code = r"""
             position: relative;
         }
 
-        /* Khung hiển thị Portrait Looey phong cách Pixel Art ở phía trên góc trái khung chat */
+        /* Khung hiển thị ảnh phác thảo thực tế của bồ */
         #portrait-box {
             position: absolute;
             left: 20px;
-            top: -110px;
-            width: 120px;
-            height: 120px;
+            top: -125px;
+            width: 140px;
+            height: 140px;
             background: #0b0514;
             border: 3px solid #7c4dff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 0 15px rgba(124, 77, 255, 0.4);
+            box-shadow: 0 0 20px rgba(124, 77, 255, 0.6);
         }
-        #portrait-canvas {
+        #portrait-box img {
             width: 100%;
             height: 100%;
-            image-rendering: pixelated;
+            object-fit: cover;
+            /* Hiệu ứng pixelated cho ảnh phác thảo khớp chất game retro */
+            image-rendering: pixelated; 
         }
 
-        /* Hộp tên nhân vật (Speaker Tag) nằm ở góc trên bên phải khung chat giống bản vẽ phác thảo */
         #speaker-tag {
             position: absolute;
             right: 20px;
@@ -193,7 +194,8 @@ game_code = r"""
 
     <div id="dialogue-area">
         <div id="portrait-box">
-            <canvas id="portraitCanvas" width="120" height="120"></canvas>
+            <!-- Bồ thay link ảnh phác thảo của bồ vào chỗ src bên dưới nhé -->
+            <img id="portrait-img" src="YOUR_IMAGE_URL_HERE" alt="Looey Sketch">
         </div>
         <div id="speaker-tag">NARRATOR</div>
         <div>
@@ -208,9 +210,6 @@ game_code = r"""
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-const pCanvas = document.getElementById('portraitCanvas');
-const pCtx = pCanvas.getContext('2d');
 
 let currentLang = 'ENG'; 
 let currentStep = 0;
@@ -278,21 +277,6 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
 });
 
-const charInfoData = {
-    ENG: {
-        yatta: { name: "YATTA (Acrobatic)", desc: "Flexible, agile, specialized in climbing high areas." },
-        looey: { name: "LOOEY (Fast Runner)", desc: "Runs extremely fast to escape pursuing Twisted toons." },
-        blot: { name: "BLOT (Mime & Clone)", desc: "Completely silent, capable of creating clones to trick monsters." },
-        trio: { name: "CIRCUS TRIO", desc: "The united power of all three members to survive in Gardenview!" }
-    },
-    VIE: {
-        yatta: { name: "YATTA (Dẻo dai)", desc: "Linh hoạt, chuyên leo trèo các khu vực cao." },
-        looey: { name: "LOOEY (Chạy nhanh)", desc: "Chạy cực nhanh để né tránh các Twisted bám đuổi." },
-        blot: { name: "BLOT (Hề câm & Tạo clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân đánh lừa quái." },
-        trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
-    }
-};
-
 const introScript = {
     ENG: [
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
@@ -321,7 +305,7 @@ const introScript = {
         { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển đến sát cái nút bấm và nhấn [E] để tương tác." },
         { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
         { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
-        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
         { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [1-4] Đổi nhân vật." }
     ]
 };
@@ -330,130 +314,12 @@ function toggleLanguage() {
     currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
     document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
     updateDialogue();
-    showCharPopup(activeChar);
-}
-
-function switchCharacter(char) {
-    activeChar = char;
-    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
-    let btnId = char === 'yatta' ? 'btn-yatta' : char === 'looey' ? 'btn-looey' : char === 'blot' ? 'btn-blot' : 'btn-trio';
-    document.getElementById(btnId).classList.add('active');
-    showCharPopup(char);
-}
-
-function showCharPopup(char) {
-    const info = charInfoData[currentLang][char];
-    const popup = document.getElementById('info-popup');
-    document.getElementById('info-title').innerText = info.name;
-    document.getElementById('info-desc').innerText = info.desc;
-    popup.style.display = 'block';
-    if (popupTimer) clearTimeout(popupTimer);
-    popupTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
-}
-
-function nextLine() {
-    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) return;
-    if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) return;
-    if (gamePhase === 'PORTAL_ANIM') return;
-
-    currentStep++;
-    const maxSteps = introScript[currentLang].length;
-    if (currentStep >= maxSteps) {
-        currentStep = maxSteps - 1;
-    }
-
-    if (currentStep === 4) {
-        gamePhase = 'DRESSING_ROOM';
-    } else if (currentStep === 8) {
-        gamePhase = 'BUTTON_PHASE';
-        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        redButton.x = leadX + 10;
-        redButton.active = true;
-    } else if (currentStep === 10) {
-        gamePhase = 'EXPLORE';
-        yattaPos.x = 100; yattaPos.y = 290;
-        looeyPos.x = 135; looeyPos.y = 290;
-        blotPos.x  = 170; blotPos.y  = 290;
-    }
-
-    updateDialogue();
-}
-
-// HỆ THỐNG VẼ CHÂN DUNG PIXEL ART CHUẨN MÀU THEO BẢN PHÁC THẢO CỦA BỒ
-function drawPortrait(speaker) {
-    pCtx.clearRect(0, 0, 120, 120);
-    pCtx.fillStyle = '#0b0514';
-    pCtx.fillRect(0, 0, 120, 120);
-
-    pCtx.save();
-    pCtx.translate(60, 65);
-
-    if (speaker === 'LOOEY') {
-        // 1. Tai bóng bay (Trái: Xanh lá, Phải: Tím) uốn cong
-        pCtx.fillStyle = '#66bb6a';
-        pCtx.beginPath(); pCtx.ellipse(-24, -48, 10, 20, -Math.PI/6, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#ab47bc';
-        pCtx.beginPath(); pCtx.ellipse(24, -48, 10, 20, Math.PI/6, 0, Math.PI*2); pCtx.fill();
-
-        // 2. Yếm / Khăn quàng cổ chấm bi Polka Dot
-        pCtx.fillStyle = '#ffffff';
-        pCtx.beginPath(); pCtx.moveTo(-30, 35); pCtx.lineTo(0, 5); pCtx.lineTo(30, 35); pCtx.closePath(); pCtx.fill();
-        pCtx.fillStyle = '#ab47bc'; pCtx.beginPath(); pCtx.arc(-12, 22, 4, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#66bb6a'; pCtx.beginPath(); pCtx.arc(10, 25, 4, 0, Math.PI*2); pCtx.fill();
-
-        // 3. Đầu Looey vàng nhạt
-        pCtx.fillStyle = '#ffee58';
-        pCtx.beginPath(); pCtx.arc(0, -10, 26, 0, Math.PI*2); pCtx.fill();
-
-        // 4. Mắt to tròn long lanh có vệt sáng sọc dọc
-        pCtx.fillStyle = '#111111';
-        pCtx.beginPath(); pCtx.ellipse(-11, -12, 6, 11, 0, 0, Math.PI*2); pCtx.fill();
-        pCtx.beginPath(); pCtx.ellipse(11, -12, 6, 11, 0, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#ffffff';
-        pCtx.fillRect(-13, -19, 2, 10); pCtx.fillRect(11, -19, 2, 10);
-
-        // 5. Má hề & Mũi đỏ
-        pCtx.fillStyle = '#ab47bc'; pCtx.beginPath(); pCtx.arc(-18, -2, 5, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#66bb6a'; pCtx.beginPath(); pCtx.arc(18, -2, 5, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#ff1744'; pCtx.beginPath(); pCtx.arc(0, -2, 5, 0, Math.PI*2); pCtx.fill();
-
-        // 6. Miệng cười
-        pCtx.strokeStyle = '#111'; pCtx.lineWidth = 2;
-        pCtx.beginPath(); pCtx.arc(0, 4, 7, 0, Math.PI); pCtx.stroke();
-    }
-    else if (speaker === 'YATTA') {
-        pCtx.fillStyle = '#fff59d'; pCtx.beginPath(); pCtx.arc(0, -5, 26, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#ff80ab'; pCtx.fillRect(-28, -40, 8, 16); pCtx.fillRect(20, -40, 8, 16);
-        pCtx.fillStyle = '#4fc3f7'; pCtx.beginPath(); pCtx.arc(0, 0, 18, 0, Math.PI); pCtx.fill();
-    }
-    else if (speaker === 'BLOT') {
-        pCtx.fillStyle = '#37474f'; pCtx.beginPath(); pCtx.arc(0, -5, 26, 0, Math.PI*2); pCtx.fill();
-        pCtx.fillStyle = '#ffffff'; pCtx.fillRect(-12, -12, 24, 16);
-        pCtx.fillStyle = '#000000'; pCtx.fillRect(-8, -8, 6, 6); pCtx.fillRect(2, -8, 6, 6);
-    }
-    else {
-        pCtx.fillStyle = '#7c4dff';
-        pCtx.font = 'bold 11px Courier New';
-        pCtx.textAlign = 'center';
-        pCtx.fillText("SYSTEM", 0, 0);
-    }
-    pCtx.restore();
 }
 
 function updateDialogue() {
     const data = introScript[currentLang][currentStep];
     document.getElementById('speaker-tag').innerText = data.speaker;
     document.getElementById('dialogue-text').innerText = data.text;
-    
-    drawPortrait(data.speaker);
-
-    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Door (Press E)]" : "[Interact with Door (Bấm E)]";
-    } else if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Red Button (Press E)]" : "[Interact with Red Button (Bấm E)]";
-    } else {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
-    }
 }
 
 function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false) {
@@ -537,122 +403,4 @@ function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false
 }
 
 function gameLoop() {
-    if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
-        let moveX = 0;
-        if (keys.left) moveX = -speed;
-        if (keys.right) moveX = speed;
-
-        if (activeChar === 'trio') {
-            yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX;
-        } else if (activeChar === 'yatta') {
-            yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0;
-        } else if (activeChar === 'looey') {
-            yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0;
-        } else if (activeChar === 'blot') {
-            yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX;
-        }
-
-        [yattaPos, looeyPos, blotPos].forEach(p => {
-            p.vy += 0.4;
-            p.x += p.vx;
-            p.y += p.vy;
-            if (p.y >= 290) {
-                p.y = 290;
-                p.vy = 0;
-                p.grounded = true;
-            }
-            if (p.x < 20) p.x = 20;
-            if (p.x > 740) p.x = 740;
-        });
-    }
-
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
-    ctx.fillRect(0, 0, 800, 360);
-
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
-    for(let x = 0; x < 800; x += 40) {
-        for(let y = 0; y < 360; y += 40) {
-            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
-        }
-    }
-
-    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
-        ctx.fillStyle = '#311b92';
-        ctx.fillRect(60, 140, 70, 150);
-        ctx.strokeStyle = '#7c4dff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(60, 140, 70, 150);
-        ctx.fillStyle = '#ffb74d';
-        ctx.fillRect(115, 210, 6, 10);
-
-        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        if (currentStep === 4 && leadX < 140) {
-            ctx.fillStyle = '#00e676';
-            ctx.font = '11px Courier New';
-            ctx.fillText("Interact with door [E]", 50, 130);
-        }
-    }
-
-    if (gamePhase === 'BUTTON_PHASE' && redButton.active) {
-        ctx.fillStyle = '#d50000';
-        ctx.fillRect(redButton.x, 285, 24, 8);
-        ctx.fillStyle = '#ff1744';
-        ctx.fillRect(redButton.x + 4, 281, 16, 4);
-
-        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        if (Math.abs(leadX - redButton.x) < 40) {
-            ctx.fillStyle = '#00e676';
-            ctx.font = '11px Courier New';
-            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 268);
-        }
-    }
-
-    if (gamePhase === 'PORTAL_ANIM') {
-        portalAnimProgress += 0.05;
-        let rot = portalAnimProgress * 10;
-        let scale = Math.max(0.1, 1 - portalAnimProgress * 0.3);
-        
-        ctx.fillStyle = '#ff1744';
-        ctx.beginPath();
-        ctx.arc(400, 200, Math.min(100, portalAnimProgress * 40), 0, Math.PI * 2);
-        ctx.fill();
-
-        drawPixelCharacter(400 + Math.sin(rot)*30, 200 + Math.cos(rot)*30, activeChar, rot, scale, false);
-
-        if (portalAnimProgress > 3) {
-            gamePhase = 'GARDENVIEW_SPIT';
-            currentStep = 10; 
-            updateDialogue();
-        }
-    }
-
-    if (gamePhase === 'GARDENVIEW_SPIT' || gamePhase === 'EXPLORE') {
-        ctx.fillStyle = '#00e676';
-        ctx.beginPath();
-        ctx.ellipse(100, 200, 30, 45, Math.PI / 4, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
-    ctx.fillRect(0, 290, 800, 70);
-    ctx.fillStyle = '#7c4dff';
-    ctx.fillRect(0, 290, 800, 4);
-
-    if (gamePhase !== 'PORTAL_ANIM') {
-        drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta', 0, 1, activeChar === 'yatta');
-        drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey', 0, 1, activeChar === 'looey');
-        drawPixelCharacter(blotPos.x, blotPos.y, 'blot', 0, 1, activeChar === 'blot');
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-updateDialogue();
-showCharPopup('trio');
-gameLoop();
-</script>
-</body>
-</html>
-"""
-
-components.html(game_code, height=620)
+    if (gamePhase !== '

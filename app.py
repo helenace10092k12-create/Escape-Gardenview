@@ -175,6 +175,7 @@ let currentLang = 'ENG';
 let currentStep = 0;
 let activeChar = 'yatta';
 let popupTimer = null;
+let waitingForInteract = false; // Trạng thái chờ người chơi bấm [E] vào cửa
 
 let player = {
     x: 360, y: 245, w: 40, h: 56,
@@ -194,8 +195,11 @@ window.addEventListener('keydown', (e) => {
             player.grounded = false;
         }
     }
+    
     if (e.code === 'Space') {
-        nextLine();
+        if (!waitingForInteract) {
+            nextLine();
+        }
     }
 
     if (e.code === 'Digit1') switchCharacter('yatta');
@@ -203,7 +207,14 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit3') switchCharacter('blot');
     if (e.code === 'Digit4') switchCharacter('trio');
 
-    if (e.code === 'KeyE') console.log("Interacted with [E]");
+    // Phím [E] để tương tác với cửa khi đứng gần
+    if (e.code === 'KeyE') {
+        if (waitingForInteract && player.x < 140) {
+            waitingForInteract = false;
+            currentStep++; // Chuyển sang đoạn cúp điện / sập cửa
+            updateDialogue();
+        }
+    }
     if (e.code === 'KeyZ') console.log("Used Skill with [Z]");
 });
 
@@ -232,9 +243,11 @@ const introScript = {
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: "!enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Nods silently, smiling gently in the corner of the room)." },
+        { speaker: "BLOT", text: "...tiaW !enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Nods silently, smiling gently in the corner of the room.)" },
+        { speaker: "SYSTEM", text: "ACTION REQUIRED: Move near the door (left side) and press [E] to Interact with the door!" },
+        // [Index 4: Điểm dừng chờ tương tác cửa]
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
-        { speaker: "BLOT", text: "1?! tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Wait... The lights went out! Total blackout?!)" },
+        { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Wait... The lights went out! Total blackout?!)" },
         { speaker: "YATTA", text: "Huh... what is that glowing thing right in the middle of the floor? A strange red button..." },
         { speaker: "NARRATOR", text: "Out of curiosity, Yatta steps forward and accidentally touches the button..." },
         { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
@@ -246,7 +259,9 @@ const introScript = {
         { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", text: ").moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)" },
+        { speaker: "BLOT", text: "...moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)" },
+        { speaker: "HỆ THỐNG", text: "YÊU CẦU: Di chuyển lại gần cánh cửa bên trái và bấm phím [E] để tương tác với cửa!" },
+        // [Index 4: Điểm dừng chờ tương tác cửa]
         { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
         { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!)" },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
@@ -284,9 +299,19 @@ function showCharPopup(char) {
 }
 
 function nextLine() {
+    if (waitingForInteract) return; // Nếu đang chờ tương tác cửa thì không cho bấm Next bằng Space
+    
     currentStep++;
     const maxSteps = introScript[currentLang].length;
-    if (currentStep >= maxSteps) currentStep = maxSteps - 1;
+    if (currentStep >= maxSteps) {
+        currentStep = maxSteps - 1;
+    }
+    
+    // Nếu đến bước 4 (yêu cầu interact cửa), bật cờ chờ
+    if (currentStep === 4) {
+        waitingForInteract = true;
+    }
+    
     updateDialogue();
 }
 
@@ -294,54 +319,45 @@ function updateDialogue() {
     const data = introScript[currentLang][currentStep];
     document.getElementById('speaker').innerText = data.speaker;
     document.getElementById('dialogue-text').innerText = data.text;
-    document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+    
+    if (waitingForInteract) {
+        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Press E at Door]" : "[Bấm E tại cửa]";
+    } else {
+        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+    }
 }
 
-// Vẽ Pixel Art chuẩn theo ảnh mẫu (Yatta: Vàng nhạt, 2 tai nhọn sọc hồng/xanh, mặt xanh, 4 đuôi hồng)
 function drawPixelCharacter(x, y, type) {
     ctx.save();
     ctx.translate(x, y);
 
     if (type === 'yatta') {
-        // Thân vàng nhạt (Cream/Yellow)
         ctx.fillStyle = '#fff59d';
         ctx.fillRect(8, 12, 24, 22);
-
-        // 2 tai nhọn chụm lên trên (sọc hồng/xanh)
-        ctx.fillStyle = '#ff80ab'; // Hồng tai
+        ctx.fillStyle = '#ff80ab';
         ctx.fillRect(4, 2, 8, 12);
         ctx.fillRect(28, 2, 8, 12);
-        ctx.fillStyle = '#4fc3f7'; // Điểm xanh trên tai
+        ctx.fillStyle = '#4fc3f7';
         ctx.fillRect(6, 4, 4, 5);
         ctx.fillRect(30, 4, 4, 5);
-
-        // Khuôn mặt màu xanh dương nhạt đặc trưng
         ctx.fillStyle = '#4fc3f7';
         ctx.fillRect(10, 16, 20, 14);
-
-        // Mắt tròn to trắng đen
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(11, 17, 6, 8);
         ctx.fillRect(23, 17, 6, 8);
         ctx.fillStyle = '#111111';
         ctx.fillRect(13, 20, 3, 4);
         ctx.fillRect(25, 20, 3, 4);
-
-        // 4 cái đuôi dài màu hồng rực rỡ uốn lượn phía sau
+        
         ctx.strokeStyle = '#ff4081';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        // Đuôi 1
         ctx.moveTo(8, 30); ctx.quadraticCurveTo(-6, 28, -12, 18);
-        // Đuôi 2
         ctx.moveTo(8, 32); ctx.quadraticCurveTo(-8, 34, -14, 26);
-        // Đuôi 3
         ctx.moveTo(8, 34); ctx.quadraticCurveTo(-6, 40, -12, 36);
-        // Đuôi 4
         ctx.moveTo(8, 35); ctx.quadraticCurveTo(-4, 45, -10, 42);
         ctx.stroke();
 
-        // Trang phục piñata sọc hồng/xanh
         ctx.fillStyle = '#ff80ab';
         ctx.fillRect(8, 34, 24, 18);
         ctx.fillStyle = '#4fc3f7';
@@ -417,6 +433,13 @@ function gameLoop() {
     ctx.strokeRect(60, 150, 70, 156);
     ctx.fillStyle = '#ffb74d';
     ctx.fillRect(115, 230, 6, 10);
+
+    // Hiển thị gợi ý bấm [E] nếu đang đứng gần cửa và chờ tương tác
+    if (waitingForInteract && player.x < 140) {
+        ctx.fillStyle = '#00e676';
+        ctx.font = '12px Courier New';
+        ctx.fillText("[Press E]", 70, 140);
+    }
 
     // Vẽ Rương vật phẩm (Chest) bên phải
     ctx.fillStyle = '#4e342e';

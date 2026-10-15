@@ -19,7 +19,7 @@ st.markdown("""
 
 game_code = r"""
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <title>Escape Gardenview: Halloween Special</title>
@@ -138,10 +138,10 @@ game_code = r"""
         <div class="title" id="game-title">GARDENVIEW: HALLOWEEN ESCAPE</div>
         <div class="ui-right-group">
             <div class="hud-buttons">
-                <button class="toon-btn active" id="btn-yatta" onclick="switchCharacter('yatta')">[1] Yatta</button>
+                <button class="toon-btn" id="btn-yatta" onclick="switchCharacter('yatta')">[1] Yatta</button>
                 <button class="toon-btn" id="btn-looey" onclick="switchCharacter('looey')">[2] Looey</button>
                 <button class="toon-btn" id="btn-blot" onclick="switchCharacter('blot')">[3] Blot</button>
-                <button class="toon-btn" id="btn-trio" onclick="switchCharacter('trio')">[4] Trio</button>
+                <button class="toon-btn active" id="btn-trio" onclick="switchCharacter('trio')">[4] Trio</button>
             </div>
             <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">VIE / ENG</button>
         </div>
@@ -151,18 +151,18 @@ game_code = r"""
         <canvas id="gameCanvas" width="800" height="380"></canvas>
         <div id="crt-overlay"></div>
         <div id="info-popup">
-            <div id="info-title">CHARACTER INFO</div>
-            <div id="info-desc">Description here...</div>
+            <div id="info-title">THÔNG TIN NHÂN VẬT</div>
+            <div id="info-desc">Mô tả ở đây...</div>
         </div>
     </div>
 
     <div id="dialogue-area">
         <div>
-            <div id="speaker">NARRATOR</div>
-            <div id="dialogue-text">Loading introduction...</div>
+            <div id="speaker">DẪN CHUYỆN</div>
+            <div id="dialogue-text">Đang tải phần mở đầu...</div>
         </div>
         <div class="dialogue-btns">
-            <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
+            <button class="action-btn" id="next-btn" onclick="nextLine()">Tiếp theo [Space] ></button>
         </div>
     </div>
 </div>
@@ -171,18 +171,19 @@ game_code = r"""
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let currentLang = 'ENG';
+let currentLang = 'VIE'; // Mặc định Tiếng Việt cho đúng yêu cầu
 let currentStep = 0;
-let activeChar = 'yatta';
+let activeChar = 'trio'; // Mặc định điều khiển cả 3 đứa (Trio)
 let popupTimer = null;
 let gamePhase = 'DRESSING_ROOM'; 
 
-let player = {
-    x: 360, y: 250, w: 40, h: 56,
-    vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
-    grounded: true, facing: 'right'
-};
+// Vị trí độc lập của từng thành viên trong Circus Trio
+let yattaPos = { x: 320, y: 306, vx: 0, vy: 0, grounded: true };
+let looeyPos = { x: 360, y: 306, vx: 0, vy: 0, grounded: true };
+let blotPos  = { x: 400, y: 306, vx: 0, vy: 0, grounded: true };
 
+let speed = 3.5;
+let jumpPower = -9;
 let redButton = { x: 0, active: false };
 let portalAnimProgress = 0;
 
@@ -193,9 +194,15 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
     
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        if (player.grounded && gamePhase !== 'PORTAL_ANIM') {
-            player.vy = player.jumpPower;
-            player.grounded = false;
+        if (gamePhase !== 'PORTAL_ANIM') {
+            if (activeChar === 'yatta' && yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }
+            if (activeChar === 'looey' && looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }
+            if (activeChar === 'blot'  && blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }
+            if (activeChar === 'trio') {
+                if (yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }
+                if (looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }
+                if (blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }
+            }
         }
     }
     
@@ -215,11 +222,12 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit4') switchCharacter('trio');
 
     if (e.code === 'KeyE') {
-        if (gamePhase === 'DRESSING_ROOM' && currentStep === 4 && player.x < 140) {
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (gamePhase === 'DRESSING_ROOM' && currentStep === 4 && leadX < 140) {
             gamePhase = 'BLACKOUT';
             currentStep = 5; 
             updateDialogue();
-        } else if (gamePhase === 'BUTTON_PHASE' && redButton.active && Math.abs(player.x - redButton.x) < 40) {
+        } else if (gamePhase === 'BUTTON_PHASE' && redButton.active && Math.abs(leadX - redButton.x) < 40) {
             redButton.active = false;
             gamePhase = 'PORTAL_ANIM';
             portalAnimProgress = 0;
@@ -235,56 +243,56 @@ window.addEventListener('keyup', (e) => {
 });
 
 const charInfoData = {
+    VIE: {
+        yatta: { name: "YATTA (Dẻo dai)", desc: "Linh hoạt, chuyên leo trèo các khu vực cao trong Gardenview." },
+        looey: { name: "LOOEY (Chạy nhanh)", desc: "Chạy cực nhanh để né tránh các Twisted bám đuổi sát nút." },
+        blot: { name: "BLOT (Hề câm & Tạo bản sao)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân đánh lừa quái." },
+        trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết của cả ba thành viên để sinh tồn!" }
+    },
     ENG: {
         yatta: { name: "YATTA (Acrobatic)", desc: "Flexible, agile, specialized in climbing high areas." },
         looey: { name: "LOOEY (Fast Runner)", desc: "Runs extremely fast to escape pursuing Twisted toons." },
         blot: { name: "BLOT (Mime & Clone)", desc: "Completely silent, capable of creating clones to trick monsters." },
         trio: { name: "CIRCUS TRIO", desc: "The united power of all three members to survive in Gardenview!" }
-    },
-    VIE: {
-        yatta: { name: "YATTA (Dẻo dai)", desc: "Linh hoạt, chuyên leo trèo các khu vực cao." },
-        looey: { name: "LOOEY (Chạy nhanh)", desc: "Chạy cực nhanh để né tránh các Twisted bám đuổi." },
-        blot: { name: "BLOT (Hề câm & Tạo clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân đánh lừa quái." },
-        trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
     }
 };
 
 const introScript = {
+    VIE: [
+        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
+        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
+        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+        { speaker: "BLOT", text: "...moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Dịch: Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
+        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cánh cửa phòng thay đồ và nhấn [E] để tương tác." },
+        { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+        { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Dịch: Khoan đã... Đèn tắt hết rồi! Mất điện toàn tập rồi sao?!)" },
+        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng đỏ rực ngay dưới chân tụi mình thế kia? Một cái nút bấm kỳ lạ..." },
+        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển đến sát cái nút bấm và nhấn [E] để tương tác." },
+        { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [1-4] Đổi nhân vật." }
+    ],
     ENG: [
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: "...tiaW !enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Nods silently, smiling gently in the corner of the room.)" },
+        { speaker: "BLOT", text: "...tiaW !enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Trans: Nods silently, smiling gently in the corner of the room)." },
         { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." },
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
-        { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Wait... The lights went out! Total blackout?!)" },
+        { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Trans: Wait... The lights went out! Total blackout?!)" },
         { speaker: "YATTA", text: "Huh... what is that glowing red button right under us? A strange red button..." },
         { speaker: "SYSTEM", text: "Interact with the red button: Walk to it and press [E]." },
         { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, swirling and getting sucked in..." },
         { speaker: "NARRATOR", text: "...And finally, they are spit out from the top-left portal into a cold, desolate place. Is this Gardenview? No... it's rundown and eerie!" },
         { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
-        { speaker: "SYSTEM", text: "Controls: [A/D] Move, [W/Up] Jump, [Space] Next Dialogue, [E] Interact, [Z] Skill, [1-4] Switch Toon." }
-    ],
-    VIE: [
-        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
-        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
-        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", text: "...moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)" },
-        { speaker: "HỆ THỐNG", text: "Interact with the door: Di chuyển lại gần cửa phòng thay đồ và bấm [E]." },
-        { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
-        { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!)" },
-        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ngay dưới chân tụi mình thế kia? Một cái nút đỏ kỳ lạ..." },
-        { speaker: "HỆ THỐNG", text: "Interact with the red button: Di chuyển đến chỗ cái nút và bấm [E]." },
-        { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
-        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
-        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
-        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [Z] Kỹ năng, [1-4] Đổi nhân vật." }
+        { speaker: "SYSTEM", text: "Controls: [A/D] Move, [W/Up] Jump, [Space] Next Dialogue, [E] Interact, [1-4] Switch Toon." }
     ]
 };
 
 function toggleLanguage() {
-    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
-    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
+    currentLang = currentLang === 'VIE' ? 'ENG' : 'VIE';
+    document.getElementById('lang-btn').innerText = currentLang === 'VIE' ? 'VIE / ENG' : 'ENG / VIE';
     updateDialogue();
     showCharPopup(activeChar);
 }
@@ -322,12 +330,14 @@ function nextLine() {
         gamePhase = 'DRESSING_ROOM';
     } else if (currentStep === 7) {
         gamePhase = 'BUTTON_PHASE';
-        redButton.x = player.x + 10;
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        redButton.x = leadX + 10;
         redButton.active = true;
     } else if (currentStep === 10) {
         gamePhase = 'EXPLORE';
-        player.x = 120;
-        player.y = 250;
+        yattaPos.x = 100; yattaPos.y = 306;
+        looeyPos.x = 135; looeyPos.y = 306;
+        blotPos.x  = 170; blotPos.y  = 306;
     }
 
     updateDialogue();
@@ -339,209 +349,17 @@ function updateDialogue() {
     document.getElementById('dialogue-text').innerText = data.text;
     
     if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Door (Press E)]" : "[Interact with Door (Bấm E)]";
+        document.getElementById('next-btn').innerText = currentLang === 'VIE' ? "[Interact with Door (Bấm E)]" : "[Interact with Door (Press E)]";
     } else if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "[Interact with Red Button (Press E)]" : "[Interact with Red Button (Bấm E)]";
+        document.getElementById('next-btn').innerText = currentLang === 'VIE' ? "[Interact with Red Button (Bấm E)]" : "[Interact with Red Button (Press E)]";
     } else {
-        document.getElementById('next-btn').innerText = currentLang === 'ENG' ? "Next [Space] >" : "Tiếp theo [Space] >";
+        document.getElementById('next-btn').innerText = currentLang === 'VIE' ? "Tiếp theo [Space] >" : "Next [Space] >";
     }
 }
 
-// Vẽ Pixel Art chuẩn theo hình mẫu của Yatta (Vàng nhạt, mặt xanh, tai nhọn sọc hồng/xanh, 4 đuôi hồng) và Circus Trio
-function drawPixelCharacter(x, y, type, angle = 0, scale = 1) {
+// Vẽ Pixel Art nhân vật Yatta, Looey, Blot chuẩn chỉnh
+function drawPixelCharacter(x, y, type, angle = 0, scale = 1, isSelected = false) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
-    ctx.scale(scale, scale);
-
-    if (type === 'yatta') {
-        // Thân vàng nhạt
-        ctx.fillStyle = '#fff59d';
-        ctx.fillRect(-12, -40, 24, 32);
-
-        // 2 tai nhọn sọc hồng/xanh
-        ctx.fillStyle = '#ff80ab';
-        ctx.fillRect(-16, -52, 8, 14);
-        ctx.fillRect(8, -52, 8, 14);
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(-14, -49, 4, 6);
-        ctx.fillRect(10, -49, 4, 6);
-
-        // Khuôn mặt xanh dương nhạt
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(-10, -34, 20, 16);
-
-        // Mắt to tròn
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-9, -32, 6, 8);
-        ctx.fillRect(3, -32, 6, 8);
-        ctx.fillStyle = '#111111';
-        ctx.fillRect(-7, -29, 3, 4);
-        ctx.fillRect(5, -29, 3, 4);
-
-        // 4 chiếc đuôi dài màu hồng rực rỡ uốn lượn phía sau
-        ctx.strokeStyle = '#ff4081';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(10, -15); ctx.quadraticCurveTo(22, -18, 30, -5);
-        ctx.moveTo(10, -12); ctx.quadraticCurveTo(24, -10, 32, 2);
-        ctx.moveTo(10, -9);  ctx.quadraticCurveTo(20, -2, 28, 10);
-        ctx.moveTo(10, -6);  ctx.quadraticCurveTo(18, 6, 26, 16);
-        ctx.stroke();
-
-        // Trang phục piñata
-        ctx.fillStyle = '#ff80ab';
-        ctx.fillRect(-12, -8, 24, 18);
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(-8, -8, 4, 18);
-        ctx.fillRect(4, -8, 4, 18);
-    } 
-    else if (type === 'looey') {
-        ctx.fillStyle = '#ffee58';
-        ctx.fillRect(-14, -38, 28, 30);
-        ctx.fillStyle = '#66bb6a';
-        ctx.fillRect(-10, -56, 8, 18);
-        ctx.fillStyle = '#ab47bc';
-        ctx.fillRect(2, -56, 8, 18);
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(-8, -28, 4, 6);
-        ctx.fillRect(4, -28, 4, 6);
-        ctx.fillStyle = '#ff7043';
-        ctx.fillRect(-12, -8, 24, 18);
-    } 
-    else if (type === 'blot') {
-        ctx.fillStyle = '#37474f';
-        ctx.fillRect(-12, -38, 24, 32);
-        ctx.fillStyle = '#212121';
-        ctx.fillRect(-12, -38, 14, 16);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(2, -30, 8, 8);
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(5, -27, 3, 3);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-12, -8, 24, 18);
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(-8, -8, 4, 18);
-        ctx.fillRect(0, -8, 4, 18);
-    }
-    ctx.restore();
-}
-
-function gameLoop() {
-    if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
-        if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
-        else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
-        else { player.vx = 0; }
-
-        player.vy += 0.4;
-        player.x += player.vx;
-        player.y += player.vy;
-
-        // Chạm sàn chính xác ở y = 306
-        if (player.y >= 306) {
-            player.y = 306;
-            player.vy = 0;
-            player.grounded = true;
-        }
-
-        if (player.x < 20) player.x = 20;
-        if (player.x > 740) player.x = 740;
-    }
-
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
-    ctx.fillRect(0, 0, 800, 380);
-
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
-    for(let x = 0; x < 800; x += 40) {
-        for(let y = 0; y < 380; y += 40) {
-            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
-        }
-    }
-
-    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
-        ctx.fillStyle = '#311b92';
-        ctx.fillRect(60, 150, 70, 156);
-        ctx.strokeStyle = '#7c4dff';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(60, 150, 70, 156);
-        ctx.fillStyle = '#ffb74d';
-        ctx.fillRect(115, 230, 6, 10);
-
-        if (currentStep === 4 && player.x < 140) {
-            ctx.fillStyle = '#00e676';
-            ctx.font = '11px Courier New';
-            ctx.fillText("Interact with door [E]", 50, 140);
-        }
-    }
-
-    if (gamePhase === 'BUTTON_PHASE' && redButton.active) {
-        ctx.fillStyle = '#d50000';
-        ctx.fillRect(redButton.x, 298, 24, 8);
-        ctx.fillStyle = '#ff1744';
-        ctx.fillRect(redButton.x + 4, 294, 16, 4);
-
-        if (Math.abs(player.x - redButton.x) < 40) {
-            ctx.fillStyle = '#00e676';
-            ctx.font = '11px Courier New';
-            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 280);
-        }
-    }
-
-    if (gamePhase === 'PORTAL_ANIM') {
-        portalAnimProgress += 0.05;
-        let rot = portalAnimProgress * 10;
-        let scale = Math.max(0.1, 1 - portalAnimProgress * 0.3);
-        
-        ctx.fillStyle = '#ff1744';
-        ctx.beginPath();
-        ctx.arc(400, 250, Math.min(100, portalAnimProgress * 40), 0, Math.PI * 2);
-        ctx.fill();
-
-        drawPixelCharacter(400 + Math.sin(rot)*30, 250 + Math.cos(rot)*30, activeChar, rot, scale);
-
-        if (portalAnimProgress > 3) {
-            gamePhase = 'GARDENVIEW_SPIT';
-            currentStep = 10; 
-            updateDialogue();
-        }
-    }
-
-    if (gamePhase === 'GARDENVIEW_SPIT' || gamePhase === 'EXPLORE') {
-        ctx.fillStyle = '#00e676';
-        ctx.beginPath();
-        ctx.ellipse(100, 230, 30, 45, Math.PI / 4, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // Sàn nhà chuẩn y = 306
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
-    ctx.fillRect(0, 306, 800, 74);
-    ctx.fillStyle = '#7c4dff';
-    ctx.fillRect(0, 306, 800, 4);
-
-    if (gamePhase !== 'PORTAL_ANIM') {
-        if (activeChar === 'yatta') {
-            drawPixelCharacter(player.x, player.y, 'yatta');
-        } else if (activeChar === 'looey') {
-            drawPixelCharacter(player.x, player.y, 'looey');
-        } else if (activeChar === 'blot') {
-            drawPixelCharacter(player.x, player.y, 'blot');
-        } else {
-            drawPixelCharacter(player.x - 35, player.y, 'yatta');
-            drawPixelCharacter(player.x, player.y, 'looey');
-            drawPixelCharacter(player.x + 35, player.y, 'blot');
-        }
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-updateDialogue();
-showCharPopup('yatta');
-gameLoop();
-</script>
-</body>
-</html>
-"""
-
-components.html(game_code, height=620)
+    ctx.scale(scale

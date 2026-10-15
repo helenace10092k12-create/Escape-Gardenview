@@ -466,4 +466,74 @@ function gameLoop() {
         ctx.fillStyle = '#ffb74d';
         ctx.fillRect(115, 210, 6, 10);
 
-        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (currentStep === 4 && leadX < 140) {
+            ctx.fillStyle = '#00e676';
+            ctx.font = '11px Courier New';
+            ctx.fillText("Interact with door [E]", 50, 130);
+        }
+    }
+
+    if (gamePhase === 'BUTTON_PHASE' && redButton.active) {
+        ctx.fillStyle = '#d50000';
+        ctx.fillRect(redButton.x, 285, 24, 8);
+        ctx.fillStyle = '#ff1744';
+        ctx.fillRect(redButton.x + 4, 281, 16, 4);
+
+        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
+        if (Math.abs(leadX - redButton.x) < 40) {
+            ctx.fillStyle = '#00e676';
+            ctx.font = '11px Courier New';
+            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 268);
+        }
+    }
+
+    if (gamePhase === 'PORTAL_ANIM') {
+        portalAnimProgress += 0.05;
+        let rot = portalAnimProgress * 10;
+        let scale = Math.max(0.1, 1 - portalAnimProgress * 0.3);
+        
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(400, 200, Math.min(100, portalAnimProgress * 40), 0, Math.PI * 2);
+        ctx.fill();
+
+        drawPixelCharacter(400 + Math.sin(rot)*30, 200 + Math.cos(rot)*30, activeChar, rot, scale, false);
+
+        if (portalAnimProgress > 3) {
+            gamePhase = 'GARDENVIEW_SPIT';
+            currentStep = 10; 
+            updateDialogue();
+        }
+    }
+
+    if (gamePhase === 'GARDENVIEW_SPIT' || gamePhase === 'EXPLORE') {
+        ctx.fillStyle = '#00e676';
+        ctx.beginPath();
+        ctx.ellipse(100, 200, 30, 45, Math.PI / 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
+    ctx.fillRect(0, 290, 800, 70);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 290, 800, 4);
+
+    if (gamePhase !== 'PORTAL_ANIM') {
+        drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta', 0, 1, activeChar === 'yatta');
+        drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey', 0, 1, activeChar === 'looey');
+        drawPixelCharacter(blotPos.x, blotPos.y, 'blot', 0, 1, activeChar === 'blot');
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+showCharPopup('trio');
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

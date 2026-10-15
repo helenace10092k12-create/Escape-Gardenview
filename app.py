@@ -17,7 +17,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = """
+game_code = r"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -315,3 +315,49 @@ function gameLoop() {
 
     if (player.y >= 270) {
         player.y = 270;
+        player.vy = 0;
+        player.grounded = true;
+    }
+
+    if (player.x < 20) player.x = 20;
+    if (player.x > 750) player.x = 750;
+
+    ctx.fillStyle = '#06030c';
+    ctx.fillRect(0, 0, 800, 380);
+
+    ctx.fillStyle = '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    ctx.fillStyle = '#281145';
+    ctx.fillRect(0, 320, 800, 60);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 320, 800, 4);
+
+    if (activeChar === 'yatta') {
+        ctx.fillStyle = '#ffb74d'; ctx.fillRect(player.x, player.y, 24, 50);
+    } else if (activeChar === 'looey') {
+        ctx.fillStyle = '#fff176'; ctx.fillRect(player.x, player.y, 26, 52);
+    } else if (activeChar === 'blot') {
+        ctx.fillStyle = '#78909c'; ctx.fillRect(player.x, player.y, 24, 48);
+    } else {
+        ctx.fillStyle = '#ffb74d'; ctx.fillRect(player.x - 30, player.y, 20, 50);
+        ctx.fillStyle = '#fff176'; ctx.fillRect(player.x, player.y - 2, 22, 52);
+        ctx.fillStyle = '#78909c'; ctx.fillRect(player.x + 30, player.y + 2, 20, 48);
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+showCharPopup('yatta');
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

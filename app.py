@@ -55,7 +55,12 @@ game_code = """
             padding: 0 12px;
             z-index: 20;
         }
-        .title { color: #ff7043; font-weight: bold; font-size: 13px; letter-spacing: 1px; }
+        .title { color: #ff7043; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
+        .ui-right-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
         .hud-buttons {
             display: flex;
             gap: 5px;
@@ -64,7 +69,11 @@ game_code = """
             background: #1a0b2e; color: #d1c4e9; border: 1px solid #7c4dff;
             padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 3px;
         }
-        .toon-btn.active { background: #651fff; color: #fff; border-weight: bold; }
+        .toon-btn.active { background: #651fff; color: #fff; font-weight: bold; }
+        .lang-btn {
+            background: #311b92; color: #ffeb3b; border: 1px solid #ab47bc;
+            padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 3px; font-weight: bold;
+        }
         
         #canvas-holder {
             position: relative;
@@ -81,7 +90,6 @@ game_code = """
             background-size: 100% 4px;
         }
 
-        /* Character Info Pop-up (Hiển thị 10 giây khi đổi nhân vật) */
         #info-popup {
             position: absolute;
             top: 20px;
@@ -127,20 +135,21 @@ game_code = """
 
 <div id="game-box">
     <div id="top-ui">
-        <div class="title">GARDENVIEW: HALLOWEEN ESCAPE (LOCKED AWAY)</div>
-        <div class="hud-buttons">
-            <button class="toon-btn active" id="btn-yatta" onclick="switchCharacter('yatta')">Yatta</button>
-            <button class="toon-btn" id="btn-looey" onclick="switchCharacter('looey')">Looey</button>
-            <button class="toon-btn" id="btn-blot" onclick="switchCharacter('blot')">Blot</button>
-            <button class="toon-btn" id="btn-trio" onclick="switchCharacter('trio')">Circus Trio</button>
+        <div class="title" id="game-title">GARDENVIEW: HALLOWEEN ESCAPE</div>
+        <div class="ui-right-group">
+            <div class="hud-buttons">
+                <button class="toon-btn active" id="btn-yatta" onclick="switchCharacter('yatta')">[1] Yatta</button>
+                <button class="toon-btn" id="btn-looey" onclick="switchCharacter('looey')">[2] Looey</button>
+                <button class="toon-btn" id="btn-blot" onclick="switchCharacter('blot')">[3] Blot</button>
+                <button class="toon-btn" id="btn-trio" onclick="switchCharacter('trio')">[4] Trio</button>
+            </div>
+            <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">VIE / ENG</button>
         </div>
     </div>
 
     <div id="canvas-holder">
         <canvas id="gameCanvas" width="800" height="380"></canvas>
         <div id="crt-overlay"></div>
-        
-        <!-- Bảng thông tin nhân vật xuất hiện 10 giây -->
         <div id="info-popup">
             <div id="info-title">CHARACTER INFO</div>
             <div id="info-desc">Description here...</div>
@@ -162,115 +171,95 @@ game_code = """
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+let currentLang = 'ENG'; // Mặc định tiếng Anh
 let currentStep = 0;
 let activeChar = 'yatta';
 let popupTimer = null;
 
-// Thông tin chi tiết nhân vật khi chọn
-const charInfoData = {
-    yatta: { name: "YATTA (Acrobatic)", desc: "Dẻo dai, linh hoạt, chuyên leo trèo các khu vực cao." },
-    looey: { name: "LOOEY (Fast Runner)", desc: "Chạy cực nhanh, né tránh các Twisted bám đuổi sát nút." },
-    blot: { name: "BLOT (Mime & Clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân (clone) đánh lừa quái." },
-    trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
+// Tọa độ người chơi cho Side-view platformer
+let player = {
+    x: 100, y: 270, w: 24, h: 50,
+    vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
+    grounded: false, facing: 'right'
 };
 
-// Cốt truyện mở đầu
-const introScript = [
-    { speaker: "NARRATOR", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
-    { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
-    { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-    { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
-    { speaker: "NARRATOR", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
-    { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
-    { speaker: "Yatta", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
-    { speaker: "NARRATOR", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
-    { speaker: "NARRATOR", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
-    { speaker: "NARRATOR", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
-    { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
-    { speaker: "SYSTEM", text: "Nhiệm vụ của bạn: Khám phá các căn phòng, mở rương, né tránh các Twisted nguy hiểm và tìm kiếm trợ giúp từ các Toon còn sống sót!" }
-];
+const keys = { left: false, right: false };
 
-function switchCharacter(char) {
-    activeChar = char;
-    document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('btn-' + char).classList.add('active');
-    
-    showCharPopup(char);
-}
-
-function showCharPopup(char) {
-    const info = charInfoData[char];
-    const popup = document.getElementById('info-popup');
-    document.getElementById('info-title').innerText = info.name;
-    document.getElementById('info-desc').innerText = info.desc;
-    
-    popup.style.display = 'block';
-    
-    if (popupTimer) clearTimeout(popupTimer);
-    popupTimer = setTimeout(() => {
-        popup.style.display = 'none';
-    }, 10000); // Ẩn sau 10 giây đúng yêu cầu
-}
-
-function nextLine() {
-    currentStep++;
-    if (currentStep >= introScript.length) {
-        currentStep = introScript.length - 1;
-        document.getElementById('dialogue-text.innerText') = "Đã vào sảnh chính Gardenview bỏ hoang! Hãy sẵn sàng khám phá màn chơi tiếp theo...";
-    }
-    updateDialogue();
-}
-
-function updateDialogue() {
-    const data = introScript[currentStep];
-    document.getElementById('speaker').innerText = data.speaker;
-    document.getElementById('dialogue-text').innerText = data.text;
-}
-
-// Render Side-view nền tảng phòng thay đồ / Gardenview
-function gameLoop() {
-    ctx.fillStyle = '#06030c';
-    ctx.fillRect(0, 0, 800, 380);
-
-    // Vẽ nền ô vuông retro FNAF
-    ctx.fillStyle = '#0f071a';
-    for(let x = 0; x < 800; x += 40) {
-        for(let y = 0; y < 380; y += 40) {
-            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+// Bắt sự kiện bàn phím di chuyển và đổi nhân vật
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+    if (e.code === 'KeyW' || e.code === 'Space' || e.code === 'ArrowUp') {
+        if (player.grounded) {
+            player.vy = player.jumpPower;
+            player.grounded = false;
         }
     }
+    if (e.code === 'Digit1') switchCharacter('yatta');
+    if (e.code === 'Digit2') switchCharacter('looey');
+    if (e.code === 'Digit3') switchCharacter('blot');
+    if (e.code === 'Digit4') switchCharacter('trio');
 
-    // Vẽ sàn nhà
-    ctx.fillStyle = '#281145';
-    ctx.fillRect(0, 320, 800, 60);
-    ctx.fillStyle = '#7c4dff';
-    ctx.fillRect(0, 320, 800, 4);
-
-    // Vẽ nhóm Circus Trio đứng tương ứng nhân vật active
-    let drawX = 350;
-    if (activeChar === 'yatta') {
-        ctx.fillStyle = '#ffb74d'; ctx.fillRect(drawX, 260, 24, 60); // Yatta
-    } else if (activeChar === 'looey') {
-        ctx.fillStyle = '#fff176'; ctx.fillRect(drawX, 255, 26, 65); // Looey
-    } else if (activeChar === 'blot') {
-        ctx.fillStyle = '#78909c'; ctx.fillRect(drawX, 262, 24, 58); // Blot
-    } else {
-        // Circus Trio (cả 3 đứng chung)
-        ctx.fillStyle = '#ffb74d'; ctx.fillRect(drawX - 40, 260, 22, 60);
-        ctx.fillStyle = '#fff176'; ctx.fillRect(drawX, 255, 24, 65);
-        ctx.fillStyle = '#78909c'; ctx.fillRect(drawX + 40, 262, 22, 58);
+    if (e.code === 'KeyE') {
+        // Tương tác (Interact)
+        console.log("Interacted with [E]");
     }
+    if (e.code === 'KeyZ') {
+        // Sử dụng vũ khí / Kỹ năng (Skill / Weapon)
+        console.log("Used Skill / Weapon with [Z]");
+    }
+});
 
-    requestAnimationFrame(gameLoop);
-}
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+    if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+});
 
-// Khởi tạo
-updateDialogue();
-showCharPopup('yatta'); // Hiện bảng Yatta lúc đầu 10s
-gameLoop();
-</script>
-</body>
-</html>
-"""
+const charInfoData = {
+    ENG: {
+        yatta: { name: "YATTA (Acrobatic)", desc: "Flexible, agile, specialized in climbing high areas." },
+        looey: { name: "LOOEY (Fast Runner)", desc: "Runs extremely fast to escape pursuing Twisted toons." },
+        blot: { name: "BLOT (Mime & Clone)", desc: "Completely silent, capable of creating clones to trick monsters." },
+        trio: { name: "CIRCUS TRIO", desc: "The united power of all three members to survive in Gardenview!" }
+    },
+    VIE: {
+        yatta: { name: "YATTA (Dẻo dai)", desc: "Linh hoạt, chuyên leo trèo các khu vực cao." },
+        looey: { name: "LOOEY (Chạy nhanh)", desc: "Chạy cực nhanh để né tránh các Twisted bám đuổi." },
+        blot: { name: "BLOT (Hề câm & Tạo clone)", desc: "Im lặng tuyệt đối, có khả năng tạo phân thân đánh lừa quái." },
+        trio: { name: "CIRCUS TRIO", desc: "Sức mạnh đoàn kết cả ba thành viên để sinh tồn trong Gardenview!" }
+    }
+};
 
-components.html(game_code, height=620)
+const introScript = {
+    ENG: [
+        { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
+        { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
+        { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
+        { speaker: "BLOT", text: "(Nods silently, smiling gently in the corner of the room)." },
+        { speaker: "NARRATOR", text: "*SLAM!* Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
+        { speaker: "BLOT", text: "Wait... The lights went out! Total blackout?!" },
+        { speaker: "YATTA", text: "Huh... what is that glowing thing right in the middle of the floor? A strange red button..." },
+        { speaker: "NARRATOR", text: "Out of curiosity, Yatta steps forward and accidentally touches the button..." },
+        { speaker: "NARRATOR", text: "*WHOOSH!* A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
+        { speaker: "NARRATOR", text: "...And finally, they are spit out into a cold, desolate place. Is this Gardenview? No... it's rundown and eerily gloomy!" },
+        { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
+        { speaker: "SYSTEM", text: "Controls: [A/D] Move, [W/Space] Jump, [E] Interact, [Z] Skill/Weapon, [1-4] Switch Character." }
+    ],
+    VIE: [
+        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
+        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
+        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+        { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
+        { speaker: "DẪN CHUYỆN", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+        { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
+        { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thếkiye? Một cái nút màu đỏ kỳ lạ..." },
+        { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
+        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
+        { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Space] Nhảy, [E] Tương tác, [Z] Kỹ năng/Vũ khí, [1-4] Đổi nhân vật." }
+    ]
+};
+
+function toggleLanguage() {
+    currentLang = currentLang === 'ENG' ? 'VIE' : '

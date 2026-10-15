@@ -17,7 +17,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-game_code = r"""
+game_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,14 +188,12 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
     
-    // Chỉ dùng W hoặc Mũi tên Lên để nhảy, bỏ Space ra khỏi nút nhảy
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (player.grounded) {
             player.vy = player.jumpPower;
             player.grounded = false;
         }
     }
-    // Dùng Space để Next hội thoại
     if (e.code === 'Space') {
         nextLine();
     }
@@ -235,11 +233,11 @@ const introScript = {
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
         { speaker: "BLOT", text: "(Nods silently, smiling gently in the corner of the room)." },
-        { speaker: "NARRATOR", text: "*SLAM!* Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
+        { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
         { speaker: "BLOT", text: "Wait... The lights went out! Total blackout?!" },
         { speaker: "YATTA", text: "Huh... what is that glowing thing right in the middle of the floor? A strange red button..." },
         { speaker: "NARRATOR", text: "Out of curiosity, Yatta steps forward and accidentally touches the button..." },
-        { speaker: "NARRATOR", text: "*WHOOSH!* A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
+        { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, but the suction is too strong..." },
         { speaker: "NARRATOR", text: "...And finally, they are spit out into a cold, desolate place. Is this Gardenview? No... it's rundown and eerily gloomy!" },
         { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
         { speaker: "SYSTEM", text: "Controls: [A/D] Move, [W/Up] Jump, [Space] Next Dialogue, [E] Interact, [Z] Skill, [1-4] Switch Toon." }
@@ -249,12 +247,12 @@ const introScript = {
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
         { speaker: "BLOT", text: "(Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)." },
-        { speaker: "DẪN CHUYỆN", text: "*RẦM!* Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
+        { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
         { speaker: "BLOT", text: "Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!" },
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ở giữa sàn nhà thế kia? Một cái nút màu đỏ kỳ lạ..." },
         { speaker: "DẪN CHUYỆN", text: "Vì tò mò, Yatta bước đến và vô tình chạm vào nút bấm..." },
-        { speaker: "DẪN CHUYỆN", text: "*VÉO VÉO!* Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
-        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị 'nhả' phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
+        { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba hốt hoảng bám chặt vào đồ đạc nhưng lực hút quá mạnh..." },
+        { speaker: "DẪN CHUYỆN", text: "...Và rồi, cả nhóm bị nhả phăng xuống một nơi lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
         { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
         { speaker: "HỆ THỐNG", text: "Điều khiển: [A/D] Di chuyển, [W/Up] Nhảy, [Space] Tiếp theo, [E] Tương tác, [Z] Kỹ năng, [1-4] Đổi nhân vật." }
     ]
@@ -330,4 +328,87 @@ function drawPixelCharacter(x, y, type) {
         ctx.fillStyle = '#ffee58';
         ctx.fillRect(6, 10, 28, 24);
         ctx.fillStyle = '#66bb6a';
-        ctx.fillRect(10,
+        ctx.fillRect(10, -8, 8, 18);
+        ctx.fillStyle = '#ab47bc';
+        ctx.fillRect(22, -8, 8, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(12, 18, 4, 6);
+        ctx.fillRect(24, 18, 4, 6);
+        ctx.fillStyle = '#ff7043';
+        ctx.fillRect(8, 34, 24, 18);
+    } 
+    else if (type === 'blot') {
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(8, 8, 24, 26);
+        ctx.fillStyle = '#212121';
+        ctx.fillRect(8, 8, 14, 16);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(22, 14, 8, 8);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(25, 16, 3, 3);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(8, 34, 24, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(12, 34, 4, 18);
+        ctx.fillRect(20, 34, 4, 18);
+    }
+    ctx.restore();
+}
+
+function gameLoop() {
+    if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
+    else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
+    else { player.vx = 0; }
+
+    player.vy += 0.4;
+    player.x += player.vx;
+    player.y += player.vy;
+
+    if (player.y >= 250) {
+        player.y = 250;
+        player.vy = 0;
+        player.grounded = true;
+    }
+
+    if (player.x < 20) player.x = 20;
+    if (player.x > 740) player.x = 740;
+
+    ctx.fillStyle = '#06030c';
+    ctx.fillRect(0, 0, 800, 380);
+
+    ctx.fillStyle = '#0f071a';
+    for(let x = 0; x < 800; x += 40) {
+        for(let y = 0; y < 380; y += 40) {
+            if ((x/40 + y/40) % 2 === 0) ctx.fillRect(x, y, 40, 40);
+        }
+    }
+
+    ctx.fillStyle = '#281145';
+    ctx.fillRect(0, 306, 800, 74);
+    ctx.fillStyle = '#7c4dff';
+    ctx.fillRect(0, 306, 800, 4);
+
+    if (activeChar === 'yatta') {
+        drawPixelCharacter(player.x, player.y, 'yatta');
+    } else if (activeChar === 'looey') {
+        drawPixelCharacter(player.x, player.y, 'looey');
+    } else if (activeChar === 'blot') {
+        drawPixelCharacter(player.x, player.y, 'blot');
+    } else {
+        drawPixelCharacter(player.x - 50, player.y + 5, 'yatta');
+        drawPixelCharacter(player.x, player.y, 'looey');
+        drawPixelCharacter(player.x + 50, player.y + 5, 'blot');
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+updateDialogue();
+showCharPopup('yatta');
+gameLoop();
+</script>
+</body>
+</html>
+"""
+
+components.html(game_code, height=620)

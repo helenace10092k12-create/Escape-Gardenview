@@ -175,16 +175,15 @@ let currentLang = 'ENG';
 let currentStep = 0;
 let activeChar = 'yatta';
 let popupTimer = null;
-let gamePhase = 'DRESSING_ROOM'; // DRESSING_ROOM, BLACKOUT, BUTTON_PHASE, PORTAL_ANIM, GARDENVIEW_SPIT, EXPLORE
+let gamePhase = 'DRESSING_ROOM'; 
 
 let player = {
-    x: 360, y: 245, w: 40, h: 56,
+    x: 360, y: 250, w: 40, h: 56,
     vx: 0, vy: 0, speed: 3.5, jumpPower: -9,
-    grounded: false, facing: 'right'
+    grounded: true, facing: 'right'
 };
 
-let redButton = { x: 0, y: 290, active: false };
-let animTimer = 0;
+let redButton = { x: 0, active: false };
 let portalAnimProgress = 0;
 
 const keys = { left: false, right: false };
@@ -215,17 +214,16 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit3') switchCharacter('blot');
     if (e.code === 'Digit4') switchCharacter('trio');
 
-    // Phím [E] tương tác
     if (e.code === 'KeyE') {
         if (gamePhase === 'DRESSING_ROOM' && currentStep === 4 && player.x < 140) {
             gamePhase = 'BLACKOUT';
-            currentStep = 5; // Rầm! Đèn tắt
+            currentStep = 5; 
             updateDialogue();
         } else if (gamePhase === 'BUTTON_PHASE' && redButton.active && Math.abs(player.x - redButton.x) < 40) {
             redButton.active = false;
             gamePhase = 'PORTAL_ANIM';
             portalAnimProgress = 0;
-            currentStep = 9; // Cổng ảo mở ra hút vào
+            currentStep = 9; 
             updateDialogue();
         }
     }
@@ -258,13 +256,10 @@ const introScript = {
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
         { speaker: "BLOT", text: "...tiaW !enoom eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Nods silently, smiling gently in the corner of the room.)" },
         { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." },
-        // [Index 5]
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
         { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Wait... The lights went out! Total blackout?!)" },
-        // [Index 7]
         { speaker: "YATTA", text: "Huh... what is that glowing red button right under us? A strange red button..." },
         { speaker: "SYSTEM", text: "Interact with the red button: Walk to it and press [E]." },
-        // [Index 9]
         { speaker: "NARRATOR", text: "WHOOSH! A swirling virtual portal opens wide! The trio desperately grabs onto furniture, swirling and getting sucked in..." },
         { speaker: "NARRATOR", text: "...And finally, they are spit out from the top-left portal into a cold, desolate place. Is this Gardenview? No... it's rundown and eerie!" },
         { speaker: "SYSTEM", text: "WELCOME TO GARDENVIEW ESCAPE GAME. COLLECT 8 GOLDEN KEYS TO FORM THE PUMPKIN KEY AND ESCAPE!" },
@@ -276,13 +271,10 @@ const introScript = {
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
         { speaker: "BLOT", text: "...moorp eht fo renroc eht ni yltneg gnīmilms ,yltnelis sdoN (Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng)" },
         { speaker: "HỆ THỐNG", text: "Interact with the door: Di chuyển lại gần cửa phòng thay đồ và bấm [E]." },
-        // [Index 5]
         { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
         { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Khoan đã... Đèn tắt hết rồi! Blackout toàn tập?!)" },
-        // [Index 7]
         { speaker: "YATTA", text: "Ơ kìa... cái gì đang phát sáng ngay dưới chân tụi mình thế kia? Một cái nút đỏ kỳ lạ..." },
         { speaker: "HỆ THỐNG", text: "Interact with the red button: Di chuyển đến chỗ cái nút và bấm [E]." },
-        // [Index 9]
         { speaker: "DẪN CHUYỆN", text: "VÉO VÉO! Một cánh cổng ảo xoáy sâu mở ra! Cả ba bám chặt vào đồ đạc, xoay vòng tròn rồi bị hút tuột vào trong..." },
         { speaker: "DẪN CHUYỆN", text: "...Và rồi, cổng ở góc trái nhả phăng cả nhóm xuống đất lạnh lẽo. Gardenview đây sao? Không... nó tồi tàn và âm u đến rợn ngáy!" },
         { speaker: "HỆ THỐNG", text: "CHÀO MỪNG ĐẾN VỚI TRÒ CHƠI TRỐN THOÁT. THU THẬP 8 CHÌA KHÓA VÀNG ĐỂ HỢP THỂ THÀNH CHÌA KHÓA BÍ NGÔ!" },
@@ -316,9 +308,9 @@ function showCharPopup(char) {
 }
 
 function nextLine() {
-    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) return; // Chờ bấm E cửa
-    if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) return;  // Chờ bấm E nút đỏ
-    if (gamePhase === 'PORTAL_ANIM') return;                      // Đang chạy animation hút
+    if (gamePhase === 'DRESSING_ROOM' && currentStep === 4) return;
+    if (gamePhase === 'BUTTON_PHASE' && currentStep === 8) return;
+    if (gamePhase === 'PORTAL_ANIM') return;
 
     currentStep++;
     const maxSteps = introScript[currentLang].length;
@@ -326,20 +318,15 @@ function nextLine() {
         currentStep = maxSteps - 1;
     }
 
-    // Kích hoạt trạng thái chờ tương tác cửa
     if (currentStep === 4) {
         gamePhase = 'DRESSING_ROOM';
-    }
-    // Kích hoạt xuất hiện nút đỏ ngay tại chỗ đứng của nhân vật
-    else if (currentStep === 7) {
+    } else if (currentStep === 7) {
         gamePhase = 'BUTTON_PHASE';
-        redButton.x = player.x + 10; // Xuất hiện ngay dưới chân / cạnh nhân vật
+        redButton.x = player.x + 10;
         redButton.active = true;
-    }
-    // Khi đến đoạn nhả ra ở Gardenview
-    else if (currentStep === 10) {
+    } else if (currentStep === 10) {
         gamePhase = 'EXPLORE';
-        player.x = 120; // Nhả ra từ góc trái
+        player.x = 120;
         player.y = 250;
     }
 
@@ -360,6 +347,7 @@ function updateDialogue() {
     }
 }
 
+// Vẽ Pixel Art chuẩn theo hình mẫu của Yatta (Vàng nhạt, mặt xanh, tai nhọn sọc hồng/xanh, 4 đuôi hồng) và Circus Trio
 function drawPixelCharacter(x, y, type, angle = 0, scale = 1) {
     ctx.save();
     ctx.translate(x, y);
@@ -367,51 +355,79 @@ function drawPixelCharacter(x, y, type, angle = 0, scale = 1) {
     ctx.scale(scale, scale);
 
     if (type === 'yatta') {
+        // Thân vàng nhạt
         ctx.fillStyle = '#fff59d';
-        ctx.fillRect(-12, -28, 24, 22);
-        ctx.fillStyle = '#ff80ab';
-        ctx.fillRect(-16, -38, 8, 12);
-        ctx.fillRect(8, -38, 8, 12);
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(-14, -36, 4, 5);
-        ctx.fillRect(10, -36, 4, 5);
-        ctx.fillStyle = '#4fc3f7';
-        ctx.fillRect(-10, -24, 20, 14);
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-9, -23, 6, 8);
-        ctx.fillStyle = '#111111';
-        ctx.fillRect(-7, -20, 3, 4);
+        ctx.fillRect(-12, -40, 24, 32);
 
+        // 2 tai nhọn sọc hồng/xanh
         ctx.fillStyle = '#ff80ab';
-        ctx.fillRect(-12, -6, 24, 18);
+        ctx.fillRect(-16, -52, 8, 14);
+        ctx.fillRect(8, -52, 8, 14);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-14, -49, 4, 6);
+        ctx.fillRect(10, -49, 4, 6);
+
+        // Khuôn mặt xanh dương nhạt
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-10, -34, 20, 16);
+
+        // Mắt to tròn
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-9, -32, 6, 8);
+        ctx.fillRect(3, -32, 6, 8);
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(-7, -29, 3, 4);
+        ctx.fillRect(5, -29, 3, 4);
+
+        // 4 chiếc đuôi dài màu hồng rực rỡ uốn lượn phía sau
+        ctx.strokeStyle = '#ff4081';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(10, -15); ctx.quadraticCurveTo(22, -18, 30, -5);
+        ctx.moveTo(10, -12); ctx.quadraticCurveTo(24, -10, 32, 2);
+        ctx.moveTo(10, -9);  ctx.quadraticCurveTo(20, -2, 28, 10);
+        ctx.moveTo(10, -6);  ctx.quadraticCurveTo(18, 6, 26, 16);
+        ctx.stroke();
+
+        // Trang phục piñata
+        ctx.fillStyle = '#ff80ab';
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(4, -8, 4, 18);
     } 
     else if (type === 'looey') {
         ctx.fillStyle = '#ffee58';
-        ctx.fillRect(-14, -26, 28, 24);
+        ctx.fillRect(-14, -38, 28, 30);
         ctx.fillStyle = '#66bb6a';
-        ctx.fillRect(-10, -44, 8, 18);
+        ctx.fillRect(-10, -56, 8, 18);
         ctx.fillStyle = '#ab47bc';
-        ctx.fillRect(2, -44, 8, 18);
+        ctx.fillRect(2, -56, 8, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -28, 4, 6);
+        ctx.fillRect(4, -28, 4, 6);
         ctx.fillStyle = '#ff7043';
-        ctx.fillRect(-12, -2, 24, 18);
+        ctx.fillRect(-12, -8, 24, 18);
     } 
     else if (type === 'blot') {
         ctx.fillStyle = '#37474f';
-        ctx.fillRect(-12, -28, 24, 26);
+        ctx.fillRect(-12, -38, 24, 32);
         ctx.fillStyle = '#212121';
-        ctx.fillRect(-12, -28, 14, 16);
+        ctx.fillRect(-12, -38, 14, 16);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(2, -22, 8, 8);
+        ctx.fillRect(2, -30, 8, 8);
         ctx.fillStyle = '#000000';
-        ctx.fillRect(5, -20, 3, 3);
+        ctx.fillRect(5, -27, 3, 3);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(-12, -2, 24, 18);
+        ctx.fillRect(-12, -8, 24, 18);
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(-8, -8, 4, 18);
+        ctx.fillRect(0, -8, 4, 18);
     }
     ctx.restore();
 }
 
 function gameLoop() {
-    // Xử lý vật lý di chuyển khi không chạy animation hút
     if (gamePhase !== 'PORTAL_ANIM' && gamePhase !== 'GARDENVIEW_SPIT') {
         if (keys.left) { player.vx = -player.speed; player.facing = 'left'; }
         else if (keys.right) { player.vx = player.speed; player.facing = 'right'; }
@@ -421,8 +437,9 @@ function gameLoop() {
         player.x += player.vx;
         player.y += player.vy;
 
-        if (player.y >= 250) {
-            player.y = 250;
+        // Chạm sàn chính xác ở y = 306
+        if (player.y >= 306) {
+            player.y = 306;
             player.vy = 0;
             player.grounded = true;
         }
@@ -431,11 +448,9 @@ function gameLoop() {
         if (player.x > 740) player.x = 740;
     }
 
-    // --- RENDER BACKGROUND & GRAPHICS ---
-    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c'; // Gardenview âm u hơn
+    ctx.fillStyle = gamePhase === 'EXPLORE' ? '#030103' : '#06030c';
     ctx.fillRect(0, 0, 800, 380);
 
-    // Gạch nền ô vuông FNAF retro
     ctx.fillStyle = gamePhase === 'EXPLORE' ? '#0a030f' : '#0f071a';
     for(let x = 0; x < 800; x += 40) {
         for(let y = 0; y < 380; y += 40) {
@@ -443,7 +458,6 @@ function gameLoop() {
         }
     }
 
-    // 1. Cửa phòng thay đồ (Chỉ hiện ở pha đầu)
     if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'BLACKOUT' || gamePhase === 'BUTTON_PHASE') {
         ctx.fillStyle = '#311b92';
         ctx.fillRect(60, 150, 70, 156);
@@ -460,27 +474,24 @@ function gameLoop() {
         }
     }
 
-    // 2. Nút bấm màu đỏ xuất hiện ngay chỗ nhân vật đứng
     if (gamePhase === 'BUTTON_PHASE' && redButton.active) {
         ctx.fillStyle = '#d50000';
-        ctx.fillRect(redButton.x, 292, 24, 12);
+        ctx.fillRect(redButton.x, 298, 24, 8);
         ctx.fillStyle = '#ff1744';
-        ctx.fillRect(redButton.x + 4, 288, 16, 6);
+        ctx.fillRect(redButton.x + 4, 294, 16, 4);
 
         if (Math.abs(player.x - redButton.x) < 40) {
             ctx.fillStyle = '#00e676';
             ctx.font = '11px Courier New';
-            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 275);
+            ctx.fillText("Interact with Red Button [E]", redButton.x - 40, 280);
         }
     }
 
-    // 3. Animation hút vào cổng
     if (gamePhase === 'PORTAL_ANIM') {
         portalAnimProgress += 0.05;
         let rot = portalAnimProgress * 10;
         let scale = Math.max(0.1, 1 - portalAnimProgress * 0.3);
         
-        // Vẽ tâm hút ở giữa màn hình
         ctx.fillStyle = '#ff1744';
         ctx.beginPath();
         ctx.arc(400, 250, Math.min(100, portalAnimProgress * 40), 0, Math.PI * 2);
@@ -490,38 +501,35 @@ function gameLoop() {
 
         if (portalAnimProgress > 3) {
             gamePhase = 'GARDENVIEW_SPIT';
-            currentStep = 10; // Chuyển cảnh nhả ra ở Gardenview
+            currentStep = 10; 
             updateDialogue();
         }
     }
 
-    // 4. Cổng Gardenview ở góc trái nhả nhóm ra (Nằm dưới đất rồi đứng dậy)
     if (gamePhase === 'GARDENVIEW_SPIT' || gamePhase === 'EXPLORE') {
-        // Cổng ở góc trái (x: 100, y: 220)
         ctx.fillStyle = '#00e676';
         ctx.beginPath();
         ctx.ellipse(100, 230, 30, 45, Math.PI / 4, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    // Sàn nhà
+    // Sàn nhà chuẩn y = 306
     ctx.fillStyle = gamePhase === 'EXPLORE' ? '#180824' : '#281145';
     ctx.fillRect(0, 306, 800, 74);
     ctx.fillStyle = '#7c4dff';
     ctx.fillRect(0, 306, 800, 4);
 
-    // Vẽ nhân vật (Nếu không ở pha portal anim)
     if (gamePhase !== 'PORTAL_ANIM') {
         if (activeChar === 'yatta') {
-            drawPixelCharacter(player.x, player.y - 25, 'yatta');
+            drawPixelCharacter(player.x, player.y, 'yatta');
         } else if (activeChar === 'looey') {
-            drawPixelCharacter(player.x, player.y - 25, 'looey');
+            drawPixelCharacter(player.x, player.y, 'looey');
         } else if (activeChar === 'blot') {
-            drawPixelCharacter(player.x, player.y - 25, 'blot');
+            drawPixelCharacter(player.x, player.y, 'blot');
         } else {
-            drawPixelCharacter(player.x - 40, player.y - 25, 'yatta');
-            drawPixelCharacter(player.x, player.y - 25, 'looey');
-            drawPixelCharacter(player.x + 40, player.y - 25, 'blot');
+            drawPixelCharacter(player.x - 35, player.y, 'yatta');
+            drawPixelCharacter(player.x, player.y, 'looey');
+            drawPixelCharacter(player.x + 35, player.y, 'blot');
         }
     }
 

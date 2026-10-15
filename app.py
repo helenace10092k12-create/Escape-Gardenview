@@ -171,7 +171,7 @@ game_code = r"""
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let currentLang = 'ENG'; // Mặc định English
+let currentLang = 'ENG'; 
 let currentStep = 0;
 let activeChar = 'trio'; 
 let popupTimer = null;
@@ -206,7 +206,6 @@ window.addEventListener('keydown', (e) => {
     }
     
     if (e.code === 'Space') {
-        // Chỉ cho bấm Space khi không phải bước chờ tương tác cửa/nút
         if (!((gamePhase === 'DRESSING_ROOM' && currentStep === 4) || (gamePhase === 'BUTTON_PHASE' && currentStep === 8))) {
             nextLine();
         }
@@ -258,7 +257,7 @@ const introScript = {
         { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to the dressing room to rest after the thunderous applause." },
         { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
         { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "NARRATOR", text: "Nods silently, smiling gently in the corner of the room." }, // Blot gật đầu là lời dẫn (Narrator) đúng chuẩn
+        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." }, // Đã đổi tên người nói thành BLOT đúng ý bồ
         { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." },
         { speaker: "NARRATOR", text: "SLAM! Suddenly, the heavy iron door of the dressing room automatically slams shut and locks tight!" },
         { speaker: "BLOT", text: "!tuocaolb latoT !tuo tew sthgih eht... edah nawoK (Trans: Wait... The lights went out! Total blackout?!)" },
@@ -273,7 +272,7 @@ const introScript = {
         { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn trước các Toon vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ để nghỉ ngơi sau tiếng vỗ tay vang dội." },
         { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê luôn." },
         { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "DẪN CHUYỆN", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
+        { speaker: "BLOT", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
         { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cánh cửa phòng thay đồ và nhấn [E] để tương tác." },
         { speaker: "DẪN CHUYỆN", text: "RẦM! Đột nhiên, cánh cửa sắt phòng thay đồ tự động sập đóng lại chặt cứng!" },
         { speaker: "BLOT", text: "!?tuocaolb latoT !tuo tew sthgih ehT ...ad ah nawoK (Dịch: Khoan đã... Đèn tắt hết rồi! Mất điện toàn tập rồi sao?!)" },
@@ -324,7 +323,7 @@ function nextLine() {
 
     if (currentStep === 4) {
         gamePhase = 'DRESSING_ROOM';
-    } else if (currentStep === 8) { // Cập nhật đúng bước 8 là hiển thị nút tương tác
+    } else if (currentStep === 8) {
         gamePhase = 'BUTTON_PHASE';
         let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
         redButton.x = leadX + 10;

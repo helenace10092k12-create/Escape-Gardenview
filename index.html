@@ -63,15 +63,27 @@
             background-size: 100% 4px;
         }
 
+        /* OVERLAY NỔI NGUYÊN BỨC ẢNH VẼ TAY CỦA LOOEY (NẮM Ở ĐÁY MÀN HÌNH) */
         #looey-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 800px;
-            height: 280px;
+            height: 320px;
             z-index: 50;
             display: none;
             pointer-events: none;
+        }
+
+        #looey-img {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: bottom;
+            image-rendering: pixelated; /* Nét căng Pixel Art */
         }
 
         #looey-text-area {
@@ -89,10 +101,11 @@
         }
 
         #looey-text-content {
-            color: #231205;
+            color: #231205; /* Màu chữ nâu tối vừa vặn trong ô vàng */
             font-weight: bold;
             font-size: 13px;
             line-height: 1.35;
+            font-family: 'Courier New', monospace;
         }
 
         .dialogue-btns { display: flex; justify-content: flex-end; }
@@ -102,6 +115,7 @@
         }
         .action-btn:hover { background: #512da8; color: #fff; }
 
+        /* KHUNG CHAT THƯỜNG DÀNH CHO DẪN CHUYỆN / SYSTEM */
         #normal-chat-box {
             position: absolute;
             bottom: 20px;
@@ -143,8 +157,9 @@
         <div id="crt-overlay"></div>
     </div>
 
+    <!-- KHUNG OVERLAY LOOEY (SỬ DỤNG FILE BỨC ẢNH VẼ TAY THẬT) -->
     <div id="looey-overlay">
-        <canvas id="looey-pixel-canvas" width="800" height="280" style="position: absolute; bottom: 0; left: 0;"></canvas>
+        <img id="looey-img" src="looey_chat.png" alt="Looey Dialogue">
         <div id="looey-text-area">
             <div id="looey-text-content">My balloons almost popped right at the finale! Haha!</div>
             <div class="dialogue-btns">
@@ -153,6 +168,7 @@
         </div>
     </div>
 
+    <!-- KHUNG CHAT THƯỜNG -->
     <div id="normal-chat-box" style="display: none;">
         <div>
             <div id="normal-speaker">NARRATOR</div>
@@ -167,46 +183,6 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-const lCanvas = document.getElementById('looey-pixel-canvas');
-const lCtx = lCanvas.getContext('2d');
-
-function renderLooeyPixel() {
-    lCtx.clearRect(0, 0, 800, 280);
-    lCtx.save();
-    lCtx.translate(100, 120);
-
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(-35, -110, 30, 45); lCtx.fillRect(-30, -120, 20, 10);
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(5, -110, 30, 45); lCtx.fillRect(10, -120, 20, 10);
-
-    lCtx.fillStyle = '#ffee58'; lCtx.fillRect(-45, -65, 90, 65);
-    
-    lCtx.fillStyle = '#000'; lCtx.fillRect(-32, -55, 22, 35); lCtx.fillRect(10, -55, 22, 35);
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-28, -50, 6, 12); lCtx.fillRect(14, -50, 6, 12);
-
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-42, -25, 12, 12);
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(30, -25, 12, 12);
-    lCtx.fillStyle = '#ff1744'; lCtx.fillRect(-8, -28, 16, 14);
-
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-15, -8, 30, 10);
-    lCtx.fillStyle = '#000'; lCtx.fillRect(-15, -8, 30, 2); lCtx.fillRect(-5, -8, 2, 10); lCtx.fillRect(5, -8, 2, 10);
-
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-40, 0, 80, 40);
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-25, 10, 12, 12); lCtx.fillRect(15, 20, 10, 10);
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(10, 8, 12, 12); lCtx.fillRect(-20, 24, 10, 10);
-
-    lCtx.restore();
-
-    lCtx.fillStyle = '#e5c453';
-    lCtx.strokeStyle = '#2b1b09';
-    lCtx.lineWidth = 5;
-    
-    lCtx.beginPath();
-    lCtx.roundRect(150, 150, 520, 100, 12);
-    lCtx.fill();
-    lCtx.stroke();
-}
-renderLooeyPixel();
 
 let currentLang = 'ENG'; 
 let currentStep = 0;

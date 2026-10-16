@@ -2,28 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Full Combat & Capsule System</title>
+    <title>Escape Gardenview - Inventory & Elevator Update</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
-            background-color: #020105;
-            color: #fff;
+            background-color: #020105; color: #fff;
             font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
         }
         #game-box {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            background: #000;
-            border: 4px solid #512da8;
+            position: relative; width: 800px; height: 600px;
+            background: #000; border: 4px solid #512da8;
             box-shadow: 0 0 35px rgba(81, 45, 168, 0.8);
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         #top-ui {
             height: 40px; background: #0b0514; border-bottom: 2px solid #512da8;
@@ -42,16 +34,23 @@
             padding: 3px 8px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold;
         }
 
-        #canvas-container {
-            position: relative; width: 800px; height: 560px; background: #05020a; overflow: hidden;
-        }
+        #canvas-container { position: relative; width: 800px; height: 560px; background: #05020a; overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 
-        #skill-popup {
-            position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
-            background: rgba(26, 11, 46, 0.95); border: 2px solid #00e676; border-radius: 6px;
-            padding: 8px 16px; font-size: 11px; color: #00e676; z-index: 50; display: none; text-align: center;
-            box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
+        /* INVENTORY 3 HÌNH TRÒN GÓC DƯỚI BÊN TRÁI */
+        #inventory-hud {
+            position: absolute; bottom: 15px; left: 15px; z-index: 60;
+            display: none; gap: 10px; align-items: center; background: rgba(10, 5, 20, 0.85);
+            padding: 6px 12px; border: 2px solid #7c4dff; border-radius: 30px;
+        }
+        .inv-slot {
+            width: 36px; height: 36px; border-radius: 50%; border: 2px solid #00e676;
+            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center;
+            font-size: 16px; cursor: pointer; position: relative;
+        }
+        .inv-slot-key {
+            position: absolute; top: -6px; right: -4px; background: #ff7043; color: #fff;
+            font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 50%;
         }
 
         #menu-screen {
@@ -64,35 +63,25 @@
             background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 10px 30px;
             font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; margin: 6px; width: 240px; text-align: center;
         }
-        .menu-btn:hover { background: #512da8; color: #fff; box-shadow: 0 0 15px #7c4dff; }
 
         #veemail-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 680px; height: 480px; background: rgba(8, 22, 12, 0.96); border: 4px solid #00e676;
             border-radius: 10px; padding: 22px; z-index: 200; display: none; flex-direction: column; justify-content: space-between;
-            box-shadow: 0 0 40px rgba(0, 230, 118, 0.6);
         }
         .veemail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e676; padding-bottom: 8px; }
         .veemail-title { color: #00e676; font-weight: bold; font-size: 13px; }
         .close-x { background: #ff1744; color: #fff; border: none; width: 24px; height: 24px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.6; overflow-y: auto; max-height: 370px; padding-right: 5px; }
+        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.6; overflow-y: auto; max-height: 370px; }
 
-        #quest-box {
-            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
-            width: 500px; background: rgba(20, 10, 30, 0.95); border: 3px solid #ffb74d; border-radius: 8px;
-            padding: 15px; z-index: 150; display: none; flex-direction: column; gap: 10px; text-align: center;
+        /* POPUP HỎI CẤT ITEM VÀO INVENTORY */
+        #loot-dialog {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; background: rgba(15, 5, 30, 0.95); border: 3px solid #ffeb3b;
+            border-radius: 8px; padding: 16px; z-index: 180; display: none; flex-direction: column; gap: 12px; text-align: center;
         }
-        #quest-text { color: #ffcc80; font-size: 12px; line-height: 1.4; }
-        .quest-btns { display: flex; justify-content: center; gap: 10px; }
-
-        #dialogue-box {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 720px; height: 110px; background: rgba(8, 3, 18, 0.95); border: 3px solid #7c4dff;
-            border-radius: 8px; padding: 10px 16px; z-index: 90; display: none; flex-direction: column; justify-content: space-between;
-        }
-        #speaker-name { color: #ffb74d; font-weight: bold; font-size: 12px; }
-        #dialogue-text { color: #00e676; font-size: 12px; line-height: 1.3; }
-        .action-btn { background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 4px 12px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold; align-self: flex-end; }
+        .dialog-btns { display: flex; justify-content: center; gap: 15px; }
+        .action-btn { background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 6px 16px; font-size: 11px; cursor: pointer; border-radius: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -102,13 +91,13 @@
         <div class="title" id="ui-gametitle">GARDENVIEW: HALLOWEEN ESCAPE</div>
         <div class="hud-right">
             <div class="hud-group">
-                <button class="toon-btn" id="btn-yatta" onclick="switchChar('yatta')">[1] Yatta</button>
-                <button class="toon-btn" id="btn-looey" onclick="switchChar('looey')">[2] Looey</button>
-                <button class="toon-btn" id="btn-blot" onclick="switchChar('blot')">[3] Blot</button>
-                <button class="toon-btn active" id="btn-trio" onclick="switchChar('trio')">[4] Trio</button>
+                <button class="toon-btn" id="btn-yatta" onclick="switchChar('yatta')">[4] Yatta</button>
+                <button class="toon-btn" id="btn-looey" onclick="switchChar('looey')">[5] Looey</button>
+                <button class="toon-btn" id="btn-blot" onclick="switchChar('blot')">[6] Blot</button>
+                <button class="toon-btn active" id="btn-trio" onclick="switchChar('trio')">[7] Trio</button>
                 <span style="color:#ff5252; margin-left:6px;" id="hud-hp">❤️ HP: 3/3</span>
-                <span style="color:#ffeb3b; margin-left: 6px;" id="hud-keys">🔑 Keys: 0/8</span>
-                <span style="color:#00e676; margin-left: 6px;" id="hud-weapon">⚾ Bat: None</span>
+                <span style="color:#ffeb3b; margin-left:6px;" id="hud-keys">🔑 Keys: 0/8</span>
+                <span style="color:#00e676; margin-left:6px;" id="hud-weapon">⚾ Bat: None</span>
             </div>
             <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">ENG / VIE</button>
         </div>
@@ -116,48 +105,46 @@
 
     <div id="canvas-container">
         <canvas id="gameCanvas" width="800" height="560"></canvas>
-        <div id="skill-popup"></div>
+        
+        <!-- INVENTORY 3 Ô TRÒN -->
+        <div id="inventory-hud">
+            <div style="font-size:9px; color:#ab47bc; font-weight:bold; margin-right:4px;">BAG:</div>
+            <div class="inv-slot" id="slot-0" onclick="useInvItem(0)"><span class="inv-slot-key">1</span><span id="icon-0">EMPTY</span></div>
+            <div class="inv-slot" id="slot-1" onclick="useInvItem(1)"><span class="inv-slot-key">2</span><span id="icon-1">EMPTY</span></div>
+            <div class="inv-slot" id="slot-2" onclick="useInvItem(2)"><span class="inv-slot-key">3</span><span id="icon-2">EMPTY</span></div>
+        </div>
     </div>
 
     <div id="menu-screen">
-        <div class="menu-title" id="menu-main-title">ESCAPE GARDENVIEW</div>
-        <button class="menu-btn" id="btn-play" onclick="startGame()">PLAY / NEW GAME</button>
-        <button class="menu-btn" id="btn-cont" onclick="startGame()">CONTINUE</button>
-        <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
-        <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting game...')">EXIT</button>
+        <div class="menu-title">ESCAPE GARDENVIEW</div>
+        <button class="menu-btn" onclick="startGame()">PLAY / NEW GAME</button>
     </div>
 
-    <div id="quest-box">
-        <div style="color: #ffb74d; font-weight: bold;">📜 NPC QUEST: RODGER</div>
-        <div id="quest-text">"Hello there! Could you help me find Toodles' Dog Plush? I'll reward you with 1 Capsule and 3 golden coins!"</div>
-        <div class="quest-btns">
-            <button class="action-btn" onclick="acceptQuest(true)">Accept</button>
-            <button class="action-btn" style="border-color: #ff1744; color: #ff8a80;" onclick="acceptQuest(false)">Decline</button>
+    <!-- DIALOG HỎI CẤT ITEM -->
+    <div id="loot-dialog">
+        <div id="loot-msg" style="color:#ffeb3b; font-size:12px;">Found Item! Put into Inventory?</div>
+        <div class="dialog-btns">
+            <button class="action-btn" onclick="confirmLoot(true)">YES (Cất vào túi)</button>
+            <button class="action-btn" style="border-color:#ff1744; color:#ff8a80;" onclick="confirmLoot(false)">NO (Bỏ lại)</button>
         </div>
     </div>
 
     <div id="veemail-modal">
         <div class="veemail-header">
-            <span class="veemail-title" id="v-title">🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION</span>
+            <span class="veemail-title">🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION</span>
             <button class="close-x" onclick="closeVeemail()">X</button>
         </div>
-        <div class="veemail-body" id="v-content">
+        <div class="veemail-body">
             <strong>[COMBAT & SURVIVAL PROTOCOL]</strong><br><br>
-            Nhiệm vụ của ngươi là thu thập đủ 8 chìa khóa vàng, mở rương trong phòng (`[E]`).<br>
-            - Phím **[Z]**: Cầm vũ khí (Baseball Bat).<br>
-            - Phím **[F]**: Dùng vũ khí đánh văng Twisted.<br>
-            - Phím **[T]**: Dùng Capsule để thu gọn Blot vào túi an toàn.<br>
-            - Phím **[R]**: Dùng Gachapon để cất giữ Looey hoặc Yatta.<br><br>
-            <i>Ký tên: D</i>
+            Your mission is to collect 8 golden keys and loot secret room chests (`[E]`).<br><br>
+            - Press **[Z]**: Equip weapon (Baseball Bat).<br>
+            - Press **[F]**: Attack Twisted with weapon.<br>
+            - Press **[T]**: Use Capsule to store Blot safely.<br>
+            - Press **[R]**: Use Gachapon (Choose Looey or Yatta).<br>
+            - Press **[L]**: Use Elevator at map end to go to next floor.<br>
+            - Press **[1],[2],[3]**: Use Bandage/Medkit/Pop/Candy in Inventory.<br><br>
+            <i>Signed: D</i>
         </div>
-    </div>
-
-    <div id="dialogue-box">
-        <div>
-            <div id="speaker-name">NARRATOR</div>
-            <div id="dialogue-text">...</div>
-        </div>
-        <button class="action-btn" id="next-btn" onclick="nextDialogue()">Next [Space] ></button>
     </div>
 </div>
 
@@ -167,312 +154,209 @@ const ctx = canvas.getContext('2d');
 
 let currentLang = 'ENG';
 let gameState = 'MENU';
-let dialogueStep = 0;
-let activeChar = 'trio';
+let currentFloor = 1;
 let cameraX = 0;
-let skillTimer = null;
 
 let yatta = { worldX: 100, y: 450, vy: 0, grounded: true, active: true };
 let looey = { worldX: 135, y: 450, vy: 0, grounded: true, active: true };
 let blot  = { worldX: 170, y: 450, vy: 0, grounded: true, active: true };
+let activeChar = 'trio';
 
 let globalHP = 3;
 let keysCount = 0;
 let hasBaseballBat = false;
 let hasCapsule = false;
 let hasGachapon = false;
-let currentRoom = null;
 
-let circusRings = [{ x: 500, y: 300, active: true }, { x: 1200, y: 280, active: true }];
-let tightropes  = [{ x: 750, y: 350, w: 220 }];
-let npcs        = [{ worldX: 650, y: 450, name: 'Rodger', active: true }];
+// INVENTORY 3 Ô
+let inventory = [null, null, null];
+let pendingLoot = null;
+
+let circusRings = [{ x: 500, y: 280 }, { x: 1200, y: 260 }];
+let tightropes  = [{ x: 750, y: 320, w: 220 }];
+let elevator    = { x: 2100, y: 370, w: 60, h: 80 };
 
 let doors = [
-    { id: 1, worldX: 450, y: 370, opened: false, loot: null },
-    { id: 2, worldX: 1050, y: 370, opened: false, loot: null },
-    { id: 3, worldX: 1700, y: 370, opened: false, loot: null }
+    { id: 1, worldX: 450, y: 370, opened: false },
+    { id: 2, worldX: 1050, y: 370, opened: false },
+    { id: 3, worldX: 1700, y: 370, opened: false }
 ];
 
+let currentRoom = null;
 let twisted = { worldX: -300, y: 450, speed: 2, active: false };
 const keysInput = { left: false, right: false };
 
-const texts = {
-    ENG: {
-        title: "GARDENVIEW: HALLOWEEN ESCAPE",
-        play: "PLAY / NEW GAME", cont: "CONTINUE", how: "HOW TO PLAY", exit: "EXIT",
-        next: "Next [Space] >", pressE: "Press [E] to Enter Room", exitRoom: "Press [X] to Exit Room",
-        skills: {
-            trio: "🎪 CIRCUS TRIO: All members move together in harmony!",
-            yatta: "🤸 YATTA (Acrobatic): Can swing on rings and walk on tightropes!",
-            looey: "🎈 LOOEY (Clown): Slow balloon fall, distracts Twisted!",
-            blot: "🖤 BLOT (Mime): Turns into Ichor puddle, speaks backwards!"
-        },
-        intro: [
-            { speaker: "NARRATOR", text: "The show has concluded. Circus Trio chats happily as they head toward the dressing room." },
-            { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
-            { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-            { speaker: "BLOT", text: "!tolB m'I, iH (Hi, I'm Blot! - Smiles gently)." },
-            { speaker: "SYSTEM", text: "Objective: Move near the dressing room door on the left and press [E]." }
-        ],
-        blackout: [
-            { speaker: "NARRATOR", text: "* SLAM! * The dressing room door shuts on its own! BZZZZT... Total blackout!" },
-            { speaker: "YATTA", text: "Eek! Who closed the door?! Why is it pitch black?!" },
-            { speaker: "LOOEY", text: "Wait, look! A strange rainbow-glowing virtual button is right in front of us!" },
-            { speaker: "BLOT", text: "!thgil eht evah ew woh ,ohO (Oho, how do we have light?)" },
-            { speaker: "SYSTEM", text: "Curiously, Yatta presses the button... A portal opens and sucks everyone in!" }
-        ]
-    },
-    VIE: {
-        title: "GARDENVIEW: TRỐN THOÁT HALLOWEEN",
-        play: "CHƠI MỚI / BẮT ĐẦU", cont: "CHƠI TIẾP", how: "HƯỚNG DẪN", exit: "THOÁT",
-        next: "Tiếp tục [Space] >", pressE: "Nhấn [E] để vào phòng", exitRoom: "Nhấn [X] để ra ngoài",
-        skills: {
-            trio: "🎪 CIRCUS TRIO: Cả ba thành viên cùng di chuyển đồng bộ!",
-            yatta: "🤸 YATTA (Acrobatic): Đu vòng xiếc, đi trên dây khéo léo!",
-            looey: "🎈 LOOEY (Clown): Rơi chậm bằng bóng bay, đánh lạc hướng quái!",
-            blot: "🖤 BLOT (Mime): Biến thành vũng Ichor, nói ngược độc đáo!"
-        },
-        intro: [
-            { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn kết thúc. Circus Trio rôm rả trò chuyện bước về phía phòng thay đồ." },
-            { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
-            { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-            { speaker: "BLOT", text: "!tolB m'I, iH (Hi, I'm Blot! - Vừa nói vừa mỉm cười nhẹ)." },
-            { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ bên trái và nhấn [E]." }
-        ],
-        blackout: [
-            { speaker: "DẪN CHUYỆN", text: "* RẦM! * Cánh cửa phòng thay đồ tự động đóng sầm lại! BZZZZT... Mất điện toàn tập!" },
-            { speaker: "YATTA", text: "Á! Ai đóng cửa lại vậy?! Sao tự nhiên tối thui thế này?!" },
-            { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
-            { speaker: "BLOT", text: "!thgil eht evah ew woh ,ohO (Oho, sao lại có ánh sáng thế này?)" },
-            { speaker: "HỆ THỐNG", text: "Vì tò mò, Yatta bấm vào nút ảo... Một cánh cổng hút cả nhóm vào trong!" }
-        ]
-    }
-};
-
-function toggleLanguage() {
-    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
-    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
-    updateUIText();
-}
-
-function updateUIText() {
-    let t = texts[currentLang];
-    document.getElementById('ui-gametitle').innerText = t.title;
-    document.getElementById('menu-main-title').innerText = t.title;
-    document.getElementById('btn-play').innerText = t.play;
-    document.getElementById('btn-cont').innerText = t.cont;
-    document.getElementById('btn-how').innerText = t.how;
-    document.getElementById('btn-exit').innerText = t.exit;
-    document.getElementById('next-btn').innerText = t.next;
-    if (gameState === 'COMIC' || gameState === 'BLACKOUT') updateDialogue();
-}
-
-function showHelp() {
-    alert(currentLang === 'ENG' ? "Controls: Z Equip Bat, F Hit Twisted, T Use Capsule (Blot), R Use Gachapon (Looey/Yatta), E Open Chest!" : "Điều khiển: Z cầm gậy, F đánh Twisted, T dùng Capsule bắt Blot, R dùng Gachapon bắt Looey/Yatta, E mở rương!");
-}
-
 function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
-    gameState = 'COMIC';
-    dialogueStep = 0;
-    document.getElementById('dialogue-box').style.display = 'flex';
-    updateDialogue();
-}
-
-function nextDialogue() {
-    dialogueStep++;
-    let t = texts[currentLang];
-    if (gameState === 'COMIC') {
-        if (dialogueStep < t.intro.length) updateDialogue();
-        else { document.getElementById('dialogue-box').style.display = 'none'; gameState = 'HALLWAY'; }
-    } else if (gameState === 'BLACKOUT') {
-        if (dialogueStep < t.blackout.length) updateDialogue();
-        else {
-            document.getElementById('dialogue-box').style.display = 'none';
-            gameState = 'PORTAL';
-            setTimeout(() => { gameState = 'VEEMAIL_OPEN'; document.getElementById('veemail-modal').style.display = 'flex'; }, 2000);
-        }
-    }
-}
-
-function updateDialogue() {
-    let t = texts[currentLang];
-    let script = (gameState === 'COMIC') ? t.intro : t.blackout;
-    let data = script[dialogueStep];
-    document.getElementById('speaker-name').innerText = data.speaker;
-    document.getElementById('dialogue-text').innerText = data.text;
+    gameState = 'BLACKOUT';
+    setTimeout(() => {
+        gameState = 'VEEMAIL_OPEN';
+        document.getElementById('veemail-modal').style.display = 'flex';
+    }, 1000);
 }
 
 function closeVeemail() {
     document.getElementById('veemail-modal').style.display = 'none';
+    document.getElementById('inventory-hud').style.display = 'flex'; // HIỆN INVENTORY HÌNH TRÒN
     gameState = 'SIDE_SCROLL';
-    setTimeout(() => { twisted.active = true; twisted.worldX = yatta.worldX - 800; }, 3000);
+    setTimeout(() => { twisted.active = true; twisted.worldX = yatta.worldX - 600; }, 2000);
 }
 
 function switchChar(c) {
     activeChar = c;
     document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(c === 'yatta' ? 'btn-yatta' : c === 'looey' ? 'btn-looey' : c === 'blot' ? 'btn-blot' : 'btn-trio').classList.add('active');
-
-    let popup = document.getElementById('skill-popup');
-    popup.innerText = texts[currentLang].skills[c];
-    popup.style.display = 'block';
-
-    if (skillTimer) clearTimeout(skillTimer);
-    skillTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
+    document.getElementById('btn-' + c).classList.add('active');
 }
 
-function acceptQuest(accepted) {
-    document.getElementById('quest-box').style.display = 'none';
-    if (accepted) {
-        hasCapsule = true;
-        alert(currentLang === 'ENG' ? "Quest Accepted! Received Capsule!" : "Đã nhận nhiệm vụ! Nhận được 1 Capsule!");
-    } else {
-        alert(currentLang === 'ENG' ? "Quest Declined." : "Đã từ chối nhiệm vụ.");
+// CẬP NHẬT GIAO DIỆN INVENTORY
+function updateInvUI() {
+    for (let i = 0; i < 3; i++) {
+        let el = document.getElementById(`icon-${i}`);
+        let item = inventory[i];
+        if (item === 'BANDAGE') el.innerText = '🩹';
+        else if (item === 'MEDKIT') el.innerText = '🩹+';
+        else if (item === 'POP') el.innerText = '🥤';
+        else if (item === 'CANDY') el.innerText = '🍬';
+        else el.innerText = '';
     }
+}
+
+// SỬ DỤNG ITEM TRONG INVENTORY
+function useInvItem(slot) {
+    let item = inventory[slot];
+    if (!item) return;
+    if (item === 'BANDAGE' || item === 'POP' || item === 'CANDY') {
+        if (globalHP < 3) {
+            globalHP++;
+            inventory[slot] = null;
+            alert("Used " + item + "! Recovered 1 HP ❤️");
+        } else alert("HP is already FULL!");
+    } else if (item === 'MEDKIT') {
+        if (globalHP < 3) {
+            globalHP = 3;
+            inventory[slot] = null;
+            alert("Used Medkit! Fully Restored HP ❤️");
+        } else alert("HP is already FULL!");
+    }
+    document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
+    updateInvUI();
 }
 
 function getRandomLoot() {
-    const items = [
-        { type: 'KEY', name: 'Golden Key', desc: 'Found 1 Golden Key! (🔑)' },
-        { type: 'BANDAGE', name: 'Bandage', desc: 'Found Bandage! Recovered 1 HP (❤️+1)' },
-        { type: 'MEDKIT', name: 'Medkit', desc: 'Found Medkit! Fully Restored HP (❤️ Full)' },
-        { type: 'WEAPON', name: 'Baseball Bat', desc: 'Found Baseball Bat! Press [Z] to equip, [F] to attack.' },
-        { type: 'CAPSULE', name: 'Capsule', desc: 'Found Capsule! Press [T] to store Blot.' },
-        { type: 'GACHAPON', name: 'Gachapon', desc: 'Found Gachapon! Press [R] to store Looey/Yatta.' },
-        { type: 'EMPTY', name: 'Empty', desc: 'The chest is empty... Bad luck!' }
-    ];
-    let rand = Math.random();
-    if (rand < 0.20) return items[0];
-    if (rand < 0.35) return items[1];
-    if (rand < 0.45) return items[2];
-    if (rand < 0.60) return items[3];
-    if (rand < 0.72) return items[4];
-    if (rand < 0.85) return items[5];
-    return items[6];
+    const items = ['KEY', 'BANDAGE', 'MEDKIT', 'POP', 'CANDY', 'WEAPON', 'CAPSULE', 'GACHAPON', 'EMPTY'];
+    let r = items[Math.floor(Math.random() * items.length)];
+    return r;
 }
 
-// PHÍM BẤM COMBAT & TƯƠNG TÁC
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && (gameState === 'COMIC' || gameState === 'BLACKOUT')) nextDialogue();
-    if (e.code === 'Digit1') switchChar('yatta');
-    if (e.code === 'Digit2') switchChar('looey');
-    if (e.code === 'Digit3') switchChar('blot');
-    if (e.code === 'Digit4') switchChar('trio');
+// XÁC NHẬN CẤT ITEM
+function confirmLoot(yes) {
+    document.getElementById('loot-dialog').style.display = 'none';
+    if (yes && pendingLoot) {
+        let emptyIndex = inventory.indexOf(null);
+        if (emptyIndex !== -1) {
+            inventory[emptyIndex] = pendingLoot;
+            updateInvUI();
+            alert("Added " + pendingLoot + " to Inventory!");
+        } else {
+            alert("Inventory FULL! Item left behind.");
+        }
+    }
+    pendingLoot = null;
+}
 
+// PHÍM BẤM
+window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
-    // PHÍM [Z]: CẦM VŨ KHÍ
+    if (e.code === 'Digit1') useInvItem(0);
+    if (e.code === 'Digit2') useInvItem(1);
+    if (e.code === 'Digit3') useInvItem(2);
+    if (e.code === 'Digit4') switchChar('yatta');
+    if (e.code === 'Digit5') switchChar('looey');
+    if (e.code === 'Digit6') switchChar('blot');
+    if (e.code === 'Digit7') switchChar('trio');
+
     if (e.code === 'KeyZ') {
-        if (hasBaseballBat) {
-            alert(currentLang === 'ENG' ? "Baseball Bat Equipped! Press [F] to hit Twisted." : "Đã cầm Baseball Bat! Nhấn [F] để đánh Twisted.");
-        } else {
-            alert(currentLang === 'ENG' ? "No Baseball Bat in inventory!" : "Chưa có gậy bóng chày trong túi!");
-        }
+        if (hasBaseballBat) alert("Equipped Baseball Bat! Press [F] to hit Twisted.");
+        else alert("No Baseball Bat in inventory!");
     }
 
-    // PHÍM [F]: ĐÁNH TWISTED
+    // ĐÁNH QUÁI BẰNG GẬY (FIX CHUẨN HITBOX)
     if (e.code === 'KeyF') {
-        if (hasBaseballBat && Math.abs(yatta.worldX - twisted.worldX) < 120) {
-            twisted.worldX -= 250; // Đẩy lùi quái ra xa
-            alert(currentLang === 'ENG' ? "Bam! Hit Twisted with Baseball Bat, pushed back!" : "Bốp! Dùng gậy đập văng Twisted ra xa thành công!");
-        } else {
-            alert(currentLang === 'ENG' ? "No bat equipped or Twisted is too far!" : "Chưa cầm gậy hoặc Twisted ở quá xa!");
-        }
+        if (hasBaseballBat && Math.abs(yatta.worldX - twisted.worldX) < 160) {
+            twisted.worldX -= 350; // Đẩy văng quái xa
+            alert("BAM! Hit Twisted with Baseball Bat! Pushed back!");
+        } else alert("No bat or Twisted is too far!");
     }
 
-    // PHÍM [T]: DÙNG CAPSULE CHỨA BLOT
+    // TÒA CAPSULE BẮT BLOT
     if (e.code === 'KeyT') {
-        if (hasCapsule && blot.active) {
-            blot.active = false;
-            alert(currentLang === 'ENG' ? "Blot stored safely in Capsule!" : "Đã cất Blot vào Capsule an toàn!");
-        } else {
-            alert(currentLang === 'ENG' ? "No Capsule or Blot already stored!" : "Không có Capsule hoặc Blot đã được cất!");
-        }
+        if (hasCapsule && blot.active) { blot.active = false; alert("Blot stored in Capsule!"); }
+        else alert("No Capsule or Blot already stored!");
     }
 
-    // PHÍM [R]: DÙNG GACHAPON CHỨA LOOEY HOẶC YATTA
+    // GACHAPON CHỌN TOON CẤT VÀO
     if (e.code === 'KeyR') {
         if (hasGachapon) {
-            if (activeChar === 'looey' && looey.active) { looey.active = false; alert("Looey stored in Gachapon!"); }
-            else if (activeChar === 'yatta' && yatta.active) { yatta.active = false; alert("Yatta stored in Gachapon!"); }
-            else { alert(currentLang === 'ENG' ? "Select Looey or Yatta to store!" : "Hãy chọn Looey hoặc Yatta để cất!"); }
-        } else {
-            alert(currentLang === 'ENG' ? "No Gachapon in inventory!" : "Chưa có Gachapon trong túi!");
+            let choice = prompt("Select Toon to store in Gachapon:\n1: Yatta\n2: Looey");
+            if (choice === '1' && yatta.active) { yatta.active = false; alert("Yatta stored in Gachapon!"); }
+            else if (choice === '2' && looey.active) { looey.active = false; alert("Looey stored in Gachapon!"); }
+        } else alert("No Gachapon!");
+    }
+
+    // THANG MÁY CHUYỂN TẦNG [L]
+    if (e.code === 'KeyL' && gameState === 'SIDE_SCROLL') {
+        if (Math.abs(yatta.worldX - elevator.x) < 60) {
+            currentFloor++;
+            yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
+            twisted.worldX = -500;
+            doors.forEach(d => d.opened = false);
+            alert(`Entering Elevator... Welcome to Floor ${currentFloor}!`);
         }
     }
 
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        if (gameState === 'SIDE_SCROLL' || gameState === 'HALLWAY') {
-            let px = yatta.worldX;
-            let py = yatta.y;
+        if (gameState === 'SIDE_SCROLL') {
+            let px = yatta.worldX, py = yatta.y;
             let nearRing = circusRings.some(r => Math.abs(px - r.x) < 50 && Math.abs(py - r.y) < 80);
             let nearRope = tightropes.some(tp => px >= tp.x - 20 && px <= tp.x + tp.w + 20);
 
-            if (nearRing || nearRope) {
-                if (activeChar === 'trio') {
-                    [yatta, looey, blot].forEach(p => { if(p.active) { p.vy = -14; p.grounded = false; } });
-                } else {
-                    let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
-                    if(p.active) { p.vy = -14; p.grounded = false; }
-                }
-            } else {
-                if (activeChar === 'trio') {
-                    [yatta, looey, blot].forEach(p => { if (p.grounded && p.active) { p.vy = -11; p.grounded = false; } });
-                } else {
-                    let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
-                    if (p.grounded && p.active) { p.vy = -11; p.grounded = false; }
-                }
-            }
+            let jumpPower = (nearRing || nearRope) ? -15 : -11;
+            [yatta, looey, blot].forEach(p => { if (p.grounded && p.active) { p.vy = jumpPower; p.grounded = false; } });
         }
     }
 
     if (e.code === 'KeyE') {
-        if (gameState === 'HALLWAY' && yatta.worldX < 150) {
-            gameState = 'BLACKOUT'; dialogueStep = 0;
-            document.getElementById('dialogue-box').style.display = 'flex'; updateDialogue();
-        }
-        npcs.forEach(n => {
-            if (gameState === 'SIDE_SCROLL' && n.active && Math.abs(yatta.worldX - n.worldX) < 60) {
-                document.getElementById('quest-box').style.display = 'flex';
-            }
-        });
         doors.forEach(d => {
             if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 60) {
                 currentRoom = d;
-                currentRoom.loot = getRandomLoot();
                 gameState = 'INSIDE_ROOM';
             }
         });
         if (gameState === 'INSIDE_ROOM' && currentRoom && !currentRoom.opened) {
             currentRoom.opened = true;
-            let loot = currentRoom.loot;
-            
-            if (loot.type === 'KEY') {
+            let loot = getRandomLoot();
+            if (loot === 'KEY') {
                 keysCount++;
                 document.getElementById('hud-keys').innerText = "🔑 Keys: " + keysCount + "/8";
-            } else if (loot.type === 'BANDAGE') {
-                if (globalHP < 3) globalHP++;
-                document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
-            } else if (loot.type === 'MEDKIT') {
-                globalHP = 3;
-                document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
-            } else if (loot.type === 'WEAPON') {
+                alert("Found Golden Key! (🔑)");
+            } else if (loot === 'WEAPON') {
                 hasBaseballBat = true;
-                document.getElementById('hud-weapon').innerText = `⚾ Bat: Equipped`;
-            } else if (loot.type === 'CAPSULE') {
-                hasCapsule = true;
-            } else if (loot.type === 'GACHAPON') {
-                hasGachapon = true;
-            }
-            alert(loot.desc);
+                document.getElementById('hud-weapon').innerText = "⚾ Bat: Equipped";
+                alert("Found Baseball Bat!");
+            } else if (loot === 'CAPSULE') { hasCapsule = true; alert("Found Capsule!"); }
+            else if (loot === 'GACHAPON') { hasGachapon = true; alert("Found Gachapon!"); }
+            else if (['BANDAGE', 'MEDKIT', 'POP', 'CANDY'].includes(loot)) {
+                pendingLoot = loot;
+                document.getElementById('loot-msg').innerText = `Found ${loot}! Do you want to put it into Inventory?`;
+                document.getElementById('loot-dialog').style.display = 'flex';
+            } else alert("Chest is empty!");
         }
     }
 
     if (e.code === 'KeyX' && gameState === 'INSIDE_ROOM') {
-        gameState = 'SIDE_SCROLL';
-        currentRoom = null;
+        gameState = 'SIDE_SCROLL'; currentRoom = null;
     }
 });
 
@@ -481,149 +365,106 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = false;
 });
 
-// GAME LOOP
 function gameLoop() {
     ctx.clearRect(0, 0, 800, 560);
 
-    if (gameState === 'HALLWAY' || gameState === 'SIDE_SCROLL') {
+    if (gameState === 'SIDE_SCROLL') {
         let moveX = 0;
         if (keysInput.left) moveX = -4;
         if (keysInput.right) moveX = 4;
 
-        if (activeChar === 'trio') {
-            [yatta, looey, blot].forEach(p => {
-                if(p.active) {
-                    p.worldX += moveX;
-                    p.vy += 0.45; p.y += p.vy;
-                    if (p.y >= 450) { p.y = 450; p.vy = 0; p.grounded = true; }
-                }
-            });
-        } else {
-            let activeP = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
-            if(activeP.active) {
-                activeP.worldX += moveX;
-                activeP.vy += 0.45; activeP.y += activeP.vy;
-                if (activeP.y >= 450) { activeP.y = 450; activeP.vy = 0; activeP.grounded = true; }
+        [yatta, looey, blot].forEach(p => {
+            if (p.active) {
+                p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
+                if (p.y >= 450) { p.y = 450; p.vy = 0; p.grounded = true; }
             }
-        }
+        });
 
+        // FIX CHUẨN HITBOX TWISTED: CHỈ MẤT MÁU KHI CÙNG TỌA ĐỘ $Y$ Ở SÀN CƠ BẢN (P.Y >= 400)
         if (twisted.active) {
             twisted.worldX += twisted.speed;
-            if (Math.abs(yatta.worldX - twisted.worldX) < 30) {
+            let isNearX = Math.abs(yatta.worldX - twisted.worldX) < 30;
+            let isGroundY = yatta.y > 400; // Đang ở dưới đất chứ không đu dây trên cao
+
+            if (isNearX && isGroundY) {
                 globalHP--;
                 document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
-                alert(currentLang === 'ENG' ? "Caught by Twisted! Lost 1 Heart! (Press [F] to hit next time!)" : "Bị Twisted bắt! Mất 1 tim! (Nhấn [F] để đập quái lần sau!)");
-                twisted.worldX -= 250;
+                alert("Caught by Twisted! Lost 1 Heart!");
+                twisted.worldX -= 300;
                 if (globalHP <= 0) { alert("GAME OVER!"); location.reload(); }
             }
         }
 
         cameraX = yatta.worldX - 350;
         if (cameraX < 0) cameraX = 0;
-        if (cameraX > 1400) cameraX = 1400;
 
         ctx.save();
         ctx.translate(-cameraX, 0);
 
-        if (gameState === 'HALLWAY') {
-            ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 2200, 560);
-            ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150);
-            if (yatta.worldX < 140) {
-                ctx.fillStyle = '#00e676'; ctx.font = '11px Courier New';
-                ctx.fillText(texts[currentLang].pressE, 35, 290);
-            }
-        } else {
-            ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2200, 560);
-            ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
-            ctx.fillText("GARDENVIEW CIRCUS WING - COMBAT & CAPSULE SYSTEM", 40, 40);
+        ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2500, 560);
+        ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
+        ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - PARKOUR & SURVIVE`, 40, 40);
 
-            circusRings.forEach(r => {
-                ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4;
-                ctx.beginPath(); ctx.arc(r.x, r.y, 24, 0, Math.PI*2); ctx.stroke();
-                ctx.fillStyle = '#ff7043'; ctx.font = '9px Courier New'; ctx.fillText("RING [W]", r.x - 14, r.y - 30);
-            });
+        // VÒNG ĐU & DÂY
+        circusRings.forEach(r => {
+            ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4;
+            ctx.beginPath(); ctx.arc(r.x, r.y, 24, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = '#ff7043'; ctx.font = '9px Courier New'; ctx.fillText("RING [W]", r.x - 14, r.y - 30);
+        });
 
-            tightropes.forEach(tp => {
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
-                ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE [W]", tp.x + 50, tp.y - 8);
-            });
+        tightropes.forEach(tp => {
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
+            ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE [W]", tp.x + 50, tp.y - 8);
+        });
 
-            npcs.forEach(n => {
-                ctx.fillStyle = '#ffb74d'; ctx.fillRect(n.worldX - 10, 410, 20, 40);
-                ctx.fillStyle = '#000'; ctx.font = '9px Courier New'; ctx.fillText("RODGER [E]", n.worldX - 18, 400);
-            });
+        // CỬA PHÒNG
+        doors.forEach(d => {
+            ctx.fillStyle = d.opened ? '#455a64' : '#00e676';
+            ctx.fillRect(d.worldX, d.y, 45, 80);
+            ctx.fillStyle = '#000'; ctx.font = '9px Courier New';
+            ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 4, d.y - 8);
+        });
 
-            doors.forEach(d => {
-                ctx.fillStyle = d.opened ? '#455a64' : '#00e676';
-                ctx.fillRect(d.worldX, d.y, 45, 80);
-                ctx.fillStyle = '#000'; ctx.font = '9px Courier New';
-                ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 4, d.y - 8);
-            });
+        // THANG MÁY [L] Ở CUỐI MAP
+        ctx.fillStyle = '#ffb74d'; ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
+        ctx.fillStyle = '#000'; ctx.font = 'bold 10px Courier New';
+        ctx.fillText("ELEVATOR", elevator.x + 5, elevator.y + 30);
+        ctx.fillText("[L]", elevator.x + 22, elevator.y + 50);
 
-            if (twisted.active) {
-                ctx.fillStyle = '#d50000'; ctx.fillRect(twisted.worldX - 12, 410, 24, 40);
-                ctx.fillStyle = '#ffeb3b'; ctx.fillRect(twisted.worldX - 6, 400, 12, 8);
-            }
+        // TWISTED
+        if (twisted.active) {
+            ctx.fillStyle = '#d50000'; ctx.fillRect(twisted.worldX - 12, 410, 24, 40);
         }
 
-        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2200, 110);
-        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 2200, 4);
+        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
+        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 2500, 4);
 
-        if(yatta.active) drawChar(yatta.worldX, yatta.y, 'yatta', activeChar === 'yatta' || activeChar === 'trio');
-        if(looey.active) drawChar(looey.worldX, looey.y, 'looey', activeChar === 'looey' || activeChar === 'trio');
-        if(blot.active)  drawChar(blot.worldX, blot.y, 'blot', activeChar === 'blot' || activeChar === 'trio');
+        if (yatta.active) drawChar(yatta.worldX, yatta.y, 'yatta');
+        if (looey.active) drawChar(looey.worldX, looey.y, 'looey');
+        if (blot.active)  drawChar(blot.worldX, blot.y, 'blot');
 
         ctx.restore();
 
     } else if (gameState === 'INSIDE_ROOM') {
         ctx.fillStyle = '#05020a'; ctx.fillRect(0, 0, 800, 560);
-        
         ctx.fillStyle = (currentRoom && currentRoom.opened) ? '#455a64' : '#ffb300';
         ctx.fillRect(350, 320, 100, 70);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier New';
-        ctx.textAlign = 'center';
-        ctx.fillText("SECRET ROOM - CLASSIFIED LOOT CHEST", 400, 80);
-        ctx.fillText((currentRoom && currentRoom.opened) ? `LOOTED ITEM: ${currentRoom.loot.name}` : "Press [E] to Open Chest", 400, 270);
-        ctx.fillText("Press [X] to Exit Room", 400, 460);
-        ctx.textAlign = 'left';
-
-    } else if (gameState === 'BLACKOUT') {
-        ctx.fillStyle = '#010002'; ctx.fillRect(0, 0, 800, 560);
-        let g = Math.sin(Date.now() / 150);
-        ctx.fillStyle = `rgb(${100+155*g}, ${100+155*Math.cos(g)}, 255)`;
-        ctx.beginPath(); ctx.arc(400, 250, 30, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#000'; ctx.font = 'bold 16px Courier New'; ctx.fillText("?", 394, 256);
-    } else if (gameState === 'PORTAL') {
-        ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
-        ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
-        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
-        ctx.textAlign = 'left';
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText("SECRET ROOM - LOOT CHEST", 400, 80);
+        ctx.fillText((currentRoom && currentRoom.opened) ? "CHEST OPENED" : "Press [E] to Open Chest", 400, 270);
+        ctx.fillText("Press [X] to Exit Room", 400, 460); ctx.textAlign = 'left';
     }
 
     requestAnimationFrame(gameLoop);
 }
 
-function drawChar(x, y, type, active) {
-    ctx.save();
-    ctx.translate(x, y);
-    if (type === 'yatta') {
-        ctx.fillStyle = '#fff59d'; ctx.fillRect(-10, -35, 20, 28);
-        ctx.fillStyle = '#ff80ab'; ctx.fillRect(-14, -45, 6, 12); ctx.fillRect(8, -45, 6, 12);
-    } else if (type === 'looey') {
-        ctx.fillStyle = '#ffee58'; ctx.fillRect(-10, -35, 20, 28);
-        ctx.fillStyle = '#66bb6a'; ctx.fillRect(-8, -48, 6, 14);
-    } else if (type === 'blot') {
-        ctx.fillStyle = '#37474f'; ctx.fillRect(-10, -35, 20, 28);
-    }
-
-    if (activeChar === type || (activeChar === 'trio' && type === 'yatta')) {
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.moveTo(0, -60); ctx.lineTo(-6, -72); ctx.lineTo(6, -72);
-        ctx.fill();
-    }
-
+function drawChar(x, y, type) {
+    ctx.save(); ctx.translate(x, y);
+    if (type === 'yatta') ctx.fillStyle = '#fff59d';
+    else if (type === 'looey') ctx.fillStyle = '#ffee58';
+    else if (type === 'blot') ctx.fillStyle = '#37474f';
+    ctx.fillRect(-10, -35, 20, 28);
     ctx.restore();
 }
 

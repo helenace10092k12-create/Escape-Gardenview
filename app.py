@@ -83,75 +83,62 @@ game_code = """
             background-size: 100% 4px;
         }
 
-        /* KHUNG CHAT LOOEY HIỆN NGUYÊN ẢNH PIXEL ART */
+        /* KHUNG CHAT PIXEL ART CHUẨN XÁC DƯỚI ĐÁY MÀN HÌNH */
         #looey-dialogue-overlay {
             position: absolute;
             bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 20px;
             width: 760px;
-            height: 380px;
+            height: 180px;
             z-index: 50;
-            display: none; /* Mặc định ẩn, chỉ bật khi Looey nói */
-            pointer-events: none;
+            display: none;
         }
 
-        #looey-bg-img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            image-rendering: pixelated;
-        }
-
-        /* Lời thoại lọt lòng bên trong ô màu vàng của bức ảnh Looey */
         #looey-text-box {
             position: absolute;
-            bottom: 35px;
-            left: 170px;
-            width: 420px;
-            height: 85px;
+            bottom: 25px;
+            left: 175px;
+            width: 410px;
+            height: 70px;
             z-index: 60;
-            padding: 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            pointer-events: auto;
         }
 
         #looey-text {
-            color: #1a0b2e; /* Chữ màu tím đậm nổi bật trên nền ô vàng */
+            color: #1a0b2e;
             font-weight: bold;
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 12px;
+            line-height: 1.3;
             font-family: 'Courier New', monospace;
         }
 
         .dialogue-btns { display: flex; justify-content: flex-end; }
         .action-btn {
             background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc;
-            padding: 3px 10px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold;
+            padding: 2px 8px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold;
         }
         .action-btn:hover { background: #512da8; color: #fff; }
 
-        /* Khung thoại thường dùng cho Dẫn chuyện/System */
         #normal-dialogue-box {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             width: 720px;
-            height: 120px;
-            background: rgba(8, 3, 18, 0.9);
+            height: 110px;
+            background: rgba(8, 3, 18, 0.95);
             border: 3px solid #7c4dff;
             border-radius: 8px;
-            padding: 12px 18px;
+            padding: 10px 16px;
             z-index: 40;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
         }
-        #normal-speaker { color: #ffb74d; font-weight: bold; font-size: 12px; margin-bottom: 4px; }
-        #normal-text { color: #00e676; font-size: 12px; line-height: 1.4; }
+        #normal-speaker { color: #ffb74d; font-weight: bold; font-size: 11px; margin-bottom: 2px; }
+        #normal-text { color: #00e676; font-size: 11px; line-height: 1.3; }
     </style>
 </head>
 <body>
@@ -175,9 +162,9 @@ game_code = """
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- KHUNG THOẠI RIÊNG DÀNH CHO LOOEY (NỔI NGUYÊN ẢNH PIXEL) -->
+    <!-- KHUNG THOẠI PIXEL ART CỦA LOOEY -->
     <div id="looey-dialogue-overlay">
-        <img id="looey-bg-img" src="LOOEY_IMAGE_URL" alt="Looey Pixel Overlay">
+        <canvas id="looeyCanvas" width="760" height="180" style="position: absolute; top: 0; left: 0; image-rendering: pixelated;"></canvas>
         <div id="looey-text-box">
             <div id="looey-text">My balloons almost popped right at the finale! Haha!</div>
             <div class="dialogue-btns">
@@ -186,7 +173,7 @@ game_code = """
         </div>
     </div>
 
-    <!-- KHUNG THOẠI THƯỜNG CHO DẪN CHUYỆN / HỆ THỐNG -->
+    <!-- KHUNG THOẠI THƯỜNG -->
     <div id="normal-dialogue-box" style="display: none;">
         <div>
             <div id="normal-speaker">NARRATOR</div>
@@ -202,8 +189,52 @@ game_code = """
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- BỒ THAY DÒNG LOOEY_IMAGE_URL BÊN ĐƯỜNG LINK ẢNH THẬT TRÊN GITHUB NHÉ ---
-const LOOEY_IMAGE_URL = "https://raw.githubusercontent.com/username/repo/main/1000009227.png"; 
+// Vẽ khung chat pixel art của Looey lên canvas nhỏ
+const lCanvas = document.getElementById('looeyCanvas');
+const lCtx = lCanvas.getContext('2d');
+
+function drawLooeyPixelBox() {
+    lCtx.clearRect(0, 0, 760, 180);
+
+    // 1. Vẽ nhân vật Looey nửa người phía trên bên trái khung thoại
+    lCtx.save();
+    lCtx.translate(90, 100);
+
+    // Tai bóng bay (Xanh lá & Tím)
+    lCtx.fillStyle = '#66bb6a'; lCtx.beginPath(); lCtx.ellipse(-22, -65, 12, 24, -Math.PI/6, 0, Math.PI*2); lCtx.fill();
+    lCtx.fillStyle = '#ab47bc'; lCtx.beginPath(); lCtx.ellipse(22, -65, 12, 24, Math.PI/6, 0, Math.PI*2); lCtx.fill();
+
+    // Đầu vàng chanh
+    lCtx.fillStyle = '#ffee58'; lCtx.beginPath(); lCtx.arc(0, -20, 32, 0, Math.PI*2); lCtx.fill();
+
+    // Mắt long lanh
+    lCtx.fillStyle = '#111'; lCtx.beginPath(); lCtx.ellipse(-12, -22, 6, 12, 0, 0, Math.PI*2); lCtx.fill();
+    lCtx.beginPath(); lCtx.ellipse(12, -22, 6, 12, 0, 0, Math.PI*2); lCtx.fill();
+    lCtx.fillStyle = '#fff'; lCtx.fillRect(-14, -28, 2, 8); lCtx.fillRect(10, -28, 2, 8);
+
+    // Mũi đỏ & Miệng cười
+    lCtx.fillStyle = '#ff1744'; lCtx.beginPath(); lCtx.arc(0, -10, 6, 0, Math.PI*2); lCtx.fill();
+    lCtx.fillStyle = '#fff'; lCtx.beginPath(); lCtx.arc(0, -2, 8, 0, Math.PI); lCtx.fill();
+
+    // Khăn quàng chấm bi
+    lCtx.fillStyle = '#fff'; lCtx.beginPath(); lCtx.moveTo(-25, 35); lCtx.lineTo(0, 10); lCtx.lineTo(25, 35); lCtx.closePath(); lCtx.fill();
+    lCtx.fillStyle = '#ab47bc'; lCtx.beginPath(); lCtx.arc(-10, 22, 3, 0, Math.PI*2); lCtx.fill();
+    lCtx.fillStyle = '#66bb6a'; lCtx.beginPath(); lCtx.arc(10, 25, 3, 0, Math.PI*2); lCtx.fill();
+
+    lCtx.restore();
+
+    // 2. Vẽ khung chat màu vàng cam đặc trưng phía dưới
+    lCtx.fillStyle = '#e6c653';
+    lCtx.strokeStyle = '#2b1b09';
+    lCtx.lineWidth = 4;
+    
+    // Tạo hình khung bo góc cho hộp thoại
+    lCtx.beginPath();
+    lCtx.roundRect(160, 40, 580, 110, 10);
+    lCtx.fill();
+    lCtx.stroke();
+}
+drawLooeyPixelBox();
 
 let currentLang = 'ENG'; 
 let currentStep = 0;
@@ -302,12 +333,10 @@ function updateDialogue() {
     const normalBox = document.getElementById('normal-dialogue-box');
 
     if (data.speaker === 'LOOEY') {
-        // Hiện khung thoại ảnh Pixel của Looey
         normalBox.style.display = 'none';
         looeyOverlay.style.display = 'block';
         document.getElementById('looey-text').innerText = data.text;
     } else {
-        // Hiện khung thoại bình thường cho Dẫn chuyện/System
         looeyOverlay.style.display = 'none';
         normalBox.style.display = 'flex';
         document.getElementById('normal-speaker').innerText = data.speaker;
@@ -351,7 +380,6 @@ function gameLoop() {
 
     ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 800, 560);
 
-    // Cửa phòng thay đồ
     if (gamePhase === 'DRESSING_ROOM') {
         ctx.fillStyle = '#311b92'; ctx.fillRect(60, 300, 70, 150);
         let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
@@ -360,7 +388,6 @@ function gameLoop() {
         }
     }
 
-    // Sàn
     ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 800, 110);
     ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 800, 4);
 

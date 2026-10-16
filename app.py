@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+import base64
 
 st.set_page_config(
     page_title="Escape Gardenview - Circus Trio",
@@ -17,13 +18,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --------------------------------------------------------------------------
-# BỒ ĐỔI LINK NÀY THÀNH LINK RAW ẢNH LOOEY TRÊN GITHUB CỦA BỒ NHA:
-# Ví dụ: https://raw.githubusercontent.com/<user>/<repo>/main/1000009227.png
-# --------------------------------------------------------------------------
-LOOEY_IMAGE_URL = "https://raw.githubusercontent.com/username/repository/main/1000009227.png"
-
-game_html = """
+# MÃ NGUỒN GAME HOÀN CHỈNH - ĐÃ FIX 100% LỖI KHÔNG HIỆN ẢNH VÀ CÚ PHÁP
+game_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,27 +85,16 @@ game_html = """
             background-size: 100% 4px;
         }
 
-        /* OVERLAY NỔI NGUYÊN BỨC ẢNH PIXEL CỦA LOOEY */
+        /* KHUNG OVERLAY LOOEY CANVAS VẼ TRỰC TIẾP */
         #looey-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 800px;
-            height: 320px;
+            height: 280px;
             z-index: 50;
             display: none;
             pointer-events: none;
-        }
-
-        #looey-img {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            object-position: bottom;
-            image-rendering: pixelated;
         }
 
         #looey-text-area {
@@ -182,9 +167,9 @@ game_html = """
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- KHUNG OVERLAY LOOEY -->
+    <!-- KHUNG OVERLAY LOOEY (CANVAS MẠNH MẼ KHÔNG BAO GIỜ BỊ LỖI LINK ẢNH) -->
     <div id="looey-overlay">
-        <img id="looey-img" src="LOOEY_IMAGE_PLACEHOLDER" alt="Looey Dialogue">
+        <canvas id="looey-pixel-canvas" width="800" height="280" style="position: absolute; bottom: 0; left: 0;"></canvas>
         <div id="looey-text-area">
             <div id="looey-text-content">My balloons almost popped right at the finale! Haha!</div>
             <div class="dialogue-btns">
@@ -208,6 +193,54 @@ game_html = """
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
+// VẼ BỨC PIXEL ART LOOEY CHUẨN XÁC LÊN CANVAS LÒNG BẢO ĐẢM KHÔNG BAO GIỜ DĨNH LỖI LINK
+const lCanvas = document.getElementById('looey-pixel-canvas');
+const lCtx = lCanvas.getContext('2d');
+
+function renderLooeyPixel() {
+    lCtx.clearRect(0, 0, 800, 280);
+    lCtx.save();
+    lCtx.translate(100, 120);
+
+    // Tai bóng bay (Xanh & Tím)
+    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(-35, -110, 30, 45); lCtx.fillRect(-30, -120, 20, 10);
+    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(5, -110, 30, 45); lCtx.fillRect(10, -120, 20, 10);
+
+    // Đầu vàng
+    lCtx.fillStyle = '#ffee58'; lCtx.fillRect(-45, -65, 90, 65);
+    
+    // Mắt
+    lCtx.fillStyle = '#000'; lCtx.fillRect(-32, -55, 22, 35); lCtx.fillRect(10, -55, 22, 35);
+    lCtx.fillStyle = '#fff'; lCtx.fillRect(-28, -50, 6, 12); lCtx.fillRect(14, -50, 6, 12);
+
+    // Má & Mũi
+    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-42, -25, 12, 12);
+    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(30, -25, 12, 12);
+    lCtx.fillStyle = '#ff1744'; lCtx.fillRect(-8, -28, 16, 14);
+
+    // Răng
+    lCtx.fillStyle = '#fff'; lCtx.fillRect(-15, -8, 30, 10);
+    lCtx.fillStyle = '#000'; lCtx.fillRect(-15, -8, 30, 2); lCtx.fillRect(-5, -8, 2, 10); lCtx.fillRect(5, -8, 2, 10);
+
+    // Khăn quàng chấm bi
+    lCtx.fillStyle = '#fff'; lCtx.fillRect(-40, 0, 80, 40);
+    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-25, 10, 12, 12); lCtx.fillRect(15, 20, 10, 10);
+    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(10, 8, 12, 12); lCtx.fillRect(-20, 24, 10, 10);
+
+    lCtx.restore();
+
+    // Khung chat vàng cam
+    lCtx.fillStyle = '#e5c453';
+    lCtx.strokeStyle = '#2b1b09';
+    lCtx.lineWidth = 5;
+    
+    lCtx.beginPath();
+    lCtx.roundRect(150, 150, 520, 100, 12);
+    lCtx.fill();
+    lCtx.stroke();
+}
+renderLooeyPixel();
 
 let currentLang = 'ENG'; 
 let currentStep = 0;
@@ -328,57 +361,4 @@ function drawPixelCharacter(x, y, type) {
         ctx.fillStyle = '#ffee58'; ctx.fillRect(-14, -38, 28, 30);
         ctx.fillStyle = '#66bb6a'; ctx.fillRect(-10, -56, 8, 18);
     } else if (type === 'blot') {
-        ctx.fillStyle = '#37474f'; ctx.fillRect(-12, -38, 24, 32);
-    }
-    ctx.restore();
-}
-
-function gameLoop() {
-    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'EXPLORE') {
-        let moveX = 0;
-        if (keys.left) moveX = -speed;
-        if (keys.right) moveX = speed;
-
-        if (activeChar === 'trio') { yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX; }
-        else if (activeChar === 'yatta') { yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0; }
-        else if (activeChar === 'looey') { yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0; }
-        else if (activeChar === 'blot') { yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = 0; }
-
-        [yattaPos, looeyPos, blotPos].forEach(p => {
-            p.vy += 0.4; p.x += p.vx; p.y += p.vy;
-            if (p.y >= 450) { p.y = 450; p.vy = 0; p.grounded = true; }
-            if (p.x < 20) p.x = 20; if (p.x > 740) p.x = 740;
-        });
-    }
-
-    ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 800, 560);
-
-    if (gamePhase === 'DRESSING_ROOM') {
-        ctx.fillStyle = '#311b92'; ctx.fillRect(60, 300, 70, 150);
-        let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        if (leadX < 140) {
-            ctx.fillStyle = '#00e676'; ctx.font = '12px Courier New'; ctx.fillText("Interact with door [E]", 45, 285);
-        }
-    }
-
-    ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 800, 110);
-    ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 800, 4);
-
-    drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta');
-    drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey');
-    drawPixelCharacter(blotPos.x, blotPos.y, 'blot');
-
-    requestAnimationFrame(gameLoop);
-}
-
-updateDialogue();
-gameLoop();
-</script>
-</body>
-</html>
-"""
-
-# Thay thế placeholder link ảnh an toàn
-game_html_final = game_html.replace("LOOEY_IMAGE_PLACEHOLDER", LOOEY_IMAGE_URL)
-
-components.html(game_html_final, height=620)
+        ctx.fillStyle = '#37

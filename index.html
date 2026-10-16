@@ -391,4 +391,84 @@ function gameLoop() {
 
         if (gameState === 'HALLWAY') {
             ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 1800, 560);
-            ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 1
+            ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150);
+            if (player.worldX < 140) {
+                ctx.fillStyle = '#00e676'; ctx.font = '11px Courier New';
+                ctx.fillText(texts[currentLang].pressE, 35, 290);
+            }
+        } else {
+            ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 1800, 560);
+            ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
+            ctx.fillText("GARDENVIEW ABANDONED WING - PARKOUR & SURVIVE", 40, 40);
+
+            // Vẽ các bục Parkour
+            platforms.forEach(plat => {
+                ctx.fillStyle = '#4a148c'; ctx.fillRect(plat.x, plat.y, plat.w, plat.h);
+                ctx.fillStyle = '#7c4dff'; ctx.fillRect(plat.x, plat.y, plat.w, 4);
+            });
+
+            // Vẽ cửa phòng ngẫu nhiên
+            doors.forEach(d => {
+                if (d.active) {
+                    ctx.fillStyle = '#00e676'; ctx.fillRect(d.worldX, d.y, 35, 80);
+                    ctx.fillStyle = '#000'; ctx.font = '9px Courier New'; ctx.fillText("DOOR [E]", d.worldX - 2, d.y - 8);
+                }
+            });
+
+            // Vẽ quái Twisted rượt đuổi
+            if (twisted.active) {
+                ctx.fillStyle = '#d50000'; ctx.fillRect(twisted.worldX - 12, 410, 24, 40);
+                ctx.fillStyle = '#ffeb3b'; ctx.fillRect(twisted.worldX - 6, 400, 12, 8);
+            }
+        }
+
+        // Sàn nhà
+        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 1800, 110);
+        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 1800, 4);
+
+        // Vẽ nhân vật (Trio hoặc cá nhân)
+        if (activeChar === 'trio') {
+            drawChar(player.worldX - 30, player.y, 'yatta');
+            drawChar(player.worldX, player.y, 'looey');
+            drawChar(player.worldX + 30, player.y, 'blot');
+        } else {
+            drawChar(player.worldX, player.y, activeChar);
+        }
+
+        ctx.restore();
+
+    } else if (gameState === 'BLACKOUT') {
+        ctx.fillStyle = '#010002'; ctx.fillRect(0, 0, 800, 560);
+        let g = Math.sin(Date.now() / 150);
+        ctx.fillStyle = `rgb(${100+155*g}, ${100+155*Math.cos(g)}, 255)`;
+        ctx.beginPath(); ctx.arc(400, 250, 30, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.font = 'bold 16px Courier New'; ctx.fillText("?", 394, 256);
+    } else if (gameState === 'PORTAL') {
+        ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
+        ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
+        ctx.textAlign = 'left';
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+function drawChar(x, y, type) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (type === 'yatta') {
+        ctx.fillStyle = '#fff59d'; ctx.fillRect(-10, -35, 20, 28);
+        ctx.fillStyle = '#ff80ab'; ctx.fillRect(-14, -45, 6, 12); ctx.fillRect(8, -45, 6, 12);
+    } else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58'; ctx.fillRect(-10, -35, 20, 28);
+        ctx.fillStyle = '#66bb6a'; ctx.fillRect(-8, -48, 6, 14);
+    } else if (type === 'blot') {
+        ctx.fillStyle = '#37474f'; ctx.fillRect(-10, -35, 20, 28);
+    }
+    ctx.restore();
+}
+
+gameLoop();
+</script>
+</body>
+</html>

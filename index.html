@@ -63,7 +63,7 @@
             background-size: 100% 4px;
         }
 
-        /* OVERLAY NỔI NGUYÊN BỨC ẢNH VẼ TAY CỦA LOOEY (NẮM Ở ĐÁY MÀN HÌNH) */
+        /* KHUNG CHAT LOOEY - SỬ DỤNG ĐÚNG BỨC ẢNH VẼ TAY 1000009227.png */
         #looey-overlay {
             position: absolute;
             bottom: 0;
@@ -83,7 +83,7 @@
             height: 100%;
             object-fit: contain;
             object-position: bottom;
-            image-rendering: pixelated; /* Nét căng Pixel Art */
+            image-rendering: pixelated;
         }
 
         #looey-text-area {
@@ -101,7 +101,7 @@
         }
 
         #looey-text-content {
-            color: #231205; /* Màu chữ nâu tối vừa vặn trong ô vàng */
+            color: #231205;
             font-weight: bold;
             font-size: 13px;
             line-height: 1.35;
@@ -115,7 +115,7 @@
         }
         .action-btn:hover { background: #512da8; color: #fff; }
 
-        /* KHUNG CHAT THƯỜNG DÀNH CHO DẪN CHUYỆN / SYSTEM */
+        /* KHUNG CHAT THƯỜNG DÀNH CHO NARRATOR / YATTA / BLOT / SYSTEM */
         #normal-chat-box {
             position: absolute;
             bottom: 20px;
@@ -157,19 +157,19 @@
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- KHUNG OVERLAY LOOEY (SỬ DỤNG FILE BỨC ẢNH VẼ TAY THẬT) -->
+    <!-- BỨC ẢNH TỰ VẼ CỦA LOOEY HIỆN NỔI -->
     <div id="looey-overlay">
         <img id="looey-img" src="looey_chat.png" alt="Looey Dialogue">
         <div id="looey-text-area">
-            <div id="looey-text-content">My balloons almost popped right at the finale! Haha!</div>
+            <div id="looey-text-content">...</div>
             <div class="dialogue-btns">
                 <button class="action-btn" onclick="nextLine()">Next [Space] ></button>
             </div>
         </div>
     </div>
 
-    <!-- KHUNG CHAT THƯỜNG -->
-    <div id="normal-chat-box" style="display: none;">
+    <!-- KHUNG CHAT CHUNG -->
+    <div id="normal-chat-box">
         <div>
             <div id="normal-speaker">NARRATOR</div>
             <div id="normal-text">...</div>
@@ -187,7 +187,7 @@ const ctx = canvas.getContext('2d');
 let currentLang = 'ENG'; 
 let currentStep = 0;
 let activeChar = 'trio'; 
-let gamePhase = 'INTRO_DIALOGUE';
+let gamePhase = 'INTRO_DIALOGUE'; // HỆ THỐNG TRẠNG THÁI GAME
 
 let yattaPos = { x: 320, y: 450, vx: 0, vy: 0, grounded: true };
 let looeyPos = { x: 360, y: 450, vx: 0, vy: 0, grounded: true };
@@ -197,15 +197,62 @@ let speed = 3.5;
 let jumpPower = -9;
 const keys = { left: false, right: false };
 
+// ĐỊNH NGHĨA KỊCH BẢN MỞ RỘNG (GỒM CẢ PHÂN CẢNH VÀO PHÒNG & MẤT ĐIỆN)
+const scriptData = {
+    ENG: [
+        // INTRO
+        { phase: 'INTRO_DIALOGUE', speaker: "NARRATOR", text: "The show for the Toons has just concluded. Circus Trio heads back to rest." },
+        { phase: 'INTRO_DIALOGUE', speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
+        { phase: 'INTRO_DIALOGUE', speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
+        { phase: 'INTRO_DIALOGUE', speaker: "BLOT", text: "Nods silently, smiling gently in the corner." },
+        { phase: 'INTRO_DIALOGUE', speaker: "SYSTEM", text: "Move near the dressing room door on the left and press [E] to enter." },
+        
+        // INSIDE DRESSING ROOM - BLACKOUT
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "NARRATOR", text: "Circus Trio enters the dressing room..." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "SYSTEM", text: "* BZZZZT! * Suddenly, all the lights go out! The room falls into pitch darkness." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "YATTA", text: "Eek! Who turned off the lights?! I can't see anything!" },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "LOOEY", text: "Don't panic! It's probably just a blown fuse. Let's find a flashlight!" },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "BLOT", text: "Points towards the old fuse box near the back wall." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "SYSTEM", text: "New Objective: Move around in the dark [A/D] and press [E] near the fuse box." }
+    ],
+    VIE: [
+        // INTRO
+        { phase: 'INTRO_DIALOGUE', speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn vừa kết thúc. Circus Trio bước về phòng thay đồ nghỉ ngơi." },
+        { phase: 'INTRO_DIALOGUE', speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
+        { phase: 'INTRO_DIALOGUE', speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+        { phase: 'INTRO_DIALOGUE', speaker: "BLOT", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
+        { phase: 'INTRO_DIALOGUE', speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ bên trái và nhấn [E] để vào." },
+        
+        // INSIDE DRESSING ROOM - BLACKOUT
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "DẪN CHUYỆN", text: "Circus Trio bước vào bên trong phòng thay đồ..." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "HỆ THỐNG", text: "* BZZZZT! * Đột nhiên toàn bộ đèn vụt tắt! Căn phòng chìm vào bóng tối om." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "YATTA", text: "Á! Ai tắt đèn vậy?! Tui không thấy gì hết trôi!" },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "LOOEY", text: "Bình tĩnh nào! Chắc chỉ là sập cầu chì thôi. Cùng tìm đèn pin đi!" },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "BLOT", text: "Chỉ tay về phía hộp cầu chì cũ ở góc tường." },
+        { phase: 'BLACKOUT_DIALOGUE', speaker: "HỆ THỐNG", text: "Nhiệm vụ mới: Di chuyển trong bóng tối [A/D] và nhấn [E] gần hộp cầu chì." }
+    ]
+};
+
+// XỬ LÝ PHÍM BẤM
 window.addEventListener('keydown', (e) => {
-    if (gamePhase === 'INTRO_DIALOGUE' || gamePhase === 'BLACKOUT_TALK') {
-        if (e.code === 'Space') nextLine();
-        return;
+    // Chuyển thoại bằng Space
+    if (e.code === 'Space') {
+        if (gamePhase === 'INTRO_DIALOGUE' || gamePhase === 'BLACKOUT_DIALOGUE') {
+            nextLine();
+        }
     }
 
+    // Đổi nhân vật bằng 1, 2, 3, 4
+    if (e.code === 'Digit1') switchCharacter('yatta');
+    if (e.code === 'Digit2') switchCharacter('looey');
+    if (e.code === 'Digit3') switchCharacter('blot');
+    if (e.code === 'Digit4') switchCharacter('trio');
+
+    // Phím di chuyển A / D / Mũi tên
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
-    
+
+    // Phím nhảy W / Mũi tên lên
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (activeChar === 'yatta' && yattaPos.grounded) { yattaPos.vy = jumpPower; yattaPos.grounded = false; }
         if (activeChar === 'looey' && looeyPos.grounded) { looeyPos.vy = jumpPower; looeyPos.grounded = false; }
@@ -216,13 +263,16 @@ window.addEventListener('keydown', (e) => {
             if (blotPos.grounded)  { blotPos.vy = jumpPower; blotPos.grounded = false; }
         }
     }
-    
-    if (e.code === 'Space') nextLine();
+
+    // Phím tương tác [E]
     if (e.code === 'KeyE') {
         let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        if (gamePhase === 'DRESSING_ROOM' && leadX < 140) {
-            gamePhase = 'BLACKOUT_TALK';
-            currentStep = 5; 
+        
+        // Mở cửa phòng thay đồ -> Chuyển cảnh vào trong & Mất điện
+        if (gamePhase === 'WALK_HALLWAY' && leadX < 140) {
+            gamePhase = 'BLACKOUT_DIALOGUE';
+            currentStep = 5; // Nhảy đến phân cảnh Mất điện
+            yattaPos.x = 650; looeyPos.x = 680; blotPos.x = 720; // Đặt nhân vật vào bên trong phòng
             updateDialogue();
         }
     }
@@ -232,23 +282,6 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
 });
-
-const introScript = {
-    ENG: [
-        { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to rest." },
-        { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
-        { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." },
-        { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." }
-    ],
-    VIE: [
-        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ nghỉ ngơi." },
-        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
-        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
-        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ và nhấn [E]." }
-    ]
-};
 
 function toggleLanguage() {
     currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
@@ -264,19 +297,28 @@ function switchCharacter(char) {
 }
 
 function nextLine() {
-    const script = introScript[currentLang];
     currentStep++;
-    if (currentStep >= script.length) {
+    const script = scriptData[currentLang];
+
+    if (currentStep < script.length) {
+        if (script[currentStep].phase !== gamePhase) {
+            // Hết đợt thoại, sang đoạn tự do di chuyển
+            document.getElementById('looey-overlay').style.display = 'none';
+            document.getElementById('normal-chat-box').style.display = 'none';
+            if (gamePhase === 'INTRO_DIALOGUE') gamePhase = 'WALK_HALLWAY';
+            if (gamePhase === 'BLACKOUT_DIALOGUE') gamePhase = 'EXPLORE_DARK';
+            return;
+        }
+        updateDialogue();
+    } else {
         document.getElementById('looey-overlay').style.display = 'none';
         document.getElementById('normal-chat-box').style.display = 'none';
-        gamePhase = 'DRESSING_ROOM';
-        return;
+        gamePhase = 'EXPLORE_DARK';
     }
-    updateDialogue();
 }
 
 function updateDialogue() {
-    const data = introScript[currentLang][currentStep];
+    const data = scriptData[currentLang][currentStep];
     const looeyOverlay = document.getElementById('looey-overlay');
     const normalBox = document.getElementById('normal-chat-box');
 
@@ -292,6 +334,7 @@ function updateDialogue() {
     }
 }
 
+// VẼ NHÂN VẬT PIXEL TRÊN SÂN SÂN GAME
 function drawPixelCharacter(x, y, type) {
     ctx.save();
     ctx.translate(x, y);
@@ -309,7 +352,8 @@ function drawPixelCharacter(x, y, type) {
 }
 
 function gameLoop() {
-    if (gamePhase === 'DRESSING_ROOM' || gamePhase === 'EXPLORE') {
+    // VẬT LÝ DI CHUYỂN
+    if (gamePhase === 'WALK_HALLWAY' || gamePhase === 'EXPLORE_DARK') {
         let moveX = 0;
         if (keys.left) moveX = -speed;
         if (keys.right) moveX = speed;
@@ -317,7 +361,7 @@ function gameLoop() {
         if (activeChar === 'trio') { yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX; }
         else if (activeChar === 'yatta') { yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0; }
         else if (activeChar === 'looey') { yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0; }
-        else if (activeChar === 'blot') { yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = 0; }
+        else if (activeChar === 'blot') { yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX; }
 
         [yattaPos, looeyPos, blotPos].forEach(p => {
             p.vy += 0.4; p.x += p.vx; p.y += p.vy;
@@ -326,19 +370,32 @@ function gameLoop() {
         });
     }
 
-    ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 800, 560);
+    // VẼ BỐ CỤC PHÒNG CHƠI
+    if (gamePhase === 'EXPLORE_DARK' || gamePhase === 'BLACKOUT_DIALOGUE') {
+        // Phòng thay đồ tối om
+        ctx.fillStyle = '#020105'; ctx.fillRect(0, 0, 800, 560);
+        
+        // Hộp cầu chì nhấp nháy đỏ
+        ctx.fillStyle = (Math.floor(Date.now() / 400) % 2 === 0) ? '#ff1744' : '#b71c1c';
+        ctx.fillRect(80, 280, 30, 40);
+        ctx.fillStyle = '#fff'; ctx.font = '10px Courier New'; ctx.fillText("FUSE", 78, 272);
+    } else {
+        // Hành lang ngoài phòng
+        ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 800, 560);
 
-    if (gamePhase === 'DRESSING_ROOM') {
+        // Cửa phòng thay đồ
         ctx.fillStyle = '#311b92'; ctx.fillRect(60, 300, 70, 150);
         let leadX = activeChar === 'yatta' ? yattaPos.x : activeChar === 'looey' ? looeyPos.x : activeChar === 'blot' ? blotPos.x : yattaPos.x;
-        if (leadX < 140) {
-            ctx.fillStyle = '#00e676'; ctx.font = '12px Courier New'; ctx.fillText("Interact with door [E]", 45, 285);
+        if (leadX < 140 && gamePhase === 'WALK_HALLWAY') {
+            ctx.fillStyle = '#00e676'; ctx.font = '12px Courier New'; ctx.fillText("Press [E] to Enter", 40, 285);
         }
     }
 
+    // SÀN NHÀ
     ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 800, 110);
     ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 800, 4);
 
+    // VẼ NHÂN VẬT
     drawPixelCharacter(yattaPos.x, yattaPos.y, 'yatta');
     drawPixelCharacter(looeyPos.x, looeyPos.y, 'looey');
     drawPixelCharacter(blotPos.x, blotPos.y, 'blot');

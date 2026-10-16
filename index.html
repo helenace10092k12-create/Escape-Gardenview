@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Inventory & Elevator Update</title>
+    <title>Escape Gardenview - Menu Restored & Full Systems</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -53,16 +53,18 @@
             font-size: 8px; font-weight: bold; padding: 1px 4px; border-radius: 50%;
         }
 
+        /* KHÔI PHỤC MENU MÀN HÌNH CHÍNH VỚI ĐẦY ĐỦ 4 NÚT */
         #menu-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1a0b2e 0%, #030105 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
         }
-        .menu-title { font-size: 28px; color: #ff7043; font-weight: bold; margin-bottom: 30px; text-shadow: 0 0 10px #ff7043; }
+        .menu-title { font-size: 28px; color: #ff7043; font-weight: bold; margin-bottom: 25px; text-shadow: 0 0 10px #ff7043; }
         .menu-btn {
             background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 10px 30px;
-            font-size: 14px; font-weight: bold; cursor: pointer; border-radius: 6px; margin: 6px; width: 240px; text-align: center;
+            font-size: 13px; font-weight: bold; cursor: pointer; border-radius: 6px; margin: 5px; width: 240px; text-align: center;
         }
+        .menu-btn:hover { background: #512da8; color: #fff; box-shadow: 0 0 15px #7c4dff; }
 
         #veemail-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -115,9 +117,13 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH MENU CHÍNH VỚI ĐẦY ĐỦ 4 NÚT BẤM -->
     <div id="menu-screen">
-        <div class="menu-title">ESCAPE GARDENVIEW</div>
-        <button class="menu-btn" onclick="startGame()">PLAY / NEW GAME</button>
+        <div class="menu-title" id="menu-main-title">ESCAPE GARDENVIEW</div>
+        <button class="menu-btn" id="btn-play" onclick="startGame()">PLAY / NEW GAME</button>
+        <button class="menu-btn" id="btn-cont" onclick="startGame()">CONTINUE</button>
+        <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
+        <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting game...')">EXIT</button>
     </div>
 
     <!-- DIALOG HỎI CẤT ITEM -->
@@ -168,7 +174,6 @@ let hasBaseballBat = false;
 let hasCapsule = false;
 let hasGachapon = false;
 
-// INVENTORY 3 Ô
 let inventory = [null, null, null];
 let pendingLoot = null;
 
@@ -186,6 +191,17 @@ let currentRoom = null;
 let twisted = { worldX: -300, y: 450, speed: 2, active: false };
 const keysInput = { left: false, right: false };
 
+function toggleLanguage() {
+    currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
+}
+
+function showHelp() {
+    alert(currentLang === 'ENG' ? 
+        "Controls:\n- A/D: Move\n- W: Jump / Swing\n- E: Enter Door / Open Chest\n- Z: Equip Bat\n- F: Hit Twisted\n- T: Capsule (Blot)\n- R: Gachapon (Looey/Yatta)\n- L: Elevator\n- 1,2,3: Use Bag Items" :
+        "Điều khiển:\n- A/D: Di chuyển\n- W: Nhảy / Đu dây\n- E: Vào phòng / Mở rương\n- Z: Cầm gậy\n- F: Đánh Twisted\n- T: Capsule bắt Blot\n- R: Gachapon bắt Looey/Yatta\n- L: Đi thang máy\n- 1,2,3: Dùng đồ trong túi");
+}
+
 function startGame() {
     document.getElementById('menu-screen').style.display = 'none';
     gameState = 'BLACKOUT';
@@ -197,7 +213,7 @@ function startGame() {
 
 function closeVeemail() {
     document.getElementById('veemail-modal').style.display = 'none';
-    document.getElementById('inventory-hud').style.display = 'flex'; // HIỆN INVENTORY HÌNH TRÒN
+    document.getElementById('inventory-hud').style.display = 'flex';
     gameState = 'SIDE_SCROLL';
     setTimeout(() => { twisted.active = true; twisted.worldX = yatta.worldX - 600; }, 2000);
 }
@@ -208,7 +224,6 @@ function switchChar(c) {
     document.getElementById('btn-' + c).classList.add('active');
 }
 
-// CẬP NHẬT GIAO DIỆN INVENTORY
 function updateInvUI() {
     for (let i = 0; i < 3; i++) {
         let el = document.getElementById(`icon-${i}`);
@@ -221,7 +236,6 @@ function updateInvUI() {
     }
 }
 
-// SỬ DỤNG ITEM TRONG INVENTORY
 function useInvItem(slot) {
     let item = inventory[slot];
     if (!item) return;
@@ -244,11 +258,9 @@ function useInvItem(slot) {
 
 function getRandomLoot() {
     const items = ['KEY', 'BANDAGE', 'MEDKIT', 'POP', 'CANDY', 'WEAPON', 'CAPSULE', 'GACHAPON', 'EMPTY'];
-    let r = items[Math.floor(Math.random() * items.length)];
-    return r;
+    return items[Math.floor(Math.random() * items.length)];
 }
 
-// XÁC NHẬN CẤT ITEM
 function confirmLoot(yes) {
     document.getElementById('loot-dialog').style.display = 'none';
     if (yes && pendingLoot) {
@@ -264,7 +276,6 @@ function confirmLoot(yes) {
     pendingLoot = null;
 }
 
-// PHÍM BẤM
 window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
@@ -282,21 +293,18 @@ window.addEventListener('keydown', (e) => {
         else alert("No Baseball Bat in inventory!");
     }
 
-    // ĐÁNH QUÁI BẰNG GẬY (FIX CHUẨN HITBOX)
     if (e.code === 'KeyF') {
         if (hasBaseballBat && Math.abs(yatta.worldX - twisted.worldX) < 160) {
-            twisted.worldX -= 350; // Đẩy văng quái xa
+            twisted.worldX -= 350;
             alert("BAM! Hit Twisted with Baseball Bat! Pushed back!");
         } else alert("No bat or Twisted is too far!");
     }
 
-    // TÒA CAPSULE BẮT BLOT
     if (e.code === 'KeyT') {
         if (hasCapsule && blot.active) { blot.active = false; alert("Blot stored in Capsule!"); }
         else alert("No Capsule or Blot already stored!");
     }
 
-    // GACHAPON CHỌN TOON CẤT VÀO
     if (e.code === 'KeyR') {
         if (hasGachapon) {
             let choice = prompt("Select Toon to store in Gachapon:\n1: Yatta\n2: Looey");
@@ -305,7 +313,6 @@ window.addEventListener('keydown', (e) => {
         } else alert("No Gachapon!");
     }
 
-    // THANG MÁY CHUYỂN TẦNG [L]
     if (e.code === 'KeyL' && gameState === 'SIDE_SCROLL') {
         if (Math.abs(yatta.worldX - elevator.x) < 60) {
             currentFloor++;
@@ -380,11 +387,10 @@ function gameLoop() {
             }
         });
 
-        // FIX CHUẨN HITBOX TWISTED: CHỈ MẤT MÁU KHI CÙNG TỌA ĐỘ $Y$ Ở SÀN CƠ BẢN (P.Y >= 400)
         if (twisted.active) {
             twisted.worldX += twisted.speed;
             let isNearX = Math.abs(yatta.worldX - twisted.worldX) < 30;
-            let isGroundY = yatta.y > 400; // Đang ở dưới đất chứ không đu dây trên cao
+            let isGroundY = yatta.y > 400;
 
             if (isNearX && isGroundY) {
                 globalHP--;
@@ -405,7 +411,6 @@ function gameLoop() {
         ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
         ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - PARKOUR & SURVIVE`, 40, 40);
 
-        // VÒNG ĐU & DÂY
         circusRings.forEach(r => {
             ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.arc(r.x, r.y, 24, 0, Math.PI*2); ctx.stroke();
@@ -418,7 +423,6 @@ function gameLoop() {
             ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE [W]", tp.x + 50, tp.y - 8);
         });
 
-        // CỬA PHÒNG
         doors.forEach(d => {
             ctx.fillStyle = d.opened ? '#455a64' : '#00e676';
             ctx.fillRect(d.worldX, d.y, 45, 80);
@@ -426,13 +430,11 @@ function gameLoop() {
             ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 4, d.y - 8);
         });
 
-        // THANG MÁY [L] Ở CUỐI MAP
         ctx.fillStyle = '#ffb74d'; ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
         ctx.fillStyle = '#000'; ctx.font = 'bold 10px Courier New';
         ctx.fillText("ELEVATOR", elevator.x + 5, elevator.y + 30);
         ctx.fillText("[L]", elevator.x + 22, elevator.y + 50);
 
-        // TWISTED
         if (twisted.active) {
             ctx.fillStyle = '#d50000'; ctx.fillRect(twisted.worldX - 12, 410, 24, 40);
         }

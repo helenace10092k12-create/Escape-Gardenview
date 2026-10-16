@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Fixed Block Parkour & Intro</title>
+    <title>Escape Gardenview - Full Fix Bat & Intro Restored</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -119,7 +119,7 @@
                 <button class="toon-btn active" id="btn-trio" onclick="switchChar('trio')">[7] Trio</button>
                 <span style="color:#ff5252; margin-left:4px;" id="hud-hp">❤️ HP: 3/3</span>
                 <span style="color:#ffeb3b; margin-left:4px;" id="hud-keys">🔑 Keys: 0/8</span>
-                <span style="color:#00e676; margin-left:4px;" id="hud-bats">⚾ Bats: 0</span>
+                <span style="color:#00e676; margin-left:4px;" id="hud-bats">⚾ Bat: Unarmed (0)</span>
             </div>
             <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">ENG / VIE</button>
         </div>
@@ -137,10 +137,10 @@
 
         <div id="keybinds-guide">
             ⌨️ <b>CONTROLS:</b><br>
-            • A/D: Move | W/Up: Jump/Parkour<br>
-            • E: Interact Door / NPC / Chest | L: Elevator<br>
-            • F: Attack Twisted | T: Capsule | R: Gachapon<br>
-            • 1,2,3: Use Bag Items
+            • WASD / Arrows: Move & Jump<br>
+            • E: Interact Door / Chest / NPC | L: Elevator<br>
+            • Z: Equip Bat | F: Hit Twisted<br>
+            • T: Capsule | R: Gachapon | 1,2,3: Bag Items
         </div>
     </div>
 
@@ -204,6 +204,8 @@ let activeChar = 'trio';
 
 let keysCount = 0;
 let batCount = 0;
+let batEquipped = false; // TRẠNG THÁI CẦM GẬY (EQUIP)
+
 let capsuleCount = 0;
 let gachaponCount = 0;
 
@@ -218,14 +220,10 @@ let soulvesterFollowing = false;
 
 let activeNPC = null;
 let questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
-
-// ĐẢM BẢO MỖI NPC CHỈ SPAWN DÙNG 1 LẦN DUY NHẤT
 let npcSpawned = { rodger: false, gigi: false, connie: false };
 let currentNPCFloor = null;
-
 let floorCleared = {};
 
-// KHỐI PARKOUR CHUẨN XÁC ĐỨNG LÊN ĐƯỢC
 let blocks = [
     { x: 300, y: 380, w: 60, h: 20 },
     { x: 400, y: 320, w: 60, h: 20 },
@@ -258,6 +256,7 @@ let twistedX = -400;
 
 const keysInput = { left: false, right: false };
 
+// KHÔI PHỤC KỊCH BẢN ĐOẠN PHIM MỞ ĐẦU ĐẦY ĐỦ VỚI NÚT CẦU VỒNG VÀ PORTAL
 const texts = {
     ENG: {
         title: "GARDENVIEW: HALLOWEEN ESCAPE",
@@ -265,21 +264,22 @@ const texts = {
         next: "Next [Space] >", accept: "ACCEPT", decline: "DECLINE",
         yes: "YES (Put in bag)", no: "NO (Leave behind)",
         intro: [
-            { speaker: "NARRATOR", text: "The circus performance concluded smoothly. Circus Trio chats happily heading toward the dressing room..." },
+            { speaker: "NARRATOR", text: "The show has concluded. Circus Trio chats happily as they head toward the dressing room." },
+            { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
+            { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
+            { speaker: "BLOT", text: "!tolB m'I, iH (Hi, I'm Blot! - Smiles gently)." },
             { speaker: "SYSTEM", text: "Objective: Move left near the dressing room door and press [E] to enter." }
         ],
         blackout: [
-            { speaker: "SYSTEM", text: "* SLAM! * The dressing room door shuts on its own! BZZZZT... Total blackout!" },
+            { speaker: "NARRATOR", text: "* SLAM! * The dressing room door shuts on its own! BZZZZT... Total blackout!" },
             { speaker: "YATTA", text: "Eek! Who closed the door?! Why is it pitch black?!" },
-            { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
-            { speaker: "SYSTEM", text: "Yatta presses the button... Portal opens and sucks everyone into Gardenview!" }
+            { speaker: "LOOEY", text: "Wait, look! A strange rainbow-glowing virtual button is right in front of us!" },
+            { speaker: "BLOT", text: "!thgil eht evah ew woh ,ohO (Oho, how do we have light?)" },
+            { speaker: "SYSTEM", text: "Curiously, Yatta presses the rainbow button... A Portal activates and sucks everyone into Gardenview!" }
         ],
         veemail: `<strong>[GAME RULES & QUEST MECHANICS]</strong><br><br>
-            1. <b>NPC QUESTS (Random & Single Occurrence):</b><br>
-               - <b>Rodger & Toodles:</b> Find Toodles' Dog Plush in room chests $\rightarrow$ Reward: Capsule.<br>
-               - <b>Gigi:</b> Donate 10 Gold Coins $\rightarrow$ Reward: 2 Gachapon + 1 Item.<br>
-               - <b>Connie:</b> Find Soulvester and bring him back $\rightarrow$ Reward: +1 Extra Max Heart (4 HP max)!<br><br>
-            2. <b>PARKOUR BLOCKS:</b> Jump on Blocks to stay safe high above Twisted!<br>
+            1. <b>CONTROLS & COMBAT:</b> Press [Z] to Equip Baseball Bat, Press [F] to Attack Twisted!<br>
+            2. <b>NPC QUESTS:</b> Complete quests for Rodger, Gigi, and Connie to earn Capsules, Gachapons, and Extra Hearts!<br>
             3. <b>ELEVATOR 2-WAY SYSTEM:</b> Use elevator [L] to travel UP or DOWN floors anytime to complete quests.<br><br>
             <i>Signed: D</i>`
     },
@@ -289,21 +289,22 @@ const texts = {
         next: "Tiếp tục [Space] >", accept: "ĐỒNG Ý", decline: "TỪ CHỐI",
         yes: "CÓ (Cất vào túi)", no: "KHÔNG (Bỏ lại)",
         intro: [
-            { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn xiếc kết thúc hoàn hảo. Circus Trio vui vẻ bước về phòng thay đồ..." },
+            { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn kết thúc. Circus Trio rôm rả trò chuyện bước về phía phòng thay đồ." },
+            { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
+            { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+            { speaker: "BLOT", text: "!tolB m'I, iH (Hi, I'm Blot! - Vừa nói vừa mỉm cười nhẹ)." },
             { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển sang trái lại gần cửa phòng thay đồ và nhấn [E] để vào." }
         ],
         blackout: [
-            { speaker: "HỆ THỐNG", text: "* RẦM! * Cánh cửa sập lại! BZZZZT... Mất điện toàn bộ!" },
+            { speaker: "DẪN CHUYỆN", text: "* RẦM! * Cánh cửa phòng thay đồ tự đóng sầm lại! BZZZZT... Mất điện toàn bộ!" },
             { speaker: "YATTA", text: "Á! Ai đóng cửa lại vậy?! Sao tự nhiên tối thui thế này?!" },
-            { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng phát sáng kìa!" },
-            { speaker: "HỆ THỐNG", text: "Yatta bấm nút ảo... Một cánh cổng hút cả nhóm vào Gardenview!" }
+            { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
+            { speaker: "BLOT", text: "!thgil eht evah ew woh ,ohO (Oho, sao lại có ánh sáng thế này?)" },
+            { speaker: "HỆ THỐNG", text: "Vì tò mò, Yatta bấm nút cầu vồng... Một Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
         veemail: `<strong>[LUẬT CHƠI & NHIỆM VỤ NPC]</strong><br><br>
-            1. <b>NHIỆM VỤ NPC (Xuất hiện ngẫu nhiên 1 lần):</b><br>
-               - <b>Rodger & Toodles:</b> Tìm gấu bông Dog Plush trong rương $\rightarrow$ Thưởng: Capsule.<br>
-               - <b>Gigi:</b> Quyên góp 10 Đồng Vàng $\rightarrow$ Thưởng: 2 Gachapon + 1 Vật phẩm.<br>
-               - <b>Connie:</b> Dắt anh trai Soulvester về $\rightarrow$ Thưởng: +1 Tim tối đa (4 HP)!<br><br>
-            2. <b>KHỐI PARKOUR:</b> Nhảy lên Block đứng an toàn trên cao, Twisted dưới đất không cắn được!<br>
+            1. <b>ĐIỀU KHIỂN & ĐÁNH QUÁI:</b> Nhấn [Z] để Cầm Gậy Bóng Chày, Nhấn [F] để Đánh Twisted!<br>
+            2. <b>NHIỆM VỤ NPC:</b> Làm nhiệm vụ cho Rodger, Gigi, Connie để nhận Capsule, Gachapon và Tim Cộng Thêm!<br>
             3. <b>THANG MÁY 2 CHIỀU:</b> Nhấn [L] để LÊN hoặc XUỐNG tầng trả nhiệm vụ.<br><br>
             <i>Ký tên: D</i>`
     }
@@ -347,11 +348,14 @@ function nextDialogue() {
     else {
         if (gameState === 'INTRO_STORY') {
             document.getElementById('dialogue-box').style.display = 'none';
-            gameState = 'HALLWAY_START'; // KHÔI PHỦ CẢNH HÀNH LANG TƯƠNG TÁC CỬA [E]
+            gameState = 'HALLWAY_START';
         } else if (gameState === 'BLACKOUT_STORY') {
             document.getElementById('dialogue-box').style.display = 'none';
-            gameState = 'VEEMAIL_OPEN';
-            document.getElementById('veemail-modal').style.display = 'flex';
+            gameState = 'PORTAL_ANIMATION';
+            setTimeout(() => {
+                gameState = 'VEEMAIL_OPEN';
+                document.getElementById('veemail-modal').style.display = 'flex';
+            }, 2000);
         }
     }
 }
@@ -372,18 +376,18 @@ function closeVeemail() {
     checkAndSpawnTwisted();
 }
 
-// XỬ LÝ SPAWN NPC NGẪU NHIÊN VÀ DUY NHẤT 1 LẦN
 function checkAndSpawnNPCForFloor() {
+    if (currentFloor === 1) return; // TẦNG 1 DÀNH ĐỂ LÀM QUEN, BẮT ĐẦU TỪ TẦNG 2 NPC MỚI SPAWN
     currentNPCFloor = null;
     let availableNPCs = [];
     if (!npcSpawned.rodger) availableNPCs.push({ id: 'rodger', name: 'Rodger & Toodles' });
     if (!npcSpawned.gigi) availableNPCs.push({ id: 'gigi', name: 'Gigi' });
     if (!npcSpawned.connie) availableNPCs.push({ id: 'connie', name: 'Connie' });
 
-    if (availableNPCs.length > 0 && Math.random() < 0.6) {
+    if (availableNPCs.length > 0 && Math.random() < 0.7) {
         let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
         currentNPCFloor = { ...picked, x: 700 };
-        npcSpawned[picked.id] = true; // Đánh dấu đã xuất hiện
+        npcSpawned[picked.id] = true;
     }
 }
 
@@ -408,7 +412,7 @@ function switchChar(c) {
 function updateHPUI() {
     let hpTxt = (activeChar === 'trio') ? trioHP : (activeChar === 'yatta') ? yatta.hp : (activeChar === 'looey') ? looey.hp : blot.hp;
     document.getElementById('hud-hp').innerText = `❤️ HP: ${hpTxt}/${maxHP}`;
-    document.getElementById('hud-bats').innerText = `⚾ Bats: ${batCount}`;
+    document.getElementById('hud-bats').innerText = `⚾ Bat: ${batEquipped ? 'EQUIPPED' : 'Unarmed'} (${batCount})`;
 }
 
 function addCoins(silver) {
@@ -494,36 +498,27 @@ function handleQuestResponse(accepted) {
     if (activeNPC.id === 'rodger') {
         if (hasDogPlush && questStatus.rodger !== 'COMPLETED') {
             hasDogPlush = false; questStatus.rodger = 'COMPLETED';
-            capsuleCount += 2;
-            alert("Completed Rodger's Quest! Received 2 Capsules!");
-        } else {
-            questStatus.rodger = 'ACCEPTED';
-            alert("Quest Accepted! Search chests in rooms for Toodles' Dog Plush!");
-        }
+            capsuleCount += 2; alert("Completed Rodger's Quest! Received 2 Capsules!");
+        } else { questStatus.rodger = 'ACCEPTED'; alert("Quest Accepted! Search chests for Dog Plush!"); }
     } else if (activeNPC.id === 'gigi') {
         if (goldCoins >= 10 && questStatus.gigi !== 'COMPLETED') {
             goldCoins -= 10; questStatus.gigi = 'COMPLETED';
             gachaponCount += 2; batCount += 1; updateHPUI(); addCoins(0);
             alert("Completed Gigi's Quest! Received 2 Gachapons + 1 Baseball Bat!");
-        } else {
-            questStatus.gigi = 'ACCEPTED';
-            alert("Quest Accepted! Collect 10 Gold Coins and return to Gigi!");
-        }
+        } else { questStatus.gigi = 'ACCEPTED'; alert("Quest Accepted! Collect 10 Gold Coins!"); }
     } else if (activeNPC.id === 'connie') {
         if (soulvesterFollowing && questStatus.connie !== 'COMPLETED') {
             soulvesterFollowing = false; questStatus.connie = 'COMPLETED';
             maxHP = 4; trioHP = 4; yatta.hp = 4; looey.hp = 4; blot.hp = 4;
-            updateHPUI();
-            alert("Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max) for the team!");
-        } else {
-            questStatus.connie = 'ACCEPTED';
-            alert("Quest Accepted! Find Soulvester on higher floors and bring him back!");
-        }
+            updateHPUI(); alert("Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max)!");
+        } else { questStatus.connie = 'ACCEPTED'; alert("Quest Accepted! Bring Soulvester back!"); }
     }
 }
 
+// LẮP ĐẶT ĐẦY ĐỦ CẢ WASD VÀ MŨI TÊN DI CHUYỂN / PHÍM [Z] EQUIP GẬY
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
+    
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
@@ -535,9 +530,23 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit6') switchChar('blot');
     if (e.code === 'Digit7') switchChar('trio');
 
+    // PHÍM [Z] EQUIP / TRANG BỊ GẬY BÓNG CHÀY
+    if (e.code === 'KeyZ') {
+        if (batCount > 0) {
+            batEquipped = !batEquipped;
+            updateHPUI();
+            alert(batEquipped ? "Baseball Bat EQUIPPED! Press [F] to attack Twisted." : "Baseball Bat UNEQUIPPED.");
+        } else {
+            alert("No Baseball Bat in inventory!");
+        }
+    }
+
+    // PHÍM [F] ĐÁNH QUÁI KHI ĐÃ CẦM GẬY (EQUIPPED)
     if (e.code === 'KeyF') {
-        if (batCount > 0 && currentTwisted && Math.abs(yatta.worldX - twistedX) < 140) {
-            batCount--; updateHPUI();
+        if (batEquipped && batCount > 0 && currentTwisted && Math.abs(yatta.worldX - twistedX) < 140) {
+            batCount--;
+            if (batCount === 0) batEquipped = false;
+            updateHPUI();
             currentTwisted.hp--;
             if (currentTwisted.hp <= 0) {
                 alert(`Defeated ${currentTwisted.type} Twisted! Floor ${currentFloor} is now CLEARED and SAFE!`);
@@ -545,15 +554,17 @@ window.addEventListener('keydown', (e) => {
                 currentTwisted = null;
             } else {
                 twistedX -= 250;
-                alert(`Hit ${currentTwisted.type} Twisted! (${currentTwisted.hp} HP remaining!)`);
+                alert(`Hit ${currentTwisted.type} Twisted! (Bat broke, ${currentTwisted.hp} HP remaining!)`);
             }
-        } else alert("No bats left or Twisted is too far!");
+        } else {
+            alert(batEquipped ? "Twisted is too far!" : "Please press [Z] to EQUIP Baseball Bat first!");
+        }
     }
 
     if (e.code === 'KeyT') {
         if (!blot.active) { blot.active = true; alert("Released Blot!"); }
         else if (capsuleCount > 0) { blot.active = false; alert("Stored Blot in Capsule!"); }
-        else alert("No Capsules! Complete Rodger's Quest to get Capsules.");
+        else alert("No Capsules!");
     }
 
     if (e.code === 'KeyR') {
@@ -565,7 +576,7 @@ window.addEventListener('keydown', (e) => {
             let choice = prompt("Select Toon to STORE in Gachapon:\n1: Yatta\n2: Looey");
             if (choice === '1') yatta.active = false;
             if (choice === '2') looey.active = false;
-        } else alert("No Gachapon! Complete Gigi's Quest to get Gachapon.");
+        } else alert("No Gachapon!");
     }
 
     if (e.code === 'KeyL' && gameState === 'SIDE_SCROLL') {
@@ -590,26 +601,25 @@ window.addEventListener('keydown', (e) => {
         }
     }
 
+    // TƯƠNG TÁC PHÍM [E] CHUẨN XÁC RỘNG NGHĨA KHÔNG CẦN NHẢY
     if (e.code === 'KeyE') {
-        // TƯƠNG TÁC CỬA PHÒNG THAY ĐỒ BẰNG PHÍM [E] LÚC ĐẦU
-        if (gameState === 'HALLWAY_START' && yatta.worldX < 150) {
+        if (gameState === 'HALLWAY_START' && Math.abs(yatta.worldX - 80) < 80) {
             gameState = 'BLACKOUT_STORY'; dialogueStep = 0;
             document.getElementById('dialogue-box').style.display = 'flex';
             updateDialogue();
             return;
         }
 
-        if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && Math.abs(yatta.worldX - soulvesterNPC.x) < 60) {
-            soulvesterFollowing = true;
-            alert("Found Soulvester! He is now following you back to Connie!");
+        if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && Math.abs(yatta.worldX - soulvesterNPC.x) < 80) {
+            soulvesterFollowing = true; alert("Found Soulvester! Following you to Connie!");
         }
 
-        if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 60) {
+        if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) {
             openQuestDialog(currentNPCFloor);
         }
 
         doors.forEach(d => {
-            if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 60 && Math.abs(yatta.y - d.y) < 80) {
+            if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 80) {
                 currentRoom = d; gameState = 'INSIDE_ROOM';
             }
         });
@@ -618,13 +628,12 @@ window.addEventListener('keydown', (e) => {
             currentRoom.opened = true;
             let rand = Math.random();
             if (questStatus.rodger === 'ACCEPTED' && !hasDogPlush && rand < 0.4) {
-                hasDogPlush = true;
-                alert("Found Toodles' Dog Plush (🧸) in the chest! Return it to Rodger!");
+                hasDogPlush = true; alert("Found Toodles' Dog Plush (🧸)! Return it to Rodger!");
             } else {
                 let items = ['KEY', 'BAT', 'POP', 'CANDY', 'BANDAGE', 'MEDKIT'];
                 let loot = items[Math.floor(Math.random() * items.length)];
                 if (loot === 'KEY') { keysCount++; document.getElementById('hud-keys').innerText = "🔑 Keys: " + keysCount + "/8"; alert("Found Golden Key!"); }
-                else if (loot === 'BAT') { batCount++; updateHPUI(); alert("Found Baseball Bat!"); }
+                else if (loot === 'BAT') { batCount++; updateHPUI(); alert("Found Baseball Bat! Press [Z] to equip."); }
                 else {
                     pendingLoot = loot;
                     document.getElementById('loot-msg').innerText = `Found ${loot}! Store in Inventory?`;
@@ -656,16 +665,22 @@ function gameLoop() {
         });
 
         ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 800, 560);
-        ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150); // Cửa phòng thay đồ
-        if (yatta.worldX < 140) {
+        ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150);
+        if (Math.abs(yatta.worldX - 80) < 80) {
             ctx.fillStyle = '#00e676'; ctx.font = '11px Courier New';
-            ctx.fillText("Press [E] to Enter Dressing Room", 35, 290);
+            ctx.fillText("Press [E] to Enter Dressing Room", 30, 290);
         }
 
         ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 800, 110);
         drawChar(yatta.worldX, yatta.y, '#fff59d');
         drawChar(looey.worldX, looey.y, '#ffee58');
         drawChar(blot.worldX, blot.y, '#37474f');
+
+    } else if (gameState === 'PORTAL_ANIMATION') {
+        ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
+        ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
+        ctx.textAlign = 'left';
 
     } else if (gameState === 'SIDE_SCROLL') {
         let moveX = 0;
@@ -676,10 +691,9 @@ function gameLoop() {
             if (p.active) {
                 p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
                 
-                // PHYSICS COLLISION BLOCK PARKOUR XUẤT SẮC
                 blocks.forEach(b => {
                     if (p.worldX > b.x - 15 && p.worldX < b.x + b.w + 15) {
-                        if (p.y + p.vy >= b.y && p.y <= b.y + 10) {
+                        if (p.y + p.vy >= b.y && p.y <= b.y + 12) {
                             p.y = b.y; p.vy = 0; p.grounded = true;
                         }
                     }
@@ -694,7 +708,7 @@ function gameLoop() {
         if (currentTwisted) {
             twistedX += currentTwisted.speed;
             let isNearX = Math.abs(yatta.worldX - twistedX) < 30;
-            let isGroundY = yatta.y >= 420; // CHỈ MẤT MÁU KHI Ở DƯỚI ĐẤT, TRÊN BLOCK AN TOÀN 100%!
+            let isGroundY = yatta.y >= 420;
 
             if (isNearX && isGroundY) {
                 if (activeChar === 'trio') trioHP--;
@@ -737,7 +751,6 @@ function gameLoop() {
             ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 2, d.y - 8);
         });
 
-        // VẼ NPC XUẤT HIỆN NGẪU NHIÊN VÀ DUY NHẤT
         if (currentNPCFloor) {
             ctx.fillStyle = '#ffb74d'; ctx.fillRect(currentNPCFloor.x - 10, 410, 20, 40);
             ctx.fillStyle = '#fff'; ctx.font = '9px Courier New'; ctx.fillText(`${currentNPCFloor.name} [E]`, currentNPCFloor.x - 20, 395);

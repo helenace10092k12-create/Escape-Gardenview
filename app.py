@@ -83,48 +83,43 @@ game_code = """
             background-size: 100% 4px;
         }
 
-        /* KHUNG CHAT TÍCH HỢP NGUYÊN BỨC ẢNH VẼ TAY CỦA BỒ */
-        #dialogue-overlay {
+        /* KHUNG CHAT LOOEY HIỆN NGUYÊN ẢNH PIXEL ART */
+        #looey-dialogue-overlay {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 800px;
-            height: 320px;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 760px;
+            height: 380px;
             z-index: 50;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
+            display: none; /* Mặc định ẩn, chỉ bật khi Looey nói */
             pointer-events: none;
         }
 
-        /* Ảnh phác thảo đầy đủ (Looey / Yatta) */
-        #sketch-bg-img {
-            position: absolute;
-            bottom: 0;
-            left: 0;
+        #looey-bg-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            object-position: bottom;
-            pointer-events: none;
-            filter: drop-shadow(0px -5px 10px rgba(0,0,0,0.8));
+            image-rendering: pixelated;
         }
 
-        /* Chữ lời thoại đè đúng vị trí lòng khung chat trong bức vẽ tay */
-        #dialogue-content {
-            position: relative;
+        /* Lời thoại lọt lòng bên trong ô màu vàng của bức ảnh Looey */
+        #looey-text-box {
+            position: absolute;
+            bottom: 35px;
+            left: 170px;
+            width: 420px;
+            height: 85px;
             z-index: 60;
-            margin: 0 40px 30px 40px;
-            height: 110px;
-            padding: 10px 15px;
-            pointer-events: auto;
+            padding: 10px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            pointer-events: auto;
         }
 
-        #dialogue-text {
-            color: #000000; /* Đổi màu chữ tối cho hợp nền giấy phác thảo */
+        #looey-text {
+            color: #1a0b2e; /* Chữ màu tím đậm nổi bật trên nền ô vàng */
             font-weight: bold;
             font-size: 13px;
             line-height: 1.4;
@@ -133,10 +128,30 @@ game_code = """
 
         .dialogue-btns { display: flex; justify-content: flex-end; }
         .action-btn {
-            background: #1a0b2e; color: #00e676; border: 2px solid #7c4dff;
-            padding: 4px 12px; font-size: 11px; cursor: pointer; border-radius: 4px; font-weight: bold;
+            background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc;
+            padding: 3px 10px; font-size: 10px; cursor: pointer; border-radius: 4px; font-weight: bold;
         }
         .action-btn:hover { background: #512da8; color: #fff; }
+
+        /* Khung thoại thường dùng cho Dẫn chuyện/System */
+        #normal-dialogue-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 720px;
+            height: 120px;
+            background: rgba(8, 3, 18, 0.9);
+            border: 3px solid #7c4dff;
+            border-radius: 8px;
+            padding: 12px 18px;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        #normal-speaker { color: #ffb74d; font-weight: bold; font-size: 12px; margin-bottom: 4px; }
+        #normal-text { color: #00e676; font-size: 12px; line-height: 1.4; }
     </style>
 </head>
 <body>
@@ -160,14 +175,25 @@ game_code = """
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- KHUNG THOẠI VẼ TAY POP-UP -->
-    <div id="dialogue-overlay" style="display: none;">
-        <img id="sketch-bg-img" src="" alt="Sketch Dialogue Overlay">
-        <div id="dialogue-content">
-            <div id="dialogue-text">...</div>
+    <!-- KHUNG THOẠI RIÊNG DÀNH CHO LOOEY (NỔI NGUYÊN ẢNH PIXEL) -->
+    <div id="looey-dialogue-overlay">
+        <img id="looey-bg-img" src="LOOEY_IMAGE_URL" alt="Looey Pixel Overlay">
+        <div id="looey-text-box">
+            <div id="looey-text">My balloons almost popped right at the finale! Haha!</div>
             <div class="dialogue-btns">
-                <button class="action-btn" id="next-btn" onclick="nextLine()">Next [Space] ></button>
+                <button class="action-btn" onclick="nextLine()">Next [Space] ></button>
             </div>
+        </div>
+    </div>
+
+    <!-- KHUNG THOẠI THƯỜNG CHO DẪN CHUYỆN / HỆ THỐNG -->
+    <div id="normal-dialogue-box" style="display: none;">
+        <div>
+            <div id="normal-speaker">NARRATOR</div>
+            <div id="normal-text">...</div>
+        </div>
+        <div class="dialogue-btns">
+            <button class="action-btn" onclick="nextLine()">Next [Space] ></button>
         </div>
     </div>
 </div>
@@ -176,9 +202,8 @@ game_code = """
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// --- LINK ẢNH VẼ TAY CỦA BỒ (Bồ thay URL ảnh thực tế vào đây nhé) ---
-const LOOEY_CHATBOX_IMG = "LOOEY_CHATBOX_URL"; // Ảnh 1
-const YATTA_CHATBOX_IMG = "YATTA_CHATBOX_URL"; // Ảnh 4
+// --- BỒ THAY DÒNG LOOEY_IMAGE_URL BÊN ĐƯỜNG LINK ẢNH THẬT TRÊN GITHUB NHÉ ---
+const LOOEY_IMAGE_URL = "https://raw.githubusercontent.com/username/repo/main/1000009227.png"; 
 
 let currentLang = 'ENG'; 
 let currentStep = 0;
@@ -231,18 +256,18 @@ window.addEventListener('keyup', (e) => {
 
 const introScript = {
     ENG: [
-        { speaker: "NARRATOR", img: null, text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to rest." },
-        { speaker: "YATTA", img: YATTA_CHATBOX_IMG, text: "Whew... that was a blast today! The Toon crowd was so energetic." },
-        { speaker: "LOOEY", img: LOOEY_CHATBOX_IMG, text: "My balloons almost popped right at the finale! Haha!" },
-        { speaker: "BLOT", img: null, text: "*Nods silently, smiling gently in the corner of the room.*" },
-        { speaker: "SYSTEM", img: null, text: "Interact with the door: Move near the dressing room door and press [E]." }
+        { speaker: "NARRATOR", text: "The show for the Toons has just concluded successfully. The Circus Trio heads back to rest." },
+        { speaker: "YATTA", text: "Whew... that was a blast today! The Toon crowd was so energetic." },
+        { speaker: "LOOEY", text: "My balloons almost popped right at the finale! Haha!" },
+        { speaker: "BLOT", text: "Nods silently, smiling gently in the corner of the room." },
+        { speaker: "SYSTEM", text: "Interact with the door: Move near the dressing room door and press [E]." }
     ],
     VIE: [
-        { speaker: "DẪN CHUYỆN", img: null, text: "Buổi biểu diễn vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ nghỉ ngơi." },
-        { speaker: "YATTA", img: YATTA_CHATBOX_IMG, text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
-        { speaker: "LOOEY", img: LOOEY_CHATBOX_IMG, text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
-        { speaker: "BLOT", img: null, text: "*Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng.*" },
-        { speaker: "HỆ THỐNG", img: null, text: "Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ và nhấn [E]." }
+        { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn vừa kết thúc tốt đẹp. Circus Trio bước về phòng thay đồ nghỉ ngơi." },
+        { speaker: "YATTA", text: "Phù... hôm nay quẩy sung thật đấy! Mấy bạn Toon cổ vũ nhiệt tình ghê." },
+        { speaker: "LOOEY", text: "Bóng bay của tui suýt nổ tung lúc cuối màn diễn! Haha!" },
+        { speaker: "BLOT", text: "Gật đầu im lặng, mỉm cười nhẹ nhàng trong góc phòng." },
+        { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển lại gần cửa phòng thay đồ và nhấn [E]." }
     ]
 };
 
@@ -263,7 +288,8 @@ function nextLine() {
     const script = introScript[currentLang];
     currentStep++;
     if (currentStep >= script.length) {
-        document.getElementById('dialogue-overlay').style.display = 'none';
+        document.getElementById('looey-dialogue-overlay').style.display = 'none';
+        document.getElementById('normal-dialogue-box').style.display = 'none';
         gamePhase = 'DRESSING_ROOM';
         return;
     }
@@ -272,20 +298,20 @@ function nextLine() {
 
 function updateDialogue() {
     const data = introScript[currentLang][currentStep];
-    const overlay = document.getElementById('dialogue-overlay');
-    const imgElem = document.getElementById('sketch-bg-img');
-    const textElem = document.getElementById('dialogue-text');
+    const looeyOverlay = document.getElementById('looey-dialogue-overlay');
+    const normalBox = document.getElementById('normal-dialogue-box');
 
-    overlay.style.display = 'flex';
-    textElem.innerText = `${data.speaker}: ${data.text}`;
-
-    if (data.img && data.img !== "LOOEY_CHATBOX_URL" && data.img !== "YATTA_CHATBOX_URL") {
-        imgElem.style.display = 'block';
-        imgElem.src = data.img;
-        textElem.style.color = "#111"; // Chữ màu đen viết trên mặt giấy
+    if (data.speaker === 'LOOEY') {
+        // Hiện khung thoại ảnh Pixel của Looey
+        normalBox.style.display = 'none';
+        looeyOverlay.style.display = 'block';
+        document.getElementById('looey-text').innerText = data.text;
     } else {
-        imgElem.style.display = 'none';
-        textElem.style.color = "#00e676"; // Chữ màu xanh huỳnh quang nếu không có hình phác thảo
+        // Hiện khung thoại bình thường cho Dẫn chuyện/System
+        looeyOverlay.style.display = 'none';
+        normalBox.style.display = 'flex';
+        document.getElementById('normal-speaker').innerText = data.speaker;
+        document.getElementById('normal-text').innerText = data.text;
     }
 }
 

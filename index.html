@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Weapons & Healing</title>
+    <title>Escape Gardenview - Fixed Hitboxes</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -142,7 +142,7 @@
             <button class="close-x" onclick="closeVeemail()">X</button>
         </div>
         <div class="veemail-body" id="v-content">
-            Welcome to our experimental game. Collect 8 golden keys, loot chests (Press [E] in rooms). Use Bandage to heal 1 HP, Medkit to fully restore HP. Press [Z] to equip weapons!<br><br>
+            Welcome to our experimental game. Collect 8 golden keys, loot chests (Press [E] near doors). Swing rings & tightropes using [W]. Press [Z] to equip weapons!<br><br>
             <i>Signed: D</i>
         </div>
     </div>
@@ -176,14 +176,14 @@ let keysCount = 0;
 let currentWeapon = null;
 let currentRoom = null;
 
-let circusRings = [{ x: 600, y: 280, active: true }, { x: 1400, y: 260, active: true }];
-let tightropes  = [{ x: 900, y: 320, w: 200 }];
-let npcs        = [{ worldX: 750, y: 450, name: 'Rodger', active: true }];
+let circusRings = [{ x: 500, y: 300, active: true }, { x: 1200, y: 280, active: true }];
+let tightropes  = [{ x: 750, y: 350, w: 220 }];
+let npcs        = [{ worldX: 650, y: 450, name: 'Rodger', active: true }];
 
 let doors = [
-    { id: 1, worldX: 500, y: 370, opened: false, loot: null },
-    { id: 2, worldX: 1200, y: 370, opened: false, loot: null },
-    { id: 3, worldX: 1900, y: 370, opened: false, loot: null }
+    { id: 1, worldX: 450, y: 370, opened: false, loot: null },
+    { id: 2, worldX: 1050, y: 370, opened: false, loot: null },
+    { id: 3, worldX: 1700, y: 370, opened: false, loot: null }
 ];
 
 let twisted = { worldX: -300, y: 450, speed: 2, active: false };
@@ -262,7 +262,7 @@ function updateUIText() {
 }
 
 function showHelp() {
-    alert(currentLang === 'ENG' ? "Controls: A/D Move, W Jump, E Enter/Open Chest, Z Equip Weapon, X Exit Room, 1-4 Switch Chars!" : "Điều khiển: A/D di chuyển, W nhảy, E vào phòng/mở rương, Z cầm vũ khí, X ra ngoài, 1-4 đổi nhân vật!");
+    alert(currentLang === 'ENG' ? "Controls: A/D Move, W Jump/Swing, E Enter Door/Open Chest, Z Equip Weapon, X Exit Room, 1-4 Switch Chars!" : "Điều khiển: A/D di chuyển, W nhảy/đu dây, E vào phòng/mở rương, Z cầm vũ khí, X ra ngoài, 1-4 đổi nhân vật!");
 }
 
 function startGame() {
@@ -325,7 +325,6 @@ function acceptQuest(accepted) {
     }
 }
 
-// HỆ THỐNG LOOT VẬT PHẨM CHUẨN XÁC
 function getRandomLoot() {
     const items = [
         { type: 'KEY', name: 'Golden Key', desc: 'Found 1 Golden Key! (🔑)' },
@@ -338,9 +337,9 @@ function getRandomLoot() {
     ];
     let rand = Math.random();
     if (rand < 0.20) return items[0];
-    if (rand < 0.35) return items[1]; // Bandage hồi 1 máu
-    if (rand < 0.45) return items[2]; // Medkit hồi full máu
-    if (rand < 0.60) return items[3]; // Weapon
+    if (rand < 0.35) return items[1];
+    if (rand < 0.45) return items[2];
+    if (rand < 0.60) return items[3];
     if (rand < 0.72) return items[4];
     if (rand < 0.85) return items[5];
     return items[6];
@@ -357,22 +356,38 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
-    // PHÍM [Z] ĐỂ CHỌN / CẦM VŨ KHÍ
     if (e.code === 'KeyZ') {
         if (currentWeapon) {
             alert(currentLang === 'ENG' ? `Equipped Weapon: ${currentWeapon}` : `Đã cầm vũ khí: ${currentWeapon}`);
         } else {
-            alert(currentLang === 'ENG' ? "No weapon in inventory! Loot chests in secret rooms first." : "Chưa có vũ khí trong túi! Hãy mở rương trong phòng bí mật trước.");
+            alert(currentLang === 'ENG' ? "No weapon in inventory!" : "Chưa có vũ khí!");
         }
     }
 
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (gameState === 'SIDE_SCROLL' || gameState === 'HALLWAY') {
-            if (activeChar === 'trio') {
-                [yatta, looey, blot].forEach(p => { if (p.grounded) { p.vy = -11; p.grounded = false; } });
+            // Kiểm tra nếu đang đứng gần Vòng đu xiếc (Ring) hoặc Dây (Tightrope) để thực hiện động tác xiếc
+            let px = yatta.worldX;
+            let py = yatta.y;
+            let nearRing = circusRings.some(r => Math.abs(px - r.x) < 50 && Math.abs(py - r.y) < 80);
+            let nearRope = tightropes.some(tp => px >= tp.x - 20 && px <= tp.x + tp.w + 20);
+
+            if (nearRing || nearRope) {
+                // Hiệu ứng đu dây / bay lên mượt mà
+                if (activeChar === 'trio') {
+                    [yatta, looey, blot].forEach(p => { p.vy = -14; p.grounded = false; });
+                } else {
+                    let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
+                    p.vy = -14; p.grounded = false;
+                }
             } else {
-                let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
-                if (p.grounded) { p.vy = -11; p.grounded = false; }
+                // Nhảy thông thường
+                if (activeChar === 'trio') {
+                    [yatta, looey, blot].forEach(p => { if (p.grounded) { p.vy = -11; p.grounded = false; } });
+                } else {
+                    let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
+                    if (p.grounded) { p.vy = -11; p.grounded = false; }
+                }
             }
         }
     }
@@ -383,12 +398,13 @@ window.addEventListener('keydown', (e) => {
             document.getElementById('dialogue-box').style.display = 'flex'; updateDialogue();
         }
         npcs.forEach(n => {
-            if (gameState === 'SIDE_SCROLL' && n.active && Math.abs(yatta.worldX - n.worldX) < 40) {
+            if (gameState === 'SIDE_SCROLL' && n.active && Math.abs(yatta.worldX - n.worldX) < 60) {
                 document.getElementById('quest-box').style.display = 'flex';
             }
         });
+        // Mở rộng hitbox cửa phòng lên 60 pixel để bấm cực kỳ dễ
         doors.forEach(d => {
-            if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 40) {
+            if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 60) {
                 currentRoom = d;
                 currentRoom.loot = getRandomLoot();
                 gameState = 'INSIDE_ROOM';
@@ -405,7 +421,7 @@ window.addEventListener('keydown', (e) => {
                 if (globalHP < 3) globalHP++;
                 document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
             } else if (loot.type === 'MEDKIT') {
-                globalHP = 3; // Hồi full máu
+                globalHP = 3;
                 document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
             } else if (loot.type === 'WEAPON') {
                 currentWeapon = loot.name;
@@ -451,7 +467,6 @@ function gameLoop() {
         if (twisted.active) {
             twisted.worldX += twisted.speed;
             if (Math.abs(yatta.worldX - twisted.worldX) < 30) {
-                // Nếu đang cầm vũ khí, có thể né/chống trả mất 0 máu hoặc mất 1 tim nếu tay không
                 globalHP--;
                 document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
                 alert(currentLang === 'ENG' ? "Caught by Twisted! Lost 1 Heart!" : "Bị Twisted bắt! Mất 1 tim!");
@@ -477,18 +492,18 @@ function gameLoop() {
         } else {
             ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2200, 560);
             ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
-            ctx.fillText("GARDENVIEW CIRCUS WING - PARKOUR, WEAPONS & SURVIVE", 40, 40);
+            ctx.fillText("GARDENVIEW CIRCUS WING - SWING RINGS, TIGHTROPES & ROOMS", 40, 40);
 
             circusRings.forEach(r => {
                 ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4;
-                ctx.beginPath(); ctx.arc(r.x, r.y, 22, 0, Math.PI*2); ctx.stroke();
-                ctx.fillStyle = '#ff7043'; ctx.font = '9px Courier New'; ctx.fillText("RING", r.x - 10, r.y - 28);
+                ctx.beginPath(); ctx.arc(r.x, r.y, 24, 0, Math.PI*2); ctx.stroke();
+                ctx.fillStyle = '#ff7043'; ctx.font = '9px Courier New'; ctx.fillText("RING [W]", r.x - 14, r.y - 30);
             });
 
             tightropes.forEach(tp => {
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
-                ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE", tp.x + 50, tp.y - 8);
+                ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE [W]", tp.x + 50, tp.y - 8);
             });
 
             npcs.forEach(n => {
@@ -498,9 +513,9 @@ function gameLoop() {
 
             doors.forEach(d => {
                 ctx.fillStyle = d.opened ? '#455a64' : '#00e676';
-                ctx.fillRect(d.worldX, d.y, 40, 80);
+                ctx.fillRect(d.worldX, d.y, 45, 80);
                 ctx.fillStyle = '#000'; ctx.font = '9px Courier New';
-                ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 3, d.y - 8);
+                ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 4, d.y - 8);
             });
 
             if (twisted.active) {

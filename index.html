@@ -63,7 +63,7 @@
             background-size: 100% 4px;
         }
 
-        /* KHUNG THOẠI LOOEY TÍCH HỢP ẢNH PIXEL ART */
+        /* DÙNG TRỰC TIẾP THẺ ẢNH CHO KHUNG THOẠI LOOEY */
         #looey-overlay {
             position: absolute;
             bottom: 0;
@@ -157,9 +157,10 @@
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- KHUNG THOẠI LOOEY SỬ DỤNG CANVAS VẼ LẠI 100% NÉT VẼ TAY CỦA BỒ -->
+    <!-- HIỂN THỊ TRỰC TIẾP FILE ẢNH VẼ TAY CỦA BỒ -->
     <div id="looey-overlay">
-        <canvas id="looey-pixel-canvas" width="800" height="320" style="position: absolute; bottom: 0; left: 0;"></canvas>
+        <!-- Bồ thay chữ "looey_chat.png" bên dưới thành đúng tên file ảnh trên GitHub của bồ nhé -->
+        <img id="looey-img" src="looey_chat.png" alt="Looey Dialogue">
         <div id="looey-text-area">
             <div id="looey-text-content">My balloons almost popped right at the finale! Haha!</div>
             <div class="dialogue-btns">
@@ -183,54 +184,6 @@
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-// TỰ ĐỘNG VẼ CHUẨN XÁC TỪNG CHI TIẾT BỨC PIXEL ART CỦA BỒ LÊN CANVAS (KHÔNG LO LỖI FILE ẢNH NỮA)
-const lCanvas = document.getElementById('looey-pixel-canvas');
-const lCtx = lCanvas.getContext('2d');
-
-function renderLooeyPixelArt() {
-    lCtx.clearRect(0, 0, 800, 320);
-    lCtx.save();
-    lCtx.translate(120, 160);
-
-    // Tai bóng bay (Xanh lá & Tím)
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(-35, -110, 30, 45); lCtx.fillRect(-30, -120, 20, 10);
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(5, -110, 30, 45); lCtx.fillRect(10, -120, 20, 10);
-
-    // Đầu vàng chanh
-    lCtx.fillStyle = '#ffee58'; lCtx.fillRect(-45, -65, 90, 65);
-    
-    // Mắt to tròn long lanh
-    lCtx.fillStyle = '#000'; lCtx.fillRect(-32, -55, 22, 35); lCtx.fillRect(10, -55, 22, 35);
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-28, -50, 6, 12); lCtx.fillRect(14, -50, 6, 12);
-
-    // Má trái tím, má phải xanh lá & Mũi đỏ tròn
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-42, -25, 12, 12);
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(30, -25, 12, 12);
-    lCtx.fillStyle = '#ff1744'; lCtx.fillRect(-8, -28, 16, 14);
-
-    // Miệng răng hề
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-15, -8, 30, 10);
-    lCtx.fillStyle = '#000'; lCtx.fillRect(-15, -8, 30, 2); lCtx.fillRect(-5, -8, 2, 10); lCtx.fillRect(5, -8, 2, 10);
-
-    // Khăn quàng chấm bi
-    lCtx.fillStyle = '#fff'; lCtx.fillRect(-40, 0, 80, 40);
-    lCtx.fillStyle = '#ab47bc'; lCtx.fillRect(-25, 10, 12, 12); lCtx.fillRect(15, 20, 10, 10);
-    lCtx.fillStyle = '#66bb6a'; lCtx.fillRect(10, 8, 12, 12); lCtx.fillRect(-20, 24, 10, 10);
-
-    lCtx.restore();
-
-    // Khung chứa thoại màu vàng cam đặc trưng
-    lCtx.fillStyle = '#e5c453';
-    lCtx.strokeStyle = '#2b1b09';
-    lCtx.lineWidth = 5;
-    
-    lCtx.beginPath();
-    lCtx.roundRect(150, 180, 520, 100, 12);
-    lCtx.fill();
-    lCtx.stroke();
-}
-renderLooeyPixelArt();
 
 let currentLang = 'ENG'; 
 let currentStep = 0;

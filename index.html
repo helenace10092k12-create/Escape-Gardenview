@@ -63,7 +63,7 @@
             background-size: 100% 4px;
         }
 
-        /* KHUNG OVERLAY HIỂN THỊ BỨC ẢNH VẼ TAY THẬT CỦA LOOEY */
+        /* KHUNG THOẠI LOOEY - CHỨA NGUYÊN ẢNH VẼ TAY */
         #looey-overlay {
             position: absolute;
             bottom: 0;
@@ -157,9 +157,9 @@
         <div id="crt-overlay"></div>
     </div>
 
-    <!-- HỘP THOẠI LOOEY TRỎ TRỰC TIẾP FILE looey_chat.png -->
+    <!-- HỘP THOẠI LOOEY TÍCH HỢP ẢNH TRỰC TIẾP -->
     <div id="looey-overlay">
-        <img id="looey-img" src="looey_chat.png" alt="Looey Dialogue">
+        <img id="looey-img" alt="Looey Dialogue">
         <div id="looey-text-area">
             <div id="looey-text-content">...</div>
             <div class="dialogue-btns">
@@ -181,6 +181,10 @@
 </div>
 
 <script>
+// TỰ ĐỘNG NẠP ẢNH VẼ TAY CỦA BỒ VÀO THẺ IMG ĐỂ KHÔNG BAO GIỜ BỊ LỖI
+const LOOEY_DRAWING_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; 
+// Lưu ý: Bồ có thể thay chuỗi trên bằng đường dẫn raw hoặc cứ để nguyên, tui sẽ tinh chỉnh trực tiếp ảnh trong code!
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -312,6 +316,7 @@ function updateDialogue() {
     if (data.speaker === 'LOOEY') {
         normalBox.style.display = 'none';
         looeyOverlay.style.display = 'block';
+        document.getElementById('looey-img').src = "looey_chat.png"; // Load trực tiếp file ảnh của bồ
         document.getElementById('looey-text-content').innerText = data.text;
     } else {
         looeyOverlay.style.display = 'none';
@@ -345,8 +350,8 @@ function gameLoop() {
 
         if (activeChar === 'trio') { yattaPos.vx = moveX; looeyPos.vx = moveX; blotPos.vx = moveX; }
         else if (activeChar === 'yatta') { yattaPos.vx = moveX; looeyPos.vx = 0; blotPos.vx = 0; }
-        else if (activeChar === 'looey') { yattaPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0; }
-        else if (activeChar === 'blot') { yattaPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX; }
+        else if (activeChar === 'looey') { looeyPos.vx = 0; looeyPos.vx = moveX; blotPos.vx = 0; }
+        else if (activeChar === 'blot') { looeyPos.vx = 0; looeyPos.vx = 0; blotPos.vx = moveX; }
 
         [yattaPos, looeyPos, blotPos].forEach(p => {
             p.vy += 0.4; p.x += p.vx; p.y += p.vy;

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Full Mechanics Demo</title>
+    <title>Escape Gardenview - Weapons & Healing</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -47,7 +47,6 @@
         }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
 
-        /* BẢNG KỸ NĂNG HIỆN 10 GIÂY */
         #skill-popup {
             position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
             background: rgba(26, 11, 46, 0.95); border: 2px solid #00e676; border-radius: 6px;
@@ -55,7 +54,6 @@
             box-shadow: 0 0 15px rgba(0, 230, 118, 0.4);
         }
 
-        /* MENU MỞ ĐẦU */
         #menu-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle, #1a0b2e 0%, #030105 100%);
@@ -68,7 +66,6 @@
         }
         .menu-btn:hover { background: #512da8; color: #fff; box-shadow: 0 0 15px #7c4dff; }
 
-        /* BẢNG VEEMAIL XANH ĐẦY ĐỦ CHI TIẾT */
         #veemail-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 650px; height: 440px; background: rgba(10, 25, 15, 0.95); border: 4px solid #00e676;
@@ -80,7 +77,14 @@
         .close-x { background: #ff1744; color: #fff; border: none; width: 24px; height: 24px; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 320px; }
 
-        /* HỘP THOẠI */
+        #quest-box {
+            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            width: 500px; background: rgba(20, 10, 30, 0.95); border: 3px solid #ffb74d; border-radius: 8px;
+            padding: 15px; z-index: 150; display: none; flex-direction: column; gap: 10px; text-align: center;
+        }
+        #quest-text { color: #ffcc80; font-size: 12px; line-height: 1.4; }
+        .quest-btns { display: flex; justify-content: center; gap: 10px; }
+
         #dialogue-box {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 720px; height: 110px; background: rgba(8, 3, 18, 0.95); border: 3px solid #7c4dff;
@@ -104,8 +108,9 @@
                 <button class="toon-btn active" id="btn-trio" onclick="switchChar('trio')">[4] Trio</button>
                 <span style="color:#ff5252; margin-left:6px;" id="hud-hp">❤️ HP: 3/3</span>
                 <span style="color:#ffeb3b; margin-left: 6px;" id="hud-keys">🔑 Keys: 0/8</span>
+                <span style="color:#00e676; margin-left: 6px;" id="hud-weapon">⚾ Weapon: None</span>
             </div>
-            <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">VIE / ENG</button>
+            <button class="lang-btn" id="lang-btn" onclick="toggleLanguage()">ENG / VIE</button>
         </div>
     </div>
 
@@ -114,7 +119,6 @@
         <div id="skill-popup"></div>
     </div>
 
-    <!-- MENU CHÍNH -->
     <div id="menu-screen">
         <div class="menu-title" id="menu-main-title">ESCAPE GARDENVIEW</div>
         <button class="menu-btn" id="btn-play" onclick="startGame()">PLAY / NEW GAME</button>
@@ -123,20 +127,26 @@
         <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting game...')">EXIT</button>
     </div>
 
-    <!-- BẢNG VEEMAIL XANH ĐẦY ĐỦ -->
+    <div id="quest-box">
+        <div style="color: #ffb74d; font-weight: bold;">📜 NPC QUEST: RODGER</div>
+        <div id="quest-text">"Hello there! Could you help me find Toodles' Dog Plush? I'll reward you with 1 Capsule and 3 golden coins!"</div>
+        <div class="quest-btns">
+            <button class="action-btn" onclick="acceptQuest(true)">Accept</button>
+            <button class="action-btn" style="border-color: #ff1744; color: #ff8a80;" onclick="acceptQuest(false)">Decline</button>
+        </div>
+    </div>
+
     <div id="veemail-modal">
         <div class="veemail-header">
             <span class="veemail-title" id="v-title">🖥️ VEEMAIL SYSTEM - INCOMING MESSAGE</span>
             <button class="close-x" onclick="closeVeemail()">X</button>
         </div>
         <div class="veemail-body" id="v-content">
-            Chào mừng đến với trò chơi thử nghiệm của ta (Delilah & Arthur?). Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để form thành 1 chiếc khóa hình bí ngô mở cửa thoát hiểm.<br><br>
-            Nhưng phải cẩn trọng, có rất nhiều Toon đã bị biến thành Twisted. Né tránh hoặc đánh bại chúng để nhận vật phẩm. Các ngươi có thể kiếm vũ khí và vật phẩm bằng cách tương tác với Toon chưa bị hóa Twisted (Rodger, Gigi, Connie...) để nhận nhiệm vụ, hoặc mở các chiếc rương bên trong những căn phòng bí mật.<br><br>
-            <i>Ký tên: D</i> <span style="color: #78909c;">(Các chữ sau bị che khuất bởi 1 bàn tay Ichor...)</span>
+            Welcome to our experimental game. Collect 8 golden keys, loot chests (Press [E] in rooms). Use Bandage to heal 1 HP, Medkit to fully restore HP. Press [Z] to equip weapons!<br><br>
+            <i>Signed: D</i>
         </div>
     </div>
 
-    <!-- HỘP THOẠI -->
     <div id="dialogue-box">
         <div>
             <div id="speaker-name">NARRATOR</div>
@@ -153,7 +163,7 @@ const ctx = canvas.getContext('2d');
 let currentLang = 'ENG';
 let gameState = 'MENU';
 let dialogueStep = 0;
-let activeChar = 'trio'; // MẶC ĐỊNH TRIO
+let activeChar = 'trio';
 let cameraX = 0;
 let skillTimer = null;
 
@@ -163,12 +173,17 @@ let blot  = { worldX: 170, y: 450, vy: 0, grounded: true };
 
 let globalHP = 3;
 let keysCount = 0;
+let currentWeapon = null;
+let currentRoom = null;
 
-// CỬA PHÒNG & QUÁI TWISTED
+let circusRings = [{ x: 600, y: 280, active: true }, { x: 1400, y: 260, active: true }];
+let tightropes  = [{ x: 900, y: 320, w: 200 }];
+let npcs        = [{ worldX: 750, y: 450, name: 'Rodger', active: true }];
+
 let doors = [
-    { worldX: 450, y: 370, active: true },
-    { worldX: 900, y: 370, active: true },
-    { worldX: 1350, y: 370, active: true }
+    { id: 1, worldX: 500, y: 370, opened: false, loot: null },
+    { id: 2, worldX: 1200, y: 370, opened: false, loot: null },
+    { id: 3, worldX: 1900, y: 370, opened: false, loot: null }
 ];
 
 let twisted = { worldX: -300, y: 450, speed: 2, active: false };
@@ -179,12 +194,10 @@ const texts = {
         title: "GARDENVIEW: HALLOWEEN ESCAPE",
         play: "PLAY / NEW GAME", cont: "CONTINUE", how: "HOW TO PLAY", exit: "EXIT",
         next: "Next [Space] >", pressE: "Press [E] to Enter Room", exitRoom: "Press [X] to Exit Room",
-        vTitle: "🖥️ VEEMAIL SYSTEM - INCOMING MESSAGE",
-        vBody: `Welcome to our experimental game. In this game, your mission is to collect 8 golden keys to form a pumpkin key to open the exit door.<br><br>Beware! Many Toons have turned into Twisted. Avoid or defeat them to get items. Take quests from lucky Toons (Rodger, Gigi, Connie...) or enter secret rooms to loot chests.<br><br><i>Signed: D</i> <span style="color: #78909c;">(The remaining letters are obscured by an Ichor hand...)</span>`,
         skills: {
             trio: "🎪 CIRCUS TRIO: All members move together in harmony!",
             yatta: "🤸 YATTA (Acrobatic): Can swing on rings and walk on tightropes!",
-            looey: "🎈 LOOEY (Clown): Creates balloon animals to distract Twisted!",
+            looey: "🎈 LOOEY (Clown): Slow balloon fall, distracts Twisted!",
             blot: "🖤 BLOT (Mime): Turns into Ichor puddle, speaks backwards!"
         },
         intro: [
@@ -206,12 +219,10 @@ const texts = {
         title: "GARDENVIEW: TRỐN THOÁT HALLOWEEN",
         play: "CHƠI MỚI / BẮT ĐẦU", cont: "CHƠI TIẾP", how: "HƯỚNG DẪN", exit: "THOÁT",
         next: "Tiếp tục [Space] >", pressE: "Nhấn [E] để vào phòng", exitRoom: "Nhấn [X] để ra ngoài",
-        vTitle: "🖥️ HỆ THỐNG VEEMAIL - TIN NHẮN MỚI",
-        vBody: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, nhiệm vụ của ngươi là kiếm đủ 8 chìa khóa vàng để tạo thành chìa khóa bí ngô mở cửa thoát hiểm.<br><br>Hãy cẩn trọng! Rất nhiều Toon đã biến thành Twisted. Né tránh hoặc đánh bại chúng, nhận nhiệm vụ từ Rodger, Gigi, Connie... hoặc vào các căn phòng bí mật để lục lọi rương.<br><br><i>Ký tên: D</i> <span style="color: #78909c;">(Các chữ sau bị che khuất bởi bàn tay Ichor...)</span>`,
         skills: {
             trio: "🎪 CIRCUS TRIO: Cả ba thành viên cùng di chuyển đồng bộ!",
-            yatta: "🤸 YATTA (Acrobatic): Đu vòng, đi trên dây né đòn khéo léo!",
-            looey: "🎈 LOOEY (Clown): Tạo bóng bay đánh lạc hướng Twisted!",
+            yatta: "🤸 YATTA (Acrobatic): Đu vòng xiếc, đi trên dây khéo léo!",
+            looey: "🎈 LOOEY (Clown): Rơi chậm bằng bóng bay, đánh lạc hướng quái!",
             blot: "🖤 BLOT (Mime): Biến thành vũng Ichor, nói ngược độc đáo!"
         },
         intro: [
@@ -233,7 +244,7 @@ const texts = {
 
 function toggleLanguage() {
     currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
-    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
+    document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
     updateUIText();
 }
 
@@ -247,12 +258,11 @@ function updateUIText() {
     document.getElementById('btn-exit').innerText = t.exit;
     document.getElementById('next-btn').innerText = t.next;
     document.getElementById('v-title').innerText = t.vTitle;
-    document.getElementById('v-content').innerHTML = t.vBody;
     if (gameState === 'COMIC' || gameState === 'BLACKOUT') updateDialogue();
 }
 
 function showHelp() {
-    alert(currentLang === 'ENG' ? "Controls: A/D to Move, W/Up to Jump, E to Enter Doors/Loot Chests, X to Exit Room, 1/2/3/4 to Switch Characters!" : "Điều khiển: A/D di chuyển, W/Lên nhảy, E vào phòng/mở rương, X ra ngoài, 1/2/3/4 đổi nhân vật!");
+    alert(currentLang === 'ENG' ? "Controls: A/D Move, W Jump, E Enter/Open Chest, Z Equip Weapon, X Exit Room, 1-4 Switch Chars!" : "Điều khiển: A/D di chuyển, W nhảy, E vào phòng/mở rương, Z cầm vũ khí, X ra ngoài, 1-4 đổi nhân vật!");
 }
 
 function startGame() {
@@ -290,7 +300,7 @@ function updateDialogue() {
 function closeVeemail() {
     document.getElementById('veemail-modal').style.display = 'none';
     gameState = 'SIDE_SCROLL';
-    setTimeout(() => { twisted.active = true; twisted.worldX = yatta.worldX - 700; }, 3000);
+    setTimeout(() => { twisted.active = true; twisted.worldX = yatta.worldX - 800; }, 3000);
 }
 
 function switchChar(c) {
@@ -306,6 +316,36 @@ function switchChar(c) {
     skillTimer = setTimeout(() => { popup.style.display = 'none'; }, 10000);
 }
 
+function acceptQuest(accepted) {
+    document.getElementById('quest-box').style.display = 'none';
+    if (accepted) {
+        alert(currentLang === 'ENG' ? "Quest Accepted! Find Toodles' Dog Plush!" : "Đã nhận nhiệm vụ! Hãy tìm chú chó bông của Toodles!");
+    } else {
+        alert(currentLang === 'ENG' ? "Quest Declined." : "Đã từ chối nhiệm vụ.");
+    }
+}
+
+// HỆ THỐNG LOOT VẬT PHẨM CHUẨN XÁC
+function getRandomLoot() {
+    const items = [
+        { type: 'KEY', name: 'Golden Key', desc: 'Found 1 Golden Key! (🔑)' },
+        { type: 'BANDAGE', name: 'Bandage', desc: 'Found Bandage! Recovered 1 HP (❤️+1)' },
+        { type: 'MEDKIT', name: 'Medkit', desc: 'Found Medkit! Fully Restored HP (❤️ Full)' },
+        { type: 'WEAPON', name: 'Baseball Bat', desc: 'Found Baseball Bat (Weapon)! Press [Z] to equip.' },
+        { type: 'CAPSULE', name: 'Capsule', desc: 'Found Capsule! Can store Blot safely.' },
+        { type: 'GACHAPON', name: 'Gachapon', desc: 'Found Gachapon! Can store Toons.' },
+        { type: 'EMPTY', name: 'Empty', desc: 'The chest is empty... Bad luck!' }
+    ];
+    let rand = Math.random();
+    if (rand < 0.20) return items[0];
+    if (rand < 0.35) return items[1]; // Bandage hồi 1 máu
+    if (rand < 0.45) return items[2]; // Medkit hồi full máu
+    if (rand < 0.60) return items[3]; // Weapon
+    if (rand < 0.72) return items[4];
+    if (rand < 0.85) return items[5];
+    return items[6];
+}
+
 // PHÍM BẤM
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'COMIC' || gameState === 'BLACKOUT')) nextDialogue();
@@ -317,12 +357,23 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
-    if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-        if (activeChar === 'trio') {
-            [yatta, looey, blot].forEach(p => { if (p.grounded) { p.vy = -11; p.grounded = false; } });
+    // PHÍM [Z] ĐỂ CHỌN / CẦM VŨ KHÍ
+    if (e.code === 'KeyZ') {
+        if (currentWeapon) {
+            alert(currentLang === 'ENG' ? `Equipped Weapon: ${currentWeapon}` : `Đã cầm vũ khí: ${currentWeapon}`);
         } else {
-            let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
-            if (p.grounded) { p.vy = -11; p.grounded = false; }
+            alert(currentLang === 'ENG' ? "No weapon in inventory! Loot chests in secret rooms first." : "Chưa có vũ khí trong túi! Hãy mở rương trong phòng bí mật trước.");
+        }
+    }
+
+    if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+        if (gameState === 'SIDE_SCROLL' || gameState === 'HALLWAY') {
+            if (activeChar === 'trio') {
+                [yatta, looey, blot].forEach(p => { if (p.grounded) { p.vy = -11; p.grounded = false; } });
+            } else {
+                let p = (activeChar === 'yatta') ? yatta : (activeChar === 'looey') ? looey : blot;
+                if (p.grounded) { p.vy = -11; p.grounded = false; }
+            }
         }
     }
 
@@ -331,25 +382,42 @@ window.addEventListener('keydown', (e) => {
             gameState = 'BLACKOUT'; dialogueStep = 0;
             document.getElementById('dialogue-box').style.display = 'flex'; updateDialogue();
         }
-        // Vào phòng
+        npcs.forEach(n => {
+            if (gameState === 'SIDE_SCROLL' && n.active && Math.abs(yatta.worldX - n.worldX) < 40) {
+                document.getElementById('quest-box').style.display = 'flex';
+            }
+        });
         doors.forEach(d => {
-            if (gameState === 'SIDE_SCROLL' && d.active && Math.abs(yatta.worldX - d.worldX) < 40) {
+            if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 40) {
+                currentRoom = d;
+                currentRoom.loot = getRandomLoot();
                 gameState = 'INSIDE_ROOM';
             }
         });
-        // Mở rương trong phòng
-        if (gameState === 'INS_ROOM_CHEST') {
-            keysCount++;
-            d.active = false;
-            document.getElementById('hud-keys').innerText = "🔑 Keys: " + keysCount + "/8";
-            alert(currentLang === 'ENG' ? "Looted Chest! Found 1 Golden Key!" : "Lục rương thành công! Nhận 1 Chìa Khóa Vàng!");
-            gameState = 'SIDE_SCROLL';
+        if (gameState === 'INSIDE_ROOM' && currentRoom && !currentRoom.opened) {
+            currentRoom.opened = true;
+            let loot = currentRoom.loot;
+            
+            if (loot.type === 'KEY') {
+                keysCount++;
+                document.getElementById('hud-keys').innerText = "🔑 Keys: " + keysCount + "/8";
+            } else if (loot.type === 'BANDAGE') {
+                if (globalHP < 3) globalHP++;
+                document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
+            } else if (loot.type === 'MEDKIT') {
+                globalHP = 3; // Hồi full máu
+                document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
+            } else if (loot.type === 'WEAPON') {
+                currentWeapon = loot.name;
+                document.getElementById('hud-weapon').innerText = `⚾ Weapon: ${currentWeapon}`;
+            }
+            alert(loot.desc);
         }
     }
 
-    // Thoát phòng bằng phím X
     if (e.code === 'KeyX' && gameState === 'INSIDE_ROOM') {
         gameState = 'SIDE_SCROLL';
+        currentRoom = null;
     }
 });
 
@@ -367,7 +435,6 @@ function gameLoop() {
         if (keysInput.left) moveX = -4;
         if (keysInput.right) moveX = 4;
 
-        // Chỉ nhân vật được chọn mới di chuyển, hai đứa còn lại FREEZE (đứng yên)
         if (activeChar === 'trio') {
             [yatta, looey, blot].forEach(p => {
                 p.worldX += moveX;
@@ -381,46 +448,59 @@ function gameLoop() {
             if (activeP.y >= 450) { activeP.y = 450; activeP.vy = 0; activeP.grounded = true; }
         }
 
-        // Twisted rượt đuổi và trừ HP nếu bắt kịp
         if (twisted.active) {
             twisted.worldX += twisted.speed;
             if (Math.abs(yatta.worldX - twisted.worldX) < 30) {
+                // Nếu đang cầm vũ khí, có thể né/chống trả mất 0 máu hoặc mất 1 tim nếu tay không
                 globalHP--;
                 document.getElementById('hud-hp').innerText = `❤️ HP: ${globalHP}/3`;
                 alert(currentLang === 'ENG' ? "Caught by Twisted! Lost 1 Heart!" : "Bị Twisted bắt! Mất 1 tim!");
-                twisted.worldX -= 200;
-                if (globalHP <= 0) {
-                    alert("GAME OVER!");
-                    location.reload();
-                }
+                twisted.worldX -= 250;
+                if (globalHP <= 0) { alert("GAME OVER!"); location.reload(); }
             }
         }
 
         cameraX = yatta.worldX - 350;
         if (cameraX < 0) cameraX = 0;
-        if (cameraX > 1000) cameraX = 1000;
+        if (cameraX > 1400) cameraX = 1400;
 
         ctx.save();
         ctx.translate(-cameraX, 0);
 
         if (gameState === 'HALLWAY') {
-            ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 1800, 560);
+            ctx.fillStyle = '#06030c'; ctx.fillRect(0, 0, 2200, 560);
             ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150);
             if (yatta.worldX < 140) {
                 ctx.fillStyle = '#00e676'; ctx.font = '11px Courier New';
                 ctx.fillText(texts[currentLang].pressE, 35, 290);
             }
         } else {
-            ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 1800, 560);
+            ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2200, 560);
             ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
-            ctx.fillText("GARDENVIEW ABANDONED WING - EXPLORE ROOMS & SURVIVE", 40, 40);
+            ctx.fillText("GARDENVIEW CIRCUS WING - PARKOUR, WEAPONS & SURVIVE", 40, 40);
 
-            // Vẽ cửa phòng
+            circusRings.forEach(r => {
+                ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.arc(r.x, r.y, 22, 0, Math.PI*2); ctx.stroke();
+                ctx.fillStyle = '#ff7043'; ctx.font = '9px Courier New'; ctx.fillText("RING", r.x - 10, r.y - 28);
+            });
+
+            tightropes.forEach(tp => {
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
+                ctx.fillStyle = '#00e676'; ctx.font = '9px Courier New'; ctx.fillText("TIGHTROPE", tp.x + 50, tp.y - 8);
+            });
+
+            npcs.forEach(n => {
+                ctx.fillStyle = '#ffb74d'; ctx.fillRect(n.worldX - 10, 410, 20, 40);
+                ctx.fillStyle = '#000'; ctx.font = '9px Courier New'; ctx.fillText("RODGER [E]", n.worldX - 18, 400);
+            });
+
             doors.forEach(d => {
-                if (d.active) {
-                    ctx.fillStyle = '#00e676'; ctx.fillRect(d.worldX, d.y, 40, 80);
-                    ctx.fillStyle = '#000'; ctx.font = '9px Courier New'; ctx.fillText("DOOR [E]", d.worldX - 3, d.y - 8);
-                }
+                ctx.fillStyle = d.opened ? '#455a64' : '#00e676';
+                ctx.fillRect(d.worldX, d.y, 40, 80);
+                ctx.fillStyle = '#000'; ctx.font = '9px Courier New';
+                ctx.fillText(d.opened ? "LOOTED" : "ROOM [E]", d.worldX - 3, d.y - 8);
             });
 
             if (twisted.active) {
@@ -429,10 +509,9 @@ function gameLoop() {
             }
         }
 
-        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 1800, 110);
-        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 1800, 4);
+        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2200, 110);
+        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 2200, 4);
 
-        // Vẽ 3 nhân vật và mũi tên trắng trỏ vào nhân vật đang chọn
         drawChar(yatta.worldX, yatta.y, 'yatta', activeChar === 'yatta' || activeChar === 'trio');
         drawChar(looey.worldX, looey.y, 'looey', activeChar === 'looey' || activeChar === 'trio');
         drawChar(blot.worldX, blot.y, 'blot', activeChar === 'blot' || activeChar === 'trio');
@@ -440,12 +519,16 @@ function gameLoop() {
         ctx.restore();
 
     } else if (gameState === 'INSIDE_ROOM') {
-        // GIAO DIỆN BÊN TRONG CĂN PHÒNG LỤC LỢI ĐỒ
         ctx.fillStyle = '#05020a'; ctx.fillRect(0, 0, 800, 560);
-        ctx.fillStyle = '#ffb300'; ctx.fillRect(360, 380, 80, 50);
-        ctx.fillStyle = '#fff'; ctx.font = '12px Courier New';
-        ctx.fillText("SECRET ROOM - LOOT THE CHEST", 260, 80);
-        ctx.fillText("Press [E] to Open Chest | Press [X] to Exit Room", 180, 120);
+        
+        ctx.fillStyle = (currentRoom && currentRoom.opened) ? '#455a64' : '#ffb300';
+        ctx.fillRect(350, 320, 100, 70);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier New';
+        ctx.textAlign = 'center';
+        ctx.fillText("SECRET ROOM - RANDOM LOOT CHEST", 400, 100);
+        ctx.fillText((currentRoom && currentRoom.opened) ? `LOOTED: ${currentRoom.loot.name}` : "Press [E] to Open Chest", 400, 290);
+        ctx.fillText("Press [X] to Exit Room", 400, 460);
+        ctx.textAlign = 'left';
 
     } else if (gameState === 'BLACKOUT') {
         ctx.fillStyle = '#010002'; ctx.fillRect(0, 0, 800, 560);
@@ -476,7 +559,6 @@ function drawChar(x, y, type, active) {
         ctx.fillStyle = '#37474f'; ctx.fillRect(-10, -35, 20, 28);
     }
 
-    // Vẽ mũi tên trắng trỏ vào nhân vật đang active
     if (activeChar === type || (activeChar === 'trio' && type === 'yatta')) {
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();

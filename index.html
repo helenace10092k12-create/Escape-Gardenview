@@ -440,4 +440,54 @@ function gameLoop() {
         ctx.restore();
 
     } else if (gameState === 'INSIDE_ROOM') {
-        // GIAO DIỆN BÊN TRONG CĂN PHÒ
+        // GIAO DIỆN BÊN TRONG CĂN PHÒNG LỤC LỢI ĐỒ
+        ctx.fillStyle = '#05020a'; ctx.fillRect(0, 0, 800, 560);
+        ctx.fillStyle = '#ffb300'; ctx.fillRect(360, 380, 80, 50);
+        ctx.fillStyle = '#fff'; ctx.font = '12px Courier New';
+        ctx.fillText("SECRET ROOM - LOOT THE CHEST", 260, 80);
+        ctx.fillText("Press [E] to Open Chest | Press [X] to Exit Room", 180, 120);
+
+    } else if (gameState === 'BLACKOUT') {
+        ctx.fillStyle = '#010002'; ctx.fillRect(0, 0, 800, 560);
+        let g = Math.sin(Date.now() / 150);
+        ctx.fillStyle = `rgb(${100+155*g}, ${100+155*Math.cos(g)}, 255)`;
+        ctx.beginPath(); ctx.arc(400, 250, 30, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.font = 'bold 16px Courier New'; ctx.fillText("?", 394, 256);
+    } else if (gameState === 'PORTAL') {
+        ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
+        ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
+        ctx.textAlign = 'left';
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+function drawChar(x, y, type, active) {
+    ctx.save();
+    ctx.translate(x, y);
+    if (type === 'yatta') {
+        ctx.fillStyle = '#fff59d'; ctx.fillRect(-10, -35, 20, 28);
+        ctx.fillStyle = '#ff80ab'; ctx.fillRect(-14, -45, 6, 12); ctx.fillRect(8, -45, 6, 12);
+    } else if (type === 'looey') {
+        ctx.fillStyle = '#ffee58'; ctx.fillRect(-10, -35, 20, 28);
+        ctx.fillStyle = '#66bb6a'; ctx.fillRect(-8, -48, 6, 14);
+    } else if (type === 'blot') {
+        ctx.fillStyle = '#37474f'; ctx.fillRect(-10, -35, 20, 28);
+    }
+
+    // Vẽ mũi tên trắng trỏ vào nhân vật đang active
+    if (activeChar === type || (activeChar === 'trio' && type === 'yatta')) {
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, -60); ctx.lineTo(-6, -72); ctx.lineTo(6, -72);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+gameLoop();
+</script>
+</body>
+</html>

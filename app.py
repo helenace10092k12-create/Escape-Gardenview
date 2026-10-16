@@ -17,7 +17,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Đọc mã HTML từ file index.html
 with open("index.html", "r", encoding="utf-8") as f:
     html_code = f.read()
 

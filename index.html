@@ -127,20 +127,23 @@
         #speaker-name { color: #ffb74d; font-weight: bold; font-size: 11px; }
         #dialogue-text { color: #00e676; font-size: 11px; line-height: 1.3; }
         
-        /* Ẩn iframe YouTube chứa nhạc Clair de Lune */
         .yt-audio-container { display: none; }
     </style>
 </head>
 <body>
 
-<!-- NHẠC NỀN TRỰC TUYẾN CHÍNH -->
-<audio id="bgm-locked-away" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-<audio id="bgm-all-eyes" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
-
-<!-- KHUNG YOUTUBE NHẠC CLAIR DE LUNE (ROUSSEAU) -->
+<!-- KHUNG YOUTUBE NHẠC LOCKED AWAY (VÉENEJVREVKW) CHO PHẦN VEEMAIL -->
 <div class="yt-audio-container" id="yt-player-box">
+    <iframe id="game-audio-iframe" width="200" height="200" src="" title="Locked Away" frameborder="0" allow="autoplay"></iframe>
+</div>
+
+<!-- YOUTUBE NHẠC CLAIR DE LUNE (GAME OVER / GOOD ENDING) -->
+<div class="yt-audio-container">
     <iframe id="clair-iframe" width="200" height="200" src="" title="Clair de Lune" frameborder="0" allow="autoplay"></iframe>
 </div>
+
+<!-- ÂM THANH PHỤ BỔ SUNG NẾU CẦN -->
+<audio id="bgm-all-eyes" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
 
 <div id="game-box">
     <div id="top-ui">
@@ -470,27 +473,23 @@ Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
-function playMusic(trackId) {
+// HÀM PHÁT NHẠC LOCKED AWAY TỪ YOUTUBE CHO PHẦN VEEMAIL
+function playLockedAway() {
     if (isMusicMuted) return;
-    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     document.getElementById('clair-iframe').src = "";
-    
-    let track = document.getElementById(trackId);
-    if (track) { 
-        track.play().catch(e => console.log("Audio waiting for user gesture")); 
-    }
+    document.getElementById('game-audio-iframe').src = "https://www.youtube.com/embed/VeNEjvrVVKw?autoplay=1&enablejsapi=1";
 }
 
 function playClairDeLune() {
     if (isMusicMuted) return;
-    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
-    // Bật nhạc Clair de Lune từ YouTube (Rousseau) với autoplay=1
+    document.getElementById('game-audio-iframe').src = "";
     document.getElementById('clair-iframe').src = "https://www.youtube.com/embed/WNcsUNKlAKw?autoplay=1&enablejsapi=1";
 }
 
 function stopAllMusic() {
-    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+    document.getElementById('game-audio-iframe').src = "";
     document.getElementById('clair-iframe').src = "";
+    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
 }
 
 function toggleMuteMusic() {
@@ -499,7 +498,7 @@ function toggleMuteMusic() {
         stopAllMusic();
     } else {
         if (isVeeQuizMode) playMusic('bgm-all-eyes');
-        else if (gameState === 'SIDE_SCROLL' || gameState === 'VEEMAIL_OPEN') playMusic('bgm-locked-away');
+        else if (gameState === 'SIDE_SCROLL' || gameState === 'VEEMAIL_OPEN') playLockedAway();
     }
 }
 
@@ -666,6 +665,7 @@ function showHelp() {
     updateUIText();
     document.getElementById('v-title').innerText = currentLang === 'ENG' ? "🖥️ HOW TO PLAY & GUIDE" : "🖥️ CÁCH CHƠI & HƯỚNG DẪN";
     document.getElementById('v-content').innerText = texts[currentLang].howToPlayText;
+    playLockedAway();
     document.getElementById('veemail-modal').style.display = 'flex';
 }
 
@@ -685,7 +685,7 @@ function continueGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
-        playMusic('bgm-locked-away');
+        playLockedAway();
         alert(currentLang === 'ENG' ? "Game progress loaded successfully!" : "Đã tải lại tiến trình chơi thành công!");
     } else {
         alert(currentLang === 'ENG' ? "No saved data found!" : "Không tìm thấy dữ liệu đã lưu!");
@@ -730,8 +730,8 @@ function nextDialogue() {
                 document.getElementById('v-title').innerText = "🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION";
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
+                playLockedAway();
                 document.getElementById('veemail-modal').style.display = 'flex';
-                playMusic('bgm-locked-away');
             }, 2000);
         }
     }
@@ -748,10 +748,12 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        playMusic('bgm-all-eyes');
+        let aud = document.getElementById('bgm-all-eyes');
+        document.getElementById('game-audio-iframe').src = "";
+        aud.play().catch(e => console.log("Audio waiting"));
         startTwistedVeeFinalQuiz();
     } else {
-        playMusic('bgm-locked-away');
+        playLockedAway();
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -891,7 +893,6 @@ function handleQuestResponse(accepted) {
     saveGameData();
 }
 
-// BẬT NHẠC CLAIR DE LUNE TỪ YOUTUBE KHI GAME OVER HOẶC CHIẾN THẮNG
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
     playClairDeLune();

@@ -89,7 +89,6 @@
         #quest-text { color: #ffcc80; font-size: 11px; line-height: 1.4; }
         .quest-btns { display: flex; justify-content: center; gap: 15px; }
 
-        /* QUIZ MODAL VEE'S QUIZ */
         #quiz-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 540px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ff1744;
@@ -99,7 +98,6 @@
         #quiz-question { color: #ffeb3b; font-size: 11px; line-height: 1.4; }
         .quiz-opt-btn { background: #311b92; color: #fff; border: 2px solid #7c4dff; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; width: 100%; text-align: left; }
 
-        /* ENDING SCREEN */
         #ending-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300;
@@ -124,6 +122,11 @@
     </style>
 </head>
 <body>
+
+<!-- KHUNG AUDIO SẴN SÀNG CHỜ BỒ GỬI LINK NHẠC -->
+<audio id="bgm-locked-away" loop src=""></audio>
+<audio id="bgm-perfect-christmas" loop src=""></audio>
+<audio id="bgm-ending" loop src=""></audio>
 
 <div id="game-box">
     <div id="top-ui">
@@ -227,7 +230,7 @@ let currentLang = 'ENG';
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
-let lastExploredFloor = 1; // NHỚ TẦNG ĐANG LEO DỞ ĐỂ QUAY LẠI
+let lastExploredFloor = 1;
 let cameraX = 0;
 
 let maxHP = 3;
@@ -278,6 +281,7 @@ let twistedTypes = [
 let currentTwisted = null;
 let twistedX = -400;
 let twistedFreezeTimer = 0;
+let isVeeActiveState = false; // TRẠNG THÁI KHÓA SPAWN QUÁI KHI GẶP TWISTED VEE
 
 let quizIndex = 0;
 let quizScore = 0;
@@ -287,7 +291,7 @@ let quizData = [
     { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"], ans: 1 },
     { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
     { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
-    { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 1 },
+    { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 0 },
     { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 2 HP", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
     { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
     { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
@@ -339,7 +343,13 @@ const texts = {
     }
 };
 
-// ================= HỆ THỐNG LƯU GAME AUTO-SAVE =================
+// HÀM ĐIỀU KHIỂN NHẠC
+function playMusic(trackId) {
+    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+    let track = document.getElementById(trackId);
+    if (track && track.src) { track.play().catch(e => console.log("Audio play blocked by browser")); }
+}
+
 function saveGameData() {
     let saveData = {
         currentFloor, lastExploredFloor, trioHP, yatta, looey, blot,
@@ -476,6 +486,7 @@ function startGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
+        playMusic('bgm-locked-away'); // BẮT ĐẦU PHÁT NHẠC LOCKED AWAY KHI LOAD SAVE
         alert("Welcome back! Game progress loaded successfully!");
     } else {
         document.getElementById('menu-screen').style.display = 'none';
@@ -506,21 +517,16 @@ function nextDialogue() {
     }
 }
 
-function updateDialogue() {
-    let script = (gameState === 'INTRO_STORY') ? texts[currentLang].intro : texts[currentLang].blackout;
-    let data = script[dialogueStep];
-    document.getElementById('speaker-name').innerText = data.speaker;
-    document.getElementById('dialogue-text').innerText = data.text;
-}
-
 function closeVeemail() {
     document.getElementById('veemail-modal').style.display = 'none';
     document.getElementById('inventory-hud').style.display = 'flex';
     document.getElementById('keybinds-guide').style.display = 'block';
     
     if (isVeeQuizMode) {
+        playMusic('bgm-perfect-christmas'); // PHÁT BÀI THE PERFECT CHRISTMAS KHI VÀO VEE'S QUIZ
         startTwistedVeeFinalQuiz();
     } else {
+        playMusic('bgm-locked-away'); // PHÁT BÀI LOCKED AWAY KHI ĐÓNG VEEMAIL ĐẦU TIÊN
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -528,6 +534,7 @@ function closeVeemail() {
 }
 
 function checkAndSpawnTwisted() {
+    if (isVeeActiveState) { currentTwisted = null; return; } // KHÓA SPAWN QUÁI KHI GẶP VEE
     if (!floorCleared[currentFloor]) {
         let rand = Math.random();
         if (rand < 0.6) {
@@ -623,8 +630,8 @@ function openQuestDialog(npc) {
     } else if (npc.id === 'gigi') {
         title.innerText = "🪙 GIGI QUEST";
         if (questStatus.gigi === 'COMPLETED') text.innerText = "Gigi: 'Thanks for the donation!'";
-        else if (goldCoins >= 10) text.innerText = "Gigi: 'You have 10 Gold Coins! Press Accept to donate!'";
-        else text.innerText = `Gigi: 'Hi! Can you donate 10 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'`;
+        else if (goldCoins >= 5) text.innerText = "Gigi: 'You have 5 Gold Coins! Press Accept to donate!'";
+        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'`;
     } else if (npc.id === 'connie') {
         title.innerText = "👻 CONNIE QUEST";
         if (questStatus.connie === 'COMPLETED') text.innerText = "Connie: 'Thank you for bringing my brother Soulvester back!'";
@@ -644,11 +651,12 @@ function handleQuestResponse(accepted) {
             capsuleCount += 2; alert("Completed Rodger's Quest! Received 2 Capsules!");
         } else { questStatus.rodger = 'ACCEPTED'; alert("Quest Accepted! Search chests for Dog Plush!"); }
     } else if (activeNPC.id === 'gigi') {
-        if (goldCoins >= 10 && questStatus.gigi !== 'COMPLETED') {
-            goldCoins -= 10; questStatus.gigi = 'COMPLETED';
-            gachaponCount += 2; batCount += 1; updateHPUI(); addCoins(0);
-            alert("Completed Gigi's Quest! Received 2 Gachapons + 1 Baseball Bat!");
-        } else { questStatus.gigi = 'ACCEPTED'; alert("Quest Accepted! Collect 10 Gold Coins!"); }
+        // ĐÃ ĐỔI THÀNH CẦN 5 ĐỒNG VÀNG THEO YÊU CẦU
+        if (goldCoins >= 5 && questStatus.gigi !== 'COMPLETED') {
+            goldCoins -= 5; questStatus.gigi = 'COMPLETED';
+            gachaponCount += 2; batCount += 2; updateHPUI(); addCoins(0);
+            alert("Completed Gigi's Quest! Received 2 Gachapons + 2 Baseball Bats!");
+        } else { questStatus.gigi = 'ACCEPTED'; alert("Quest Accepted! Collect 5 Gold Coins!"); }
     } else if (activeNPC.id === 'connie') {
         if (soulvesterFollowing && questStatus.connie !== 'COMPLETED') {
             soulvesterFollowing = false; questStatus.connie = 'COMPLETED';
@@ -679,7 +687,6 @@ function answerQuiz(selectedOpt) {
     if (selectedOpt === quizData[quizIndex].ans) {
         quizScore++;
     } else {
-        // SAI 1 CÂU = MẤT 1 TIM (1 HP)
         if (activeChar === 'trio') trioHP--;
         else if (activeChar === 'yatta') yatta.hp--;
         else if (activeChar === 'looey') looey.hp--;
@@ -702,7 +709,8 @@ function answerQuiz(selectedOpt) {
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
-            // TRIGGER GOOD ENDING THÀNH CÔNG
+            // TẮT NHẠC THE PERFECT CHRISTMAS VÀ KÍCH HOẠT NHẠC ENDING KHI THẮNG VEE
+            playMusic('bgm-ending');
             document.getElementById('ending-sub1').innerText = (currentLang === 'ENG') ? "You escaped Gardenview (experimental game)" : "Bạn đã trốn thoát khỏi Gardenview (trò chơi thử nghiệm)";
             document.getElementById('ending-sub2').innerText = (currentLang === 'ENG') ? "(Everyone found you guys lying on the floor)" : "(Mọi người tìm thấy cả nhóm đang nằm bất tỉnh trên sàn nhà)";
             document.getElementById('ending-screen').style.display = 'flex';
@@ -712,7 +720,6 @@ function answerQuiz(selectedOpt) {
     }
 }
 
-// ================= THANG MÁY NÂNG CẤP ĐA TỰ CHỌN (OPTION 3,4,5...) =================
 function handleElevatorNavigation() {
     let activeQuests = [];
     if (questStatus.connie === 'ACCEPTED' && npcAssignedFloor.connie) activeQuests.push({ name: 'Connie', floor: npcAssignedFloor.connie });
@@ -841,9 +848,10 @@ window.addEventListener('keydown', (e) => {
 
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
 
-        // MỞ CỬA GOOD ENDING & KÍCH HOẠT VEE'S QUIZ VEEMAIL
         if (gameState === 'SIDE_SCROLL' && Math.abs(yatta.worldX - (elevator.x + 120)) < 60) {
             if (hasPumpkinKey) {
+                isVeeActiveState = true; // KÍCH HOẠT KHÓA SPAWN QUÁI KHÁC
+                currentTwisted = null;
                 isVeeQuizMode = true;
                 updateUIText();
                 document.getElementById('veemail-modal').style.display = 'flex';
@@ -857,6 +865,11 @@ window.addEventListener('keydown', (e) => {
         doors.forEach(d => {
             if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 80) {
                 currentRoom = d; gameState = 'INSIDE_ROOM';
+                // CƠ HỘI NHẬN GOLD COIN TRỰC TIẾP TỪ CỬA
+                if (Math.random() < 0.2) {
+                    goldCoins++; addCoins(0);
+                    alert("Found a Gold Coin 🪙 right at the door!");
+                }
             }
         });
 
@@ -871,7 +884,8 @@ window.addEventListener('keydown', (e) => {
             } else {
                 let rarityRand = Math.random();
 
-                if (keysCount < 8 && Math.random() < 0.35) {
+                // HẠ TỶ LỆ GOLDEN KEY XUỐNG CÒN 12% (KHÓ KIẾM HƠN)
+                if (keysCount < 8 && Math.random() < 0.12) {
                     keysCount++;
                     updateHPUI();
                     alert(`Found a Golden Key (🔑 ${keysCount}/8)!`);
@@ -888,10 +902,14 @@ window.addEventListener('keydown', (e) => {
                     return;
                 }
 
-                if (rarityRand < 0.5) { pendingLoot = 'CANDY'; }
-                else if (rarityRand < 0.8) { pendingLoot = 'POP'; }
-                else if (rarityRand < 0.95) { pendingLoot = 'BAT'; batCount++; updateHPUI(); alert("Found Baseball Bat!"); return; }
-                else { pendingLoot = 'MEDKIT'; }
+                // TĂNG TỶ LỆ BAT / CAPSULE / GACHAPON
+                if (rarityRand < 0.3) { pendingLoot = 'CANDY'; }
+                else if (rarityRand < 0.55) { pendingLoot = 'POP'; }
+                else if (rarityRand < 0.8) { 
+                    batCount += 2; updateHPUI(); alert("Found 2 Baseball Bats! ⚾⚾"); return; 
+                } else if (rarityRand < 0.9) { 
+                    capsuleCount++; gachaponCount++; alert("Found 1 Capsule & 1 Gachapon!"); return; 
+                } else { pendingLoot = 'MEDKIT'; }
 
                 document.getElementById('loot-msg').innerText = `Found ${pendingLoot}! Store in Inventory?`;
                 document.getElementById('loot-dialog').style.display = 'flex';
@@ -992,7 +1010,7 @@ function gameLoop() {
 
         if (soulvesterFollowing) { soulvesterNPC.x = yatta.worldX - 40; }
 
-        if (currentTwisted) {
+        if (currentTwisted && !isVeeActiveState) {
             if (twistedFreezeTimer > 0) twistedFreezeTimer--;
             else twistedX += currentTwisted.speed;
 
@@ -1067,7 +1085,7 @@ function gameLoop() {
         ctx.fillStyle = '#ff1744'; ctx.fillRect(elevator.x + 120, elevator.y, elevator.w, elevator.h);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 8px Courier New'; ctx.fillText("FINAL ESCAPE [E]", elevator.x + 115, elevator.y - 10);
 
-        if (currentTwisted) {
+        if (currentTwisted && !isVeeActiveState) {
             ctx.fillStyle = twistedFreezeTimer > 0 ? '#00e5ff' : currentTwisted.color;
             ctx.fillRect(twistedX - 12, 410, 24, 40);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 10px Courier New';

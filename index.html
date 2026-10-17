@@ -334,7 +334,6 @@ let quizIndex = 0;
 let quizScore = 0;
 let isVeeQuizMode = false;
 
-// DỮ LIỆU CÂU HỎI HỖ TRỢ CẢ 2 NGÔN NGỮ ENG - VIE
 let quizData = [
     { 
         ENG: { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"] },
@@ -491,7 +490,7 @@ Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
 - ĐỘ HIẾM LEGENDARY (Huyền thoại - 🎃 Pumpkin Key): Được hợp thành từ 8 Chìa Khóa Vàng, chìa khóa duy nhất để mở cánh cửa thoát hiểm cuối cùng.
 
 4. CƠ CHẾ PARKOUR & CAPSULE/GACHAPON:
-- Các hố sâu, dây thừng (tightropes) và vòng xiếc (circus rings) CHỈ XUẤT HIỆN KHI bồ đã nhặt được ĐỒNG THỜI CẢ Capsule VÀ Gachapon từ rương hoặc hoàn thành nhiệm vụ NPC!`,
+- Các hố sâu, dây thừng (tightropes) và vòng xiếc (circus rings) CHỈ XUẤT HIỆN KHI bạn đã nhặt được ĐỒNG THỜI CẢ Capsule VÀ Gachapon từ rương hoặc hoàn thành nhiệm vụ NPC!`,
         veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. 
 
 Quy định bổ sung tại cơ sở thí nghiệm:
@@ -675,6 +674,9 @@ function toggleLanguage() {
     document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
     document.getElementById('st-lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
     updateUIText();
+    if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') {
+        updateDialogue();
+    }
     if (document.getElementById('quiz-modal').style.display === 'flex') {
         loadQuizQuestion();
     }
@@ -1351,7 +1353,7 @@ function gameLoop() {
         ctx.fillStyle = '#311b92'; ctx.fillRect(50, 300, 60, 150);
         if (Math.abs(yatta.worldX - 80) < 80) {
             ctx.fillStyle = '#00e676'; ctx.font = '11px Courier New';
-            ctx.fillText("Press [E] to Enter Dressing Room", 30, 290);
+            ctx.fillText(currentLang === 'ENG' ? "Press [E] to Enter Dressing Room" : "Nhấn [E] để Vào Phòng Thay Đồ", 30, 290);
         }
 
         ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 800, 110);
@@ -1362,7 +1364,7 @@ function gameLoop() {
     } else if (gameState === 'PORTAL_ANIMATION') {
         ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
         ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
-        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
+        ctx.fillText(currentLang === 'ENG' ? "PORTAL ACTIVATED... SUCKED INTO GARDENVIEW" : "CỔNG KHÔNG GIAN KÍCH HOẠT... BỊ HÚT VÀO GARDENVIEW", 400, 280);
         ctx.textAlign = 'left';
 
     } else if (gameState === 'SIDE_SCROLL') {
@@ -1498,8 +1500,8 @@ function gameLoop() {
         ctx.fillRect(350, 320, 100, 70);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Courier New'; ctx.textAlign = 'center';
         ctx.fillText("SECRET ROOM CHEST", 400, 100);
-        ctx.fillText((currentRoom && currentRoom.opened) ? "LOOTED" : "Press [E] to Open Chest", 400, 270);
-        ctx.fillText("Press [X] to Exit", 400, 460); ctx.textAlign = 'left';
+        ctx.fillText((currentRoom && currentRoom.opened) ? "LOOTED" : (currentLang === 'ENG' ? "Press [E] to Open Chest" : "Nhấn [E] để Mở Rương"), 400, 270);
+        ctx.fillText(currentLang === 'ENG' ? "Press [X] to Exit" : "Nhấn [X] để Thoát", 400, 460); ctx.textAlign = 'left';
     }
 
     requestAnimationFrame(gameLoop);

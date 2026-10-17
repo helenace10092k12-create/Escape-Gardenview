@@ -64,10 +64,10 @@
             background: radial-gradient(circle, #1a0b2e 0%, #030105 100%);
             display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100;
         }
-        .menu-title { font-size: 26px; color: #ff7043; font-weight: bold; margin-bottom: 20px; text-shadow: 0 0 10px #ff7043; }
+        .menu-title { font-size: 26px; color: #ff7043; font-weight: bold; margin-bottom: 15px; text-shadow: 0 0 10px #ff7043; }
         .menu-btn {
-            background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 8px 25px;
-            font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px; margin: 4px; width: 220px; text-align: center;
+            background: #311b92; color: #ffeb3b; border: 2px solid #ab47bc; padding: 7px 20px;
+            font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 6px; margin: 4px; width: 230px; text-align: center;
         }
 
         #veemail-modal {
@@ -78,7 +78,14 @@
         .veemail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e676; padding-bottom: 6px; }
         .veemail-title { color: #00e676; font-weight: bold; font-size: 12px; }
         .close-x { background: #ff1744; color: #fff; border: none; width: 22px; height: 22px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 400px; }
+        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 400px; white-space: pre-line; }
+
+        #settings-modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 420px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ab47bc;
+            border-radius: 10px; padding: 20px; z-index: 210; display: none; flex-direction: column; gap: 15px; text-align: center;
+        }
+        .settings-title { color: #ffeb3b; font-weight: bold; font-size: 14px; margin-bottom: 5px; }
 
         #quest-box {
             position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
@@ -162,11 +169,30 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH CHÍNH (MAIN MENU) -->
     <div id="menu-screen">
         <div class="menu-title" id="menu-main-title">Escape Gardenview (Demo)</div>
-        <button class="menu-btn" id="btn-play" onclick="startGame()">PLAY / NEW GAME</button>
+        <button class="menu-btn" id="btn-continue" onclick="continueGame()" style="display:none;">CONTINUE</button>
+        <button class="menu-btn" id="btn-play" onclick="startNewGame()">NEW GAME</button>
         <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
+        <button class="menu-btn" id="btn-settings" onclick="showSettings()">SETTINGS</button>
         <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting...')">EXIT</button>
+    </div>
+
+    <!-- MODAL CÀI ĐẶT (SETTINGS) -->
+    <div id="settings-modal">
+        <div class="settings-title" id="st-title">⚙️ SETTINGS / CÀI ĐẶT</div>
+        <div style="display:flex; flex-direction:column; gap:10px; text-align:left; font-size:11px; padding: 10px;">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="st-lang-label">Language / Ngôn ngữ:</span>
+                <button class="action-btn" id="st-lang-btn" onclick="toggleLanguage()">VIE / ENG</button>
+            </label>
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+                <span id="st-mute-label">Mute Music / Tắt nhạc:</span>
+                <input type="checkbox" id="mute-checkbox" onchange="toggleMuteMusic()" style="transform: scale(1.3);">
+            </label>
+        </div>
+        <button class="action-btn" id="st-close-btn" onclick="closeSettings()" style="width: 100%; margin-top: 10px;">CLOSE</button>
     </div>
 
     <div id="quest-box">
@@ -226,6 +252,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 let currentLang = 'ENG';
+let isMusicMuted = false;
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
@@ -273,7 +300,7 @@ let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 let onRopeState = { active: false, rope: null, progress: 0, lastKey: null };
 let onRingState = { active: false, ringIndex: 0 };
 let currentGameOverType = null;
-let isHowToPlayMode = false; // XÁC ĐỊNH MỞ MODAL HOW TO PLAY TỪ MENU
+let isHowToPlayMode = false;
 
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
@@ -309,7 +336,11 @@ const keysInput = { left: false, right: false };
 const texts = {
     ENG: {
         title: "Escape Gardenview (Demo)",
-        play: "PLAY / NEW GAME", how: "HOW TO PLAY", exit: "EXIT",
+        continueGame: "CONTINUE",
+        newGame: "NEW GAME",
+        how: "HOW TO PLAY",
+        settings: "SETTINGS",
+        exit: "EXIT",
         next: "Next [Space] >", accept: "ACCEPT", decline: "DECLINE",
         yes: "YES (Put in bag)", no: "NO (Leave behind)",
         ctrlTitle: "CONTROLS:",
@@ -344,11 +375,16 @@ const texts = {
 - UNCOMMON (🩹 Bandage, ⚾ Baseball Bat): Restores HP or used as a melee weapon to stun/defeat Twisted enemies.
 - RARE (💊 Medkit, 🔑 Golden Key, 🧸 Dog Plush, 👻 Soulvester): Vital items for quests, full healing, and progression.
 - LEGENDARY (🎃 Pumpkin Key): Forged from 8 Golden Keys to unlock the final escape door.`,
+        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
         veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
-        play: "CHƠI MỚI / BẮT ĐẦU", how: "CÁCH CHƠI & HƯỚNG DẪN", exit: "THOÁT",
+        continueGame: "TIẾP TỤC CHƠI",
+        newGame: "CHƠI MỚI",
+        how: "CÁCH CHƠI & HƯỚNG DẪN",
+        settings: "CÀI ĐẶT",
+        exit: "THOÁT",
         next: "Tiếp tục [Space] >", accept: "ĐỒNG Ý", decline: "TỪ CHỐI",
         yes: "CÓ (Cất vào túi)", no: "KHÔNG (Bỏ lại)",
         ctrlTitle: "ĐIỀU KHIỂN:",
@@ -383,14 +419,35 @@ const texts = {
 - UNCOMMON (Ít gặp - 🩹 Băng cá nhân, ⚾ Gậy bóng chày): Hồi máu hoặc dùng làm vũ khí tự vệ trước Twisted.
 - RARE (Hiếm - 💊 Hộp cứu thương, 🔑 Chìa khóa vàng, 🧸 Thú bông, 👻 Soulvester): Vật phẩm cốt lõi làm nhiệm vụ, hồi đầy máu và tiến độ game.
 - LEGENDARY (Huyền thoại - 🎃 Pumpkin Key): Được tạo từ 8 Chìa Khóa Vàng để mở cửa trốn thoát cuối cùng.`,
+        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
         veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
+function checkSaveExists() {
+    let raw = localStorage.getItem('EGV_SAVE_DATA');
+    let contBtn = document.getElementById('btn-continue');
+    if (raw) {
+        contBtn.style.display = 'block';
+    } else {
+        contBtn.style.display = 'none';
+    }
+}
+
 function playMusic(trackId) {
+    if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
     if (track && track.src) { track.play().catch(e => console.log("Audio play blocked")); }
+}
+
+function toggleMuteMusic() {
+    isMusicMuted = document.getElementById('mute-checkbox').checked;
+    if (isMusicMuted) {
+        document.querySelectorAll('audio').forEach(a => a.pause());
+    } else {
+        if (gameState === 'SIDE_SCROLL') playMusic('bgm-locked-away');
+    }
 }
 
 function saveGameData() {
@@ -401,6 +458,7 @@ function saveGameData() {
         questStatus, floorDataMemory, npcAssignedFloor, floorCleared
     };
     localStorage.setItem('EGV_SAVE_DATA', JSON.stringify(saveData));
+    checkSaveExists();
 }
 
 function loadGameData() {
@@ -508,6 +566,7 @@ function loadOrCreateFloorMap(fl) {
 function toggleLanguage() {
     currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
     document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
+    document.getElementById('st-lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
     updateUIText();
 }
 
@@ -515,8 +574,10 @@ function updateUIText() {
     let t = texts[currentLang];
     document.getElementById('ui-gametitle').innerText = t.title;
     document.getElementById('menu-main-title').innerText = t.title;
-    document.getElementById('btn-play').innerText = t.play;
+    document.getElementById('btn-continue').innerText = t.continueGame;
+    document.getElementById('btn-play').innerText = t.newGame;
     document.getElementById('btn-how').innerText = t.how;
+    document.getElementById('btn-settings').innerText = t.settings;
     document.getElementById('btn-exit').innerText = t.exit;
     document.getElementById('next-btn').innerText = t.next;
     document.getElementById('btn-accept').innerText = t.accept;
@@ -525,14 +586,15 @@ function updateUIText() {
     document.getElementById('btn-loot-no').innerText = t.no;
     document.getElementById('ui-ctrl-title').innerText = t.ctrlTitle;
     
+    document.getElementById('st-title').innerText = currentLang === 'ENG' ? "⚙️ SETTINGS" : "⚙️ CÀI ĐẶT";
+    document.getElementById('st-lang-label').innerText = currentLang === 'ENG' ? "Language / Ngôn ngữ:" : "Ngôn ngữ / Language:";
+    document.getElementById('st-mute-label').innerText = currentLang === 'ENG' ? "Mute Music:" : "Tắt nhạc nền:";
+    document.getElementById('st-close-btn').innerText = currentLang === 'ENG' ? "CLOSE" : "ĐÓNG";
+
     if (isHowToPlayMode) {
         document.getElementById('v-title').innerText = currentLang === 'ENG' ? "🖥️ HOW TO PLAY & GUIDE" : "🖥️ CÁCH CHƠI & HƯỚNG DẪN";
         document.getElementById('v-content').innerText = t.howToPlayText;
-    } else if (isVeeQuizMode) {
-        document.getElementById('v-title').innerText = "🖥️ VEEMAIL SYSTEM - VEE'S QUIZ";
-        document.getElementById('v-content').innerText = t.veemailVeeQuiz;
     }
-    if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') updateDialogue();
 }
 
 function showHelp() {
@@ -542,7 +604,15 @@ function showHelp() {
     document.getElementById('veemail-modal').style.display = 'flex';
 }
 
-function startGame() {
+function showSettings() {
+    document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function closeSettings() {
+    document.getElementById('settings-modal').style.display = 'none';
+}
+
+function continueGame() {
     if (loadGameData()) {
         document.getElementById('menu-screen').style.display = 'none';
         document.getElementById('inventory-hud').style.display = 'flex';
@@ -551,13 +621,24 @@ function startGame() {
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
         playMusic('bgm-locked-away');
-        alert("Welcome back! Game progress loaded successfully!");
+        alert(currentLang === 'ENG' ? "Game progress loaded successfully!" : "Đã tải lại tiến trình chơi thành công!");
     } else {
-        document.getElementById('menu-screen').style.display = 'none';
-        gameState = 'INTRO_STORY'; dialogueStep = 0;
-        document.getElementById('dialogue-box').style.display = 'flex';
-        updateUIText();
+        alert(currentLang === 'ENG' ? "No saved data found!" : "Không tìm thấy dữ liệu đã lưu!");
+        checkSaveExists();
     }
+}
+
+function startNewGame() {
+    if (localStorage.getItem('EGV_SAVE_DATA')) {
+        if (!confirm(currentLang === 'ENG' ? "Starting a new game will overwrite your current progress. Proceed?" : "Tạo game mới sẽ xóa tiến trình cũ. Bạn có chắc chắn muốn tiếp tục?")) {
+            return;
+        }
+    }
+    localStorage.removeItem('EGV_SAVE_DATA');
+    document.getElementById('menu-screen').style.display = 'none';
+    gameState = 'INTRO_STORY'; dialogueStep = 0;
+    document.getElementById('dialogue-box').style.display = 'flex';
+    updateUIText();
 }
 
 function nextDialogue() {
@@ -591,7 +672,7 @@ function closeVeemail() {
     
     if (isHowToPlayMode) {
         isHowToPlayMode = false;
-        return; // CHỈ ĐÓNG BẢNG HƯỚNG DẪN Ở MENU, KHÔNG ĐỔI GAMSTATE
+        return;
     }
 
     if (isVeeQuizMode) {
@@ -976,7 +1057,7 @@ window.addEventListener('keydown', (e) => {
         } else if (gachaponCount > 0) {
             let choice = prompt("Select Toon to STORE in Gachapon:\n1: Yatta\n2: Looey");
             if (choice === '1') yatta.active = false;
-            if (choice === '2') gachaponCount--; // Đã fix trừ gachapon
+            if (choice === '2') gachaponCount--;
         } else alert("No Gachapon!");
     }
 
@@ -1309,6 +1390,7 @@ function drawChar(x, y, color, type) {
     ctx.restore();
 }
 
+checkSaveExists();
 gameLoop();
 </script>
 </body>

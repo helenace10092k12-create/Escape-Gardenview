@@ -89,6 +89,16 @@
         #quest-text { color: #ffcc80; font-size: 11px; line-height: 1.4; }
         .quest-btns { display: flex; justify-content: center; gap: 15px; }
 
+        /* QUIZ MODAL CHO TWISTED VÊ */
+        #quiz-modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 520px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ff1744;
+            border-radius: 10px; padding: 20px; z-index: 250; display: none; flex-direction: column; gap: 12px; text-align: center;
+        }
+        #quiz-title { color: #ff1744; font-weight: bold; font-size: 13px; }
+        #quiz-question { color: #ffeb3b; font-size: 11px; line-height: 1.4; }
+        .quiz-opt-btn { background: #311b92; color: #fff; border: 2px solid #7c4dff; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; width: 100%; text-align: left; }
+
         #loot-dialog {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
             width: 380px; background: rgba(15, 5, 30, 0.96); border: 3px solid #ffeb3b;
@@ -136,10 +146,9 @@
         </div>
 
         <div id="keybinds-guide">
-            ⌨️ <b>CONTROLS:</b><br>
-            • WASD / Arrows: Move Selected Toon<br>
-            • Trio [7]: Move all | Yatta [4]/Looey [5]/Blot [6]: Move Solo<br>
-            • E: Interact / Parkour | Z: Equip Bat | F: Attack
+            ⌨️ <b id="ui-ctrl-title">CONTROLS:</b><br>
+            • WASD / Arrows: Move Toon<br>
+            • E: Interact | Z: Equip Bat | F: Hit Twisted
         </div>
     </div>
 
@@ -156,6 +165,28 @@
         <div class="quest-btns">
             <button class="action-btn" id="btn-accept" onclick="handleQuestResponse(true)">ACCEPT</button>
             <button class="action-btn" id="btn-decline" style="border-color:#ff1744; color:#ff8a80;" onclick="handleQuestResponse(false)">DECLINE</button>
+        </div>
+    </div>
+
+    <!-- HỎI FORM CHÌA KHÓA THÀNH PUMPKIN KEY -->
+    <div id="quest-box" id="pumpkin-modal" style="display:none;">
+        <div id="pumpkin-title" style="color:#ff7043; font-weight:bold; font-size:13px;">PUMPKIN KEY TRANSFORMATION</div>
+        <div id="pumpkin-text" style="color:#ffeb3b; font-size:11px;">Do you want to transform your keys into Pumpkin Keys?</div>
+        <div class="quest-btns">
+            <button class="action-btn" onclick="responsePumpkinKey(true)">YES / CÓ</button>
+            <button class="action-btn" style="border-color:#ff1744; color:#ff8a80;" onclick="responsePumpkinKey(false)">NO / KHÔNG</button>
+        </div>
+    </div>
+
+    <!-- QUIZ MODAL GIẢI ĐỐ VỚI TWISTED VÊ (6/10 ĐÚNG PASSED, TRƯỢT MẤT 2 TIM) -->
+    <div id="quiz-modal">
+        <div id="quiz-title">🧩 TWISTED VÊ CHALLENGE (Q1/10)</div>
+        <div id="quiz-question">Question text here...</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+            <button class="quiz-opt-btn" id="opt-A" onclick="answerQuiz(0)">A. ...</button>
+            <button class="quiz-opt-btn" id="opt-B" onclick="answerQuiz(1)">B. ...</button>
+            <button class="quiz-opt-btn" id="opt-C" onclick="answerQuiz(2)">C. ...</button>
+            <button class="quiz-opt-btn" id="opt-D" onclick="answerQuiz(3)">D. ...</button>
         </div>
     </div>
 
@@ -202,6 +233,7 @@ let trioHP = 3;
 let activeChar = 'trio';
 
 let keysCount = 0;
+let hasPumpkinKey = false;
 let batCount = 0;
 let batEquipped = false;
 
@@ -237,20 +269,38 @@ let twistedTypes = [
     { type: 'Common', hp: 1, maxHp: 1, speed: 2, color: '#e0e0e0' },
     { type: 'Uncommon', hp: 2, maxHp: 2, speed: 2.2, color: '#00e676' },
     { type: 'Rare', hp: 4, maxHp: 4, speed: 2.5, color: '#3d5aff' },
-    { type: 'Main', hp: 7, maxHp: 7, speed: 2.8, color: '#ff1744' }
+    { type: 'Twisted Vê', hp: 10, maxHp: 10, speed: 2.8, color: '#ff1744', isQuizBoss: true }
 ];
 let currentTwisted = null;
 let twistedX = -400;
 let twistedFreezeTimer = 0;
 
+// HỆ THỐNG QUIZ VỚI TWISTED VÊ (CHỌN A/B/C/D, 6/10 ĐÚNG PASSED)
+let quizData = [
+    { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"], ans: 1 },
+    { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
+    { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
+    { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 1 },
+    { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 2 HP", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
+    { q: "Which key type is mystical and forged from regular keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
+    { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
+    { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
+    { q: "How many correct answers are needed to pass Twisted Vê's quiz?", opts: ["A. 4/10", "B. 5/10", "C. 6/10", "D. 8/10"], ans: 2 },
+    { q: "What penalty do you get if you fail Twisted Vê's quiz?", opts: ["A. Lose 2 HP", "B. Game Over", "C. Lose all items", "D. Lose 1 HP"], ans: 0 }
+];
+let quizIndex = 0;
+let quizScore = 0;
+
 const keysInput = { left: false, right: false };
 
+// ĐÃ TÁCH BIỆT HOÀN TOÀN ENG / VIE THEO ĐÚNG Ý BỒ
 const texts = {
     ENG: {
         title: "Escape Gardenview (Demo)",
         play: "PLAY / NEW GAME", how: "HOW TO PLAY", exit: "EXIT",
         next: "Next [Space] >", accept: "ACCEPT", decline: "DECLINE",
         yes: "YES (Put in bag)", no: "NO (Leave behind)",
+        ctrlTitle: "CONTROLS:",
         intro: [
             { speaker: "NARRATOR", text: "The show has concluded. Circus Trio chats happily as they head toward the dressing room." },
             { speaker: "SYSTEM", text: "Objective: Move left near the dressing room door and press [E] to enter." }
@@ -259,11 +309,12 @@ const texts = {
             { speaker: "NARRATOR", text: "* SLAM! * The dressing room door shuts on its own! BZZZZT... Total blackout!" },
             { speaker: "YATTA", text: "Eek! Who closed the door?! Why is it pitch black?!" },
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
-            { speaker: "SYSTEM", text: "Yatta presses the button... Portal activates and sucks everyone into Gardenview!" }
+            { speaker: "SYSTEM", text: "Yatta presses the rainbow button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        veemail: `<strong>[GAME RULES & MECHANICS]</strong><br><br>
-            1. <b>DEFEAT TWISTED:</b> Defeating Twisted drops Coins or Rare Items!<br>
-            2. <b>NPC LOCATIONS:</b> NPCs stay permanently on their assigned floors so you can return anytime!<br><br>
+        veemail: `<strong>[VEEMAIL TRANSMISSION - GARDENVIEW LORE]</strong><br><br>
+            • <b>THE INCIDENT:</b> After the grand circus show, the trio was trapped in a sudden supernatural blackout.<br>
+            • <b>PORTAL REALM:</b> The mysterious rainbow button activated a portal, dragging Yatta, Looey, and Blot deep into the distorted dimensions of Gardenview.<br>
+            • <b>SURVIVAL GOAL:</b> Solve NPC quests, conquer advanced parkour, forge Pumpkin Keys, and defeat Twisted entities to escape!<br><br>
             <i>Signed: D</i>`
     },
     VIE: {
@@ -271,6 +322,7 @@ const texts = {
         play: "CHƠI MỚI / BẮT ĐẦU", how: "HƯỚNG DẪN", exit: "THOÁT",
         next: "Tiếp tục [Space] >", accept: "ĐỒNG Ý", decline: "TỪ CHỐI",
         yes: "CÓ (Cất vào túi)", no: "KHÔNG (Bỏ lại)",
+        ctrlTitle: "ĐIỀU KHIỂN:",
         intro: [
             { speaker: "DẪN CHUYỆN", text: "Buổi biểu diễn kết thúc. Circus Trio rôm rả trò chuyện bước về phía phòng thay đồ." },
             { speaker: "HỆ THỐNG", text: "Nhiệm vụ: Di chuyển sang trái lại gần cửa phòng thay đồ và nhấn [E] để vào." }
@@ -281,9 +333,10 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        veemail: `<strong>[LUẬT CHƠI & CƠ CHẾ SỐNG CÒN]</strong><br><br>
-            1. <b>ĐẬP QUÁI RỚT ĐỒ:</b> Tiêu diệt Twisted rớt trực tiếp Tiền và Item xịn!<br>
-            2. <b>NPC CỐ ĐỊNH:</b> NPC sẽ ở cố định đúng tầng của họ để bồ quay lại trả nhiệm vụ mượt mà!<br><br>
+        veemail: `<strong>[HỆ THỐNG VEEMAIL - CỐT TRUYỆN GARDENVIEW]</strong><br><br>
+            • <b>SỰ CỐ BÍ ẨN:</b> Sau buổi biểu diễn xiếc hoành tráng, nhóm Circus Trio bị kẹt trong một trận mất điện siêu nhiên.<br>
+            • <b>CỔNG KHÔNG GIAN:</b> Nút bấm ảo cầu vồng đã kích hoạt một cổng portal hút Yatta, Looey và Blot lạc vào thế giới dị biệt Gardenview.<br>
+            • <b>MỤC TIÊU SỐNG CÒN:</b> Hoàn thành nhiệm vụ NPC, vượt qua các thử thách parkour, chế tạo Pumpkin Key và đánh bại Twisted để trốn thoát!<br><br>
             <i>Ký tên: D</i>`
     }
 };
@@ -376,6 +429,7 @@ function updateUIText() {
     document.getElementById('btn-decline').innerText = t.decline;
     document.getElementById('btn-loot-yes').innerText = t.yes;
     document.getElementById('btn-loot-no').innerText = t.no;
+    document.getElementById('ui-ctrl-title').innerText = t.ctrlTitle;
     document.getElementById('v-content').innerHTML = t.veemail;
     if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') updateDialogue();
 }
@@ -401,6 +455,12 @@ function nextDialogue() {
             document.getElementById('dialogue-box').style.display = 'none';
             gameState = 'PORTAL_ANIMATION';
             setTimeout(() => {
+                // HỎI CÓ MUỐN FORM KEY THÀNH PUMPKIN KEY KHÔNG
+                let qPrompt = (currentLang === 'ENG') ? "Portal activated! Do you want to transform keys into Pumpkin Keys?" : "Cổng không gian đã kích hoạt! Bồ có muốn chuyển hóa chìa khóa thành Pumpkin Key không?";
+                if (confirm(qPrompt)) {
+                    hasPumpkinKey = true;
+                    alert(currentLang === 'ENG' ? "Successfully transformed into Pumpkin Key!" : "Đã biến đổi thành công thành Pumpkin Key!");
+                }
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
             }, 2000);
@@ -429,7 +489,7 @@ function checkAndSpawnTwisted() {
         let rand = Math.random();
         if (rand < 0.7) {
             let subRand = Math.random();
-            let template = subRand < 0.6 ? twistedTypes[0] : subRand < 0.85 ? twistedTypes[1] : subRand < 0.95 ? twistedTypes[2] : twistedTypes[3];
+            let template = subRand < 0.5 ? twistedTypes[0] : subRand < 0.75 ? twistedTypes[1] : subRand < 0.9 ? twistedTypes[2] : twistedTypes[3];
             currentTwisted = { ...template };
             twistedX = yatta.worldX - 600;
         } else currentTwisted = null;
@@ -551,6 +611,50 @@ function handleQuestResponse(accepted) {
     }
 }
 
+// BẮT ĐẦU QUIZ VỚI TWISTED VÊ
+function startTwistedVQuiz() {
+    quizIndex = 0;
+    quizScore = 0;
+    document.getElementById('quiz-modal').style.display = 'flex';
+    loadQuizQuestion();
+}
+
+function loadQuizQuestion() {
+    let q = quizData[quizIndex];
+    document.getElementById('quiz-title').innerText = `🧩 TWISTED VÊ CHALLENGE (Q${quizIndex + 1}/10)`;
+    document.getElementById('quiz-question').innerText = q.q;
+    for (let i = 0; i < 4; i++) {
+        document.getElementById(`opt-${['A','B','C','D'][i]}`).innerText = q.opts[i];
+    }
+}
+
+function answerQuiz(selectedOpt) {
+    if (selectedOpt === quizData[quizIndex].ans) {
+        quizScore++;
+    }
+    quizIndex++;
+    if (quizIndex < quizData.length) {
+        loadQuizQuestion();
+    } else {
+        document.getElementById('quiz-modal').style.display = 'none';
+        if (quizScore >= 6) {
+            alert(`🎉 PASSED! You got ${quizScore}/10 correct! Floor ${currentFloor} CLEARED!`);
+            floorCleared[currentFloor] = true;
+            currentTwisted = null;
+        } else {
+            alert(`❌ FAILED! You got ${quizScore}/10 correct (Need 6). Lost 2 HP!`);
+            if (activeChar === 'trio') trioHP -= 2;
+            else if (activeChar === 'yatta') yatta.hp -= 2;
+            else if (activeChar === 'looey') looey.hp -= 2;
+            else blot.hp -= 2;
+            updateHPUI();
+            let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
+            if (curHP <= 0) { alert("GAME OVER!"); location.reload(); }
+            currentTwisted = null;
+        }
+    }
+}
+
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
     
@@ -570,15 +674,20 @@ window.addEventListener('keydown', (e) => {
         else alert("No Baseball Bat!");
     }
 
-    // ĐẬP QUÁI [F] RỚT ĐỒ THEO YẦU CẦU DẶN
     if (e.code === 'KeyF') {
         if (batEquipped && batCount > 0 && currentTwisted && Math.abs(yatta.worldX - twistedX) < 140) {
             batCount--;
             if (batCount === 0) batEquipped = false;
             updateHPUI();
+
+            // NẾU LÀ TWISTED VÊ THÌ MỞ QUIZ GIẢI ĐỐ
+            if (currentTwisted.isQuizBoss) {
+                startTwistedVQuiz();
+                return;
+            }
+
             currentTwisted.hp--;
             if (currentTwisted.hp <= 0) {
-                // RỚT ĐỒ KHI QUÁI CHẾT
                 let dropRand = Math.random();
                 let dropText = "";
                 if (dropRand < 0.4) { addCoins(2); dropText = "Dropped 2 Silver Coins!"; }
@@ -728,6 +837,12 @@ function gameLoop() {
         drawChar(looey.worldX, looey.y, '#ffee58', 'looey');
         if (blot.exists) drawChar(blot.worldX, blot.y, '#37474f', 'blot');
 
+    } else if (gameState === 'PORTAL_ANIMATION') {
+        ctx.fillStyle = '#10002b'; ctx.fillRect(0, 0, 800, 560);
+        ctx.fillStyle = '#00e676'; ctx.font = 'bold 16px Courier New'; ctx.textAlign = 'center';
+        ctx.fillText("PORTAL ACTIVATED... SUCKED INTO GARDENVIEW", 400, 280);
+        ctx.textAlign = 'left';
+
     } else if (gameState === 'SIDE_SCROLL') {
         let moveX = 0;
         if (keysInput.left) moveX = -4;
@@ -788,7 +903,7 @@ function gameLoop() {
 
         ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2500, 560);
         ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
-        ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'}`, 40, 30);
+        ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'} | Key: ${hasPumpkinKey ? 'Pumpkin Key 🎃' : 'Standard Key'}`, 40, 30);
 
         ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
         pits.forEach(pt => {
@@ -834,7 +949,7 @@ function gameLoop() {
             ctx.fillStyle = twistedFreezeTimer > 0 ? '#00e5ff' : currentTwisted.color;
             ctx.fillRect(twistedX - 12, 410, 24, 40);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 10px Courier New';
-            ctx.fillText(`${currentTwisted.type} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 35, 395);
+            ctx.fillText(`${currentTwisted.type} ${currentTwisted.isQuizBoss ? '[QUIZ BOSS]' : ''} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 45, 395);
         }
 
         if (yatta.active) drawChar(yatta.worldX, yatta.y, '#fff59d', 'yatta');

@@ -123,7 +123,6 @@
 </head>
 <body>
 
-<!-- KHUNG AUDIO SẴN SÀNG CHỜ BỒ GỬI LINK NHẠC -->
 <audio id="bgm-locked-away" loop src=""></audio>
 <audio id="bgm-perfect-christmas" loop src=""></audio>
 <audio id="bgm-ending" loop src=""></audio>
@@ -157,9 +156,8 @@
 
         <div id="keybinds-guide">
             ⌨️ <b id="ui-ctrl-title">CONTROLS:</b><br>
-            • WASD / Arrows: Move Selected Toon<br>
-            • Trio [7]: Move all | Yatta [4]/Looey [5]/Blot [6]: Move Solo<br>
-            • E: Interact | Z: Equip Bat | F: Hit Twisted | L: Elevator
+            • WASD / Arrows: Move Toon<br>
+            • E: Interact / Climb Tightrope | Z: Equip Bat | F: Hit Twisted | L: Elevator
         </div>
     </div>
 
@@ -281,7 +279,7 @@ let twistedTypes = [
 let currentTwisted = null;
 let twistedX = -400;
 let twistedFreezeTimer = 0;
-let isVeeActiveState = false; // TRẠNG THÁI KHÓA SPAWN QUÁI KHI GẶP TWISTED VEE
+let isVeeActiveState = false;
 
 let quizIndex = 0;
 let quizScore = 0;
@@ -292,7 +290,7 @@ let quizData = [
     { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
     { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
     { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 0 },
-    { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 2 HP", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
+    { q: "What happens if Yatta falls into a pit?", opts: ["A. Resets to edge safely", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
     { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
     { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
     { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
@@ -343,11 +341,10 @@ const texts = {
     }
 };
 
-// HÀM ĐIỀU KHIỂN NHẠC
 function playMusic(trackId) {
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
-    if (track && track.src) { track.play().catch(e => console.log("Audio play blocked by browser")); }
+    if (track && track.src) { track.play().catch(e => console.log("Audio play blocked")); }
 }
 
 function saveGameData() {
@@ -400,7 +397,7 @@ function loadOrCreateFloorMap(fl) {
         doors = mem.doors; blocks = mem.blocks; pits = mem.pits;
         tightropes = mem.tightropes; circusRings = mem.circusRings; currentNPCFloor = mem.npc;
     } else {
-        let hasParkourPits = (capsuleCount > 0 && gachaponCount > 0);
+        let hasParkourPits = true; // LUÔN CHO TẠO BÃI PARKOUR VÀ DÂY THỪNG TẠO ĐỘ HAY
         let doorX1 = 300 + Math.floor(Math.random() * 150);
         let doorX2 = 900 + Math.floor(Math.random() * 200);
         let doorX3 = 1600 + Math.floor(Math.random() * 200);
@@ -417,12 +414,9 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        let newPits = []; let newTightropes = []; let newCircusRings = [];
-        if (hasParkourPits) {
-            newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
-            newTightropes = [{ x: 610, y: 320, w: 230 }];
-            newCircusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
-        }
+        let newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
+        let newTightropes = [{ x: 610, y: 320, w: 230 }];
+        let newCircusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
 
         let newNPC = null;
         if (fl > 1) {
@@ -486,7 +480,7 @@ function startGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
-        playMusic('bgm-locked-away'); // BẮT ĐẦU PHÁT NHẠC LOCKED AWAY KHI LOAD SAVE
+        playMusic('bgm-locked-away');
         alert("Welcome back! Game progress loaded successfully!");
     } else {
         document.getElementById('menu-screen').style.display = 'none';
@@ -523,10 +517,10 @@ function closeVeemail() {
     document.getElementById('keybinds-guide').style.display = 'block';
     
     if (isVeeQuizMode) {
-        playMusic('bgm-perfect-christmas'); // PHÁT BÀI THE PERFECT CHRISTMAS KHI VÀO VEE'S QUIZ
+        playMusic('bgm-perfect-christmas');
         startTwistedVeeFinalQuiz();
     } else {
-        playMusic('bgm-locked-away'); // PHÁT BÀI LOCKED AWAY KHI ĐÓNG VEEMAIL ĐẦU TIÊN
+        playMusic('bgm-locked-away');
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -534,7 +528,7 @@ function closeVeemail() {
 }
 
 function checkAndSpawnTwisted() {
-    if (isVeeActiveState) { currentTwisted = null; return; } // KHÓA SPAWN QUÁI KHI GẶP VEE
+    if (isVeeActiveState) { currentTwisted = null; return; }
     if (!floorCleared[currentFloor]) {
         let rand = Math.random();
         if (rand < 0.6) {
@@ -651,7 +645,6 @@ function handleQuestResponse(accepted) {
             capsuleCount += 2; alert("Completed Rodger's Quest! Received 2 Capsules!");
         } else { questStatus.rodger = 'ACCEPTED'; alert("Quest Accepted! Search chests for Dog Plush!"); }
     } else if (activeNPC.id === 'gigi') {
-        // ĐÃ ĐỔI THÀNH CẦN 5 ĐỒNG VÀNG THEO YÊU CẦU
         if (goldCoins >= 5 && questStatus.gigi !== 'COMPLETED') {
             goldCoins -= 5; questStatus.gigi = 'COMPLETED';
             gachaponCount += 2; batCount += 2; updateHPUI(); addCoins(0);
@@ -709,7 +702,6 @@ function answerQuiz(selectedOpt) {
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
-            // TẮT NHẠC THE PERFECT CHRISTMAS VÀ KÍCH HOẠT NHẠC ENDING KHI THẮNG VEE
             playMusic('bgm-ending');
             document.getElementById('ending-sub1').innerText = (currentLang === 'ENG') ? "You escaped Gardenview (experimental game)" : "Bạn đã trốn thoát khỏi Gardenview (trò chơi thử nghiệm)";
             document.getElementById('ending-sub2').innerText = (currentLang === 'ENG') ? "(Everyone found you guys lying on the floor)" : "(Mọi người tìm thấy cả nhóm đang nằm bất tỉnh trên sàn nhà)";
@@ -763,6 +755,7 @@ function handleElevatorNavigation() {
     alert(`Traveled to Floor ${currentFloor}!`);
 }
 
+// BẮT SỰ KIỆN PHÍM DI CHUYỂN
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
     
@@ -846,11 +839,22 @@ window.addEventListener('keydown', (e) => {
             updateDialogue(); return;
         }
 
+        // TƯƠNG TÁC BẤM [E] ĐỂ LEO NÊN DÂY THỪNG (TIGHTROPE) SANG HỐ
+        let nearRope = tightropes.find(tp => yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + tp.w + 40);
+        if (gameState === 'SIDE_SCROLL' && nearRope) {
+            yatta.worldX = nearRope.x + nearRope.w + 20;
+            looey.worldX = yatta.worldX + 30;
+            blot.worldX = looey.worldX + 30;
+            yatta.y = 450; looey.y = 450; blot.y = 450;
+            alert("Successfully climbed across the Tightrope!");
+            return;
+        }
+
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
 
         if (gameState === 'SIDE_SCROLL' && Math.abs(yatta.worldX - (elevator.x + 120)) < 60) {
             if (hasPumpkinKey) {
-                isVeeActiveState = true; // KÍCH HOẠT KHÓA SPAWN QUÁI KHÁC
+                isVeeActiveState = true;
                 currentTwisted = null;
                 isVeeQuizMode = true;
                 updateUIText();
@@ -865,7 +869,6 @@ window.addEventListener('keydown', (e) => {
         doors.forEach(d => {
             if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 80) {
                 currentRoom = d; gameState = 'INSIDE_ROOM';
-                // CƠ HỘI NHẬN GOLD COIN TRỰC TIẾP TỪ CỬA
                 if (Math.random() < 0.2) {
                     goldCoins++; addCoins(0);
                     alert("Found a Gold Coin 🪙 right at the door!");
@@ -884,7 +887,6 @@ window.addEventListener('keydown', (e) => {
             } else {
                 let rarityRand = Math.random();
 
-                // HẠ TỶ LỆ GOLDEN KEY XUỐNG CÒN 12% (KHÓ KIẾM HƠN)
                 if (keysCount < 8 && Math.random() < 0.12) {
                     keysCount++;
                     updateHPUI();
@@ -902,7 +904,6 @@ window.addEventListener('keydown', (e) => {
                     return;
                 }
 
-                // TĂNG TỶ LỆ BAT / CAPSULE / GACHAPON
                 if (rarityRand < 0.3) { pendingLoot = 'CANDY'; }
                 else if (rarityRand < 0.55) { pendingLoot = 'POP'; }
                 else if (rarityRand < 0.8) { 
@@ -920,6 +921,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyX' && gameState === 'INSIDE_ROOM') { gameState = 'SIDE_SCROLL'; currentRoom = null; }
 });
 
+// NHẢ PHÍM ĐỂ DỪNG NGAY LẬP TỨC (TRÁNH TRƯỢT TỰ DO)
 window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = false;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = false;
@@ -933,20 +935,11 @@ function getActiveToons() {
     return [];
 }
 
-function handlePitFall(toonName) {
-    if (toonName === 'yatta') {
-        yatta.hp -= 2; updateHPUI();
-        alert("Yatta fell into the pit! Lost 2 HP!");
-        yatta.worldX -= 120; yatta.y = 450;
-    } else if (toonName === 'looey') {
-        looey.hp -= 1; updateHPUI();
-        alert("Looey fell into the pit! Lost 1 HP!");
-        looey.worldX -= 120; looey.y = 450;
-    } else if (toonName === 'blot') {
-        blot.exists = false; blot.active = false;
-        activeChar = 'yatta'; updateHPUI();
-        alert("Blot fell into the pit and DISAPPEARED FOREVER! Trio is now DUO!");
-    }
+// KHÔNG CÒN TRỪ MÁU VO LÝ NỮA, CHỈ LÙI LẠI MÉP AN TOÀN!
+function handlePitFall(p) {
+    p.worldX -= 80;
+    p.y = 450;
+    p.vy = 0;
 }
 
 function gameLoop() {
@@ -999,9 +992,7 @@ function gameLoop() {
 
                 let inPit = pits.some(pt => p.worldX >= pt.x && p.worldX <= pt.x + pt.w);
                 if (inPit && p.y >= 450) {
-                    if (p === yatta) handlePitFall('yatta');
-                    else if (p === looey) handlePitFall('looey');
-                    else if (p === blot) handlePitFall('blot');
+                    handlePitFall(p);
                 } else if (p.y >= 450) {
                     p.y = 450; p.vy = 0; p.grounded = true;
                 }
@@ -1058,9 +1049,15 @@ function gameLoop() {
             ctx.beginPath(); ctx.arc(r.x, r.y, 20, 0, Math.PI*2); ctx.stroke();
         });
 
+        // VẼ DÂY THỪNG VÀ HƯỚNG DẪN BẤM [E] LEO DÂY
         tightropes.forEach(tp => {
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+            ctx.strokeStyle = '#00e676'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
+
+            if (yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + tp.w + 40) {
+                ctx.fillStyle = '#00e676'; ctx.font = 'bold 10px Courier New';
+                ctx.fillText("Press [E] to Climb Tightrope 🧗‍♂️", tp.x + 20, tp.y - 15);
+            }
         });
 
         doors.forEach(d => {

@@ -219,11 +219,13 @@ let soulvesterFollowing = false;
 
 let activeNPC = null;
 let questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
-let lastNPCFloor = -3;
-let currentNPCFloor = null;
+
+// BỘ TRÍ LƯU TRẠNG THÁI TẦNG (TẦNG NÀO CÓ NPC NÀO, CỬA NÀO ĐÃ LOOTED)
+let floorDataMemory = {};
+let npcAssignedFloor = {}; // LƯU VỊ TRÍ TẦNG CỦA CÁC NPC
+
 let floorCleared = {};
 
-// DỮ LIỆU MAP THAY ĐỔI THEO TẦNG
 let blocks = [];
 let pits = [];
 let circusRings = [];
@@ -262,9 +264,8 @@ const texts = {
             { speaker: "SYSTEM", text: "Yatta presses the button... Portal activates and sucks everyone into Gardenview!" }
         ],
         veemail: `<strong>[GAME RULES & MECHANICS]</strong><br><br>
-            1. <b>SOLO MOVEMENT:</b> Selecting Yatta [4], Looey [5], or Blot [6] moves ONLY that character! The rest freeze in place.<br>
-            2. <b>PIT & PARKOUR:</b> Parkour with pits appears ONLY after getting both Capsule and Gachapon!<br>
-            3. <b>FALL DAMAGE:</b> Falling into pits: Yatta (-2 HP), Looey (-1 HP), Blot (Disappears forever!).<br><br>
+            1. <b>FLOOR MEMORY:</b> Doors you looted will STAY looted even if you change floors!<br>
+            2. <b>NPC LOCATIONS:</b> NPCs stay permanently on their assigned floors so you can return to them anytime!<br><br>
             <i>Signed: D</i>`
     },
     VIE: {
@@ -283,45 +284,81 @@ const texts = {
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
         veemail: `<strong>[LUẬT CHƠI & CƠ CHẾ SỐNG CÒN]</strong><br><br>
-            1. <b>DI CHUYỂN ĐƠN LẺ:</b> Chọn Yatta [4], Looey [5], hoặc Blot [6] chỉ điều khiển đúng Toon đó! Hai Toon còn lại đứng yên.<br>
-            2. <b>VỰC & PARKOUR:</b> Vực thẳm Parkour chỉ xuất hiện sau khi nhận đủ Capsule và Gachapon!<br>
-            3. <b>TÉ VỰC:</b> Yatta té (-2 HP), Looey té (-1 HP), Blot té (Biến mất vĩnh viễn!).<br><br>
+            1. <b>GHI NHỚ TẦNG:</b> Cửa phòng đã loot sẽ GIỮ NGUYÊN trạng thái khi bồ đi thang máy qua lại!<br>
+            2. <b>NPC CỐ ĐỊNH:</b> NPC sẽ ở cố định đúng tầng của họ để bồ dễ dàng quay lại trả nhiệm vụ!<br><br>
             <i>Ký tên: D</i>`
     }
 };
 
-function generateRandomFloorMap() {
-    blocks = [];
-    pits = [];
-    circusRings = [];
-    tightropes = [];
-    doors = [];
+// LOAD NẾU ĐÃ CÓ MAP TẦNG CŨ, HOẶC TẠO MỚI VÀ LƯU VÀO MEMORY NẾU CHƯA CÓ
+function loadOrCreateFloorMap(fl) {
+    if (floorDataMemory[fl]) {
+        let mem = floorDataMemory[fl];
+        doors = mem.doors;
+        blocks = mem.blocks;
+        pits = mem.pits;
+        tightropes = mem.tightropes;
+        circusRings = mem.circusRings;
+        currentNPCFloor = mem.npc;
+    } else {
+        let hasParkourPits = (capsuleCount > 0 && gachaponCount > 0);
 
-    let hasParkourPits = (capsuleCount > 0 && gachaponCount > 0);
+        let doorX1 = 300 + Math.floor(Math.random() * 150);
+        let doorX2 = 900 + Math.floor(Math.random() * 200);
+        let doorX3 = 1600 + Math.floor(Math.random() * 200);
 
-    // CỬA PHÒNG BỐ TRÍ RANDOM THEO TẦNG
-    let doorX1 = 300 + Math.floor(Math.random() * 150);
-    let doorX2 = 900 + Math.floor(Math.random() * 200);
-    let doorX3 = 1600 + Math.floor(Math.random() * 200);
+        let newDoors = [
+            { id: 1, worldX: doorX1, y: 370, opened: false },
+            { id: 2, worldX: doorX2, y: 370, opened: false },
+            { id: 3, worldX: doorX3, y: 370, opened: false }
+        ];
 
-    doors = [
-        { id: 1, worldX: doorX1, y: 370, opened: false },
-        { id: 2, worldX: doorX2, y: 370, opened: false },
-        { id: 3, worldX: doorX3, y: 370, opened: false }
-    ];
+        let newBlocks = [
+            { x: doorX1 - 40, y: 380, w: 60, h: 20 },
+            { x: doorX2 - 40, y: 350, w: 60, h: 20 },
+            { x: doorX3 - 40, y: 380, w: 60, h: 20 }
+        ];
 
-    // BLOCKS BỐ TRÍ RANDOM
-    blocks = [
-        { x: doorX1 - 40, y: 380, w: 60, h: 20 },
-        { x: doorX2 - 40, y: 350, w: 60, h: 20 },
-        { x: doorX3 - 40, y: 380, w: 60, h: 20 }
-    ];
+        let newPits = [];
+        let newTightropes = [];
+        let newCircusRings = [];
 
-    // CHỈ TẠO VỰC VÀ PARKOUR NẾU ĐÃ CÓ CAPSULE VÀ GACHAPON
-    if (hasParkourPits) {
-        pits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
-        tightropes = [{ x: 610, y: 320, w: 230 }];
-        circusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
+        if (hasParkourPits) {
+            newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
+            newTightropes = [{ x: 610, y: 320, w: 230 }];
+            newCircusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
+        }
+
+        // KIỂM TRA PHÂN BỔ NPC VÀ LƯU CỐ ĐỊNH TẦNG
+        let newNPC = null;
+        if (fl > 1) {
+            let availableNPCs = [];
+            if (!npcAssignedFloor.rodger) availableNPCs.push({ id: 'rodger', name: 'Rodger & Toodles' });
+            if (!npcAssignedFloor.gigi) availableNPCs.push({ id: 'gigi', name: 'Gigi' });
+            if (!npcAssignedFloor.connie) availableNPCs.push({ id: 'connie', name: 'Connie' });
+
+            if (availableNPCs.length > 0 && Math.random() < 0.6) {
+                let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
+                newNPC = { ...picked, x: 750 };
+                npcAssignedFloor[picked.id] = fl; // LƯU CỐ ĐỊNH TẦNG
+            }
+        }
+
+        floorDataMemory[fl] = {
+            doors: newDoors,
+            blocks: newBlocks,
+            pits: newPits,
+            tightropes: newTightropes,
+            circusRings: newCircusRings,
+            npc: newNPC
+        };
+
+        doors = newDoors;
+        blocks = newBlocks;
+        pits = newPits;
+        tightropes = newTightropes;
+        circusRings = newCircusRings;
+        currentNPCFloor = newNPC;
     }
 }
 
@@ -387,25 +424,8 @@ function closeVeemail() {
     document.getElementById('inventory-hud').style.display = 'flex';
     document.getElementById('keybinds-guide').style.display = 'block';
     gameState = 'SIDE_SCROLL';
-    generateRandomFloorMap();
-    checkAndSpawnNPCForFloor();
+    loadOrCreateFloorMap(currentFloor);
     checkAndSpawnTwisted();
-}
-
-function checkAndSpawnNPCForFloor() {
-    currentNPCFloor = null;
-    if (currentFloor - lastNPCFloor >= Math.floor(Math.random() * 3) + 2) {
-        let availableNPCs = [];
-        if (questStatus.rodger !== 'COMPLETED') availableNPCs.push({ id: 'rodger', name: 'Rodger & Toodles' });
-        if (questStatus.gigi !== 'COMPLETED') availableNPCs.push({ id: 'gigi', name: 'Gigi' });
-        if (questStatus.connie !== 'COMPLETED') availableNPCs.push({ id: 'connie', name: 'Connie' });
-
-        if (availableNPCs.length > 0) {
-            let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
-            currentNPCFloor = { ...picked, x: 750 };
-            lastNPCFloor = currentFloor;
-        }
-    }
 }
 
 function checkAndSpawnTwisted() {
@@ -596,8 +616,7 @@ window.addEventListener('keydown', (e) => {
             else if (choice === '2' && currentFloor > 1) currentFloor--;
 
             yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
-            generateRandomFloorMap();
-            checkAndSpawnNPCForFloor();
+            loadOrCreateFloorMap(currentFloor);
             checkAndSpawnTwisted();
             alert(`Traveled to Floor ${currentFloor}!`);
         }
@@ -631,9 +650,9 @@ window.addEventListener('keydown', (e) => {
             currentRoom.opened = true;
             let rand = Math.random();
 
-            if (questStatus.rodger === 'ACCEPTED' && !hasDogPlush && rand < 0.3) {
+            if (questStatus.rodger === 'ACCEPTED' && !hasDogPlush && rand < 0.35) {
                 hasDogPlush = true; alert("Found Toodles' Dog Plush (🧸)! Return it to Rodger!");
-            } else if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && rand < 0.2) {
+            } else if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && rand < 0.25) {
                 soulvesterFollowing = true; alert("FOUND SOULVESTER INSIDE THE CHEST! He is now following you back to Connie!");
             } else {
                 let rarityRand = Math.random();
@@ -656,7 +675,6 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = false;
 });
 
-// XÁC ĐỊNH TOON ĐANG ĐƯỢC CHỌN ĐỂ DI CHUYỂN
 function getActiveToons() {
     if (activeChar === 'trio') return [yatta, looey, blot];
     if (activeChar === 'yatta') return [yatta];
@@ -713,7 +731,6 @@ function gameLoop() {
 
         let movingToons = getActiveToons();
 
-        // CHỈ CÁC TOON ĐƯỢC CHỌN MỚI DI CHUYỂN, TOON KHÁC FREESE TẠI CHỐ
         movingToons.forEach(p => {
             if (p.active) {
                 p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
@@ -724,7 +741,6 @@ function gameLoop() {
                     }
                 });
 
-                // KIỂM TRA TÉ VỰC THẲM (PIT)
                 let inPit = pits.some(pt => p.worldX >= pt.x && p.worldX <= pt.x + pt.w);
                 if (inPit && p.y >= 450) {
                     if (p === yatta) handlePitFall('yatta');
@@ -770,10 +786,9 @@ function gameLoop() {
         ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
         ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'}`, 40, 30);
 
-        // VẼ SÀN ĐẤT & VỰC THẲM (PITS)
         ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
         pits.forEach(pt => {
-            ctx.fillStyle = '#05020a'; ctx.fillRect(pt.x, 450, pt.w, 110); // VỰC ĐEN
+            ctx.fillStyle = '#05020a'; ctx.fillRect(pt.x, 450, pt.w, 110);
             ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 2; ctx.strokeRect(pt.x, 450, pt.w, 110);
         });
 
@@ -837,12 +852,10 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// VẼ MŨI TÊN CHỈ CHUẨN XÁC DÀNH CHO TOON ĐANG ĐƯỢC ĐIỀU KHIỂN RÊU LẺ
 function drawChar(x, y, color, type) {
     ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = color; ctx.fillRect(-10, -35, 20, 28);
 
-    // MŨI TÊN CHỈ ĐẦU ĐƯỢC BẬT DÀNH CHO TOON CHỌN ĐƠN LẺ KHÁC TRIO
     if (activeChar === type || (activeChar === 'trio' && type === 'yatta')) {
         ctx.fillStyle = '#ff1744';
         ctx.beginPath();

@@ -132,7 +132,7 @@
 </head>
 <body>
 
-<!-- Player 1: Locked Away -->
+<!-- Player 1: Locked Away (BGM Khám phá) -->
 <div class="yt-audio-container">
     <iframe id="game-audio-iframe" width="200" height="200" src="" title="Locked Away" frameborder="0" allow="autoplay"></iframe>
 </div>
@@ -142,9 +142,14 @@
     <iframe id="clair-iframe" width="200" height="200" src="" title="Clair de Lune" frameborder="0" allow="autoplay"></iframe>
 </div>
 
-<!-- Player 3: Game Over & Vee's Quiz (OBKAbzpu0fM) -->
+<!-- Player 3: Game Over Track (OBKAbzpu0fM) -->
 <div class="yt-audio-container">
     <iframe id="gameover-iframe" width="200" height="200" src="" title="Game Over Track" frameborder="0" allow="autoplay"></iframe>
+</div>
+
+<!-- Player 4: Vee's Quiz & Veemail 2 BGM (Nhạc TikTok Vee's Quiz) -->
+<div class="yt-audio-container">
+    <iframe id="vee-quiz-iframe" width="200" height="200" src="" title="Vee Quiz BGM" frameborder="0" allow="autoplay"></iframe>
 </div>
 
 <div id="game-box">
@@ -479,6 +484,7 @@ function stopAllAudio() {
     document.getElementById('game-audio-iframe').src = "";
     document.getElementById('clair-iframe').src = "";
     document.getElementById('gameover-iframe').src = "";
+    document.getElementById('vee-quiz-iframe').src = "";
 }
 
 function playLockedAway() {
@@ -499,13 +505,20 @@ function playGameOverMusic() {
     document.getElementById('gameover-iframe').src = "https://www.youtube.com/embed/OBKAbzpu0fM?autoplay=1&loop=1&playlist=OBKAbzpu0fM&enablejsapi=1";
 }
 
+function playVeeQuizMusic() {
+    if (isMusicMuted) return;
+    stopAllAudio();
+    // BGM dành riêng cho Veemail 2 & Vee's Quiz (Chuyển đổi sang ID âm nhạc phù hợp)
+    document.getElementById('vee-quiz-iframe').src = "https://www.youtube.com/embed/VeNEjvrVVKw?autoplay=1&loop=1&playlist=VeNEjvrVVKw&enablejsapi=1";
+}
+
 function toggleMuteMusic() {
     isMusicMuted = document.getElementById('mute-checkbox').checked;
     if (isMusicMuted) {
         stopAllAudio();
     } else {
         if (isVeeQuizMode) {
-            playGameOverMusic();
+            playVeeQuizMusic();
         } else if (gameState === 'SIDE_SCROLL' || gameState === 'VEEMAIL_OPEN') {
             playLockedAway();
         }
@@ -759,7 +772,6 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        playGameOverMusic();
         startTwistedVeeFinalQuiz();
     } else {
         playLockedAway();
@@ -1198,6 +1210,7 @@ window.addEventListener('keydown', (e) => {
                 currentTwisted = null;
                 isVeeQuizMode = true;
                 updateUIText();
+                playVeeQuizMusic(); // KÍCH HOẠT NHẠC VEE'S QUIZ KHI MỞ VEEMAIL THỨ 2
                 document.getElementById('veemail-modal').style.display = 'flex';
                 return;
             } else {

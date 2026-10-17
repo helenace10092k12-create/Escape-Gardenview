@@ -334,17 +334,58 @@ let quizIndex = 0;
 let quizScore = 0;
 let isVeeQuizMode = false;
 
+// DỮ LIỆU CÂU HỎI HỖ TRỢ CẢ 2 NGÔN NGỮ ENG - VIE
 let quizData = [
-    { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"], ans: 1 },
-    { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
-    { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
-    { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 0 },
-    { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 1 HP", "B. Resets without penalty", "C. Disappears", "D. Nothing"], ans: 0 },
-    { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
-    { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
-    { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
-    { q: "How many correct answers are needed to defeat Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 7/10", "D. 8/10"], ans: 2 },
-    { q: "What penalty do you get if you answer 1 question wrong in Vee's Quiz?", opts: ["A. Lose 1 Heart", "B. Game Over", "C. Lose all items", "D. Lose 2 HP"], ans: 0 }
+    { 
+        ENG: { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"] },
+        VIE: { q: "Màn trình diễn chính của Circus Trio là gì?", opts: ["A. Ảo thuật", "B. Hài kịch và xiếc tạp kỹ", "C. Cuộc thi nấu ăn", "D. Đua xe"] },
+        ans: 1 
+    },
+    { 
+        ENG: { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"] },
+        VIE: { q: "Vật phẩm nào được coi là có độ hiếm Thường (Common)?", opts: ["A. Hộp cứu thương", "B. Gậy bóng chày", "C. Kẹo", "D. Pumpkin Key"] },
+        ans: 2 
+    },
+    { 
+        ENG: { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"] },
+        VIE: { q: "Ai trong nhóm Trio không thể leo trèo/parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Tất cả mọi người"] },
+        ans: 2 
+    },
+    { 
+        ENG: { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"] },
+        VIE: { q: "Gigi yêu cầu bao nhiêu đồng Tiền Vàng cho nhiệm vụ của cô ấy?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"] },
+        ans: 0 
+    },
+    { 
+        ENG: { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 1 HP", "B. Resets without penalty", "C. Disappears", "D. Nothing"] },
+        VIE: { q: "Điều gì xảy ra nếu Yatta ngã xuống hố sâu?", opts: ["A. Mất 1 Máu (HP)", "B. Trở lại sàn không bị trừ máu", "C. Biến mất hẳn", "D. Không bị làm sao"] },
+        ans: 0 
+    },
+    { 
+        ENG: { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"] },
+        VIE: { q: "Loại chìa khóa nào được hợp thành từ 8 chìa khóa vàng?", opts: ["A. Chìa khóa vàng", "B. Chìa khóa bí ngô (Pumpkin Key)", "C. Chìa khóa bạc", "D. Chìa khóa sắt"] },
+        ans: 1 
+    },
+    { 
+        ENG: { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"] },
+        VIE: { q: "Người anh trai thất lạc của Connie là ai?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"] },
+        ans: 1 
+    },
+    { 
+        ENG: { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"] },
+        VIE: { q: "Phím nào dùng để trang bị/cầm gậy bóng chày?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"] },
+        ans: 1 
+    },
+    { 
+        ENG: { q: "How many correct answers are needed to defeat Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 7/10", "D. 8/10"] },
+        VIE: { q: "Cần trả lời đúng bao nhiêu câu để tiêu diệt Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 7/10", "D. 8/10"] },
+        ans: 2 
+    },
+    { 
+        ENG: { q: "What penalty do you get if you answer 1 question wrong in Vee's Quiz?", opts: ["A. Lose 1 Heart", "B. Game Over", "C. Lose all items", "D. Lose 2 HP"] },
+        VIE: { q: "Hình phạt khi trả lời sai 1 câu trong Vee's Quiz là gì?", opts: ["A. Bị trừ 1 Máu", "B. Thua ngay (Game Over)", "C. Mất hết vật phẩm", "D. Bị trừ 2 Máu"] },
+        ans: 0 
+    }
 ];
 
 const keysInput = { left: false, right: false };
@@ -404,26 +445,7 @@ Additional Facility Guidelines:
 - Stay alert, manage your team's health pool across Yatta, Looey, and Blot, and do not let your guard down for a single second. Good luck escaping this nightmare.
 
 Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
-        
-        // THÔNG TIN VEEMAIL THỨ 2 DÀNH CHO VEE'S QUIZ (CẢ ANH VÀ VIỆT SCHEME)
-        veemailVeeQuiz: `Welcome to Vee's Quiz trial! There will be 10 multiple-choice questions testing your overall knowledge of the facility, item rarities, characters, and survival mechanics.
-
-Facility Rules & Penalties:
-1. Your objective is to answer at least 7 out of 10 questions correctly to defeat Twisted Vee and unlock the final escape door.
-2. For every incorrect answer, you will lose 1 Heart immediately.
-3. If your HP drops to 0 or you fail the trial completely resulting in "Game Over", all your progress data, items, and stats will be permanently reset—so choose your answers carefully!
-4. Victory grants passage to freedom and the true conclusion of this trial.
-
----------------------------------------------------
-Chào mừng đến với thử thách Vee's Quiz! Sẽ có 10 câu hỏi trắc nghiệm kiểm tra hiểu biết của các ngươi về cơ sở thí nghiệm, độ hiếm vật phẩm, nhân vật và cơ chế sinh tồn.
-
-Quy định & Hình phạt tại Thử Thách:
-1. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát cuối cùng.
-2. Với mỗi câu trả lời sai, các ngươi sẽ ngay lập tức bị trừ 1 tim máu.
-3. Nếu lượng HP rơi về 0 hoặc vượt quá số lần sai dẫn đến "Game Over", toàn bộ tiến trình chơi, dữ liệu, vật phẩm và vũ khí của các ngươi sẽ bị reset hoàn toàn từ đầu—do đó hãy suy nghĩ và lựa chọn thật cẩn trọng.
-4. Đạt chiến thắng sẽ mang lại cho các ngươi tấm vé tự do và kết cục chân thực nhất của bản thử nghiệm này.
-
-Signed: D (the remaining text is obscured by an Ichor-stained hand)`
+        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -479,26 +501,7 @@ Quy định bổ sung tại cơ sở thí nghiệm:
 - Hãy luôn cảnh giác, quản lý lượng máu của toàn đội qua Yatta, Looey và Blot, và đừng lơ đễnh dù chỉ một giây phút. Chúc các ngươi may mắn trốn thoát khỏi cơn ác mộng này.
 
 Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
-        
-        // THÔNG TIN VEEMAIL THỨ 2 DÀNH CHO VEE'S QUIZ (BẢN TIẾNG VIỆT/ANH ĐẦY ĐỦ)
-        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm kiểm tra hiểu biết của các ngươi về cơ sở thí nghiệm, độ hiếm vật phẩm, nhân vật và cơ chế sinh tồn. 
-
-Quy định & Hình phạt tại Thử Thách:
-1. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát cuối cùng.
-2. Với mỗi câu trả lời sai, các ngươi sẽ ngay lập tức bị trừ 1 tim máu.
-3. Nếu lượng HP rơi về 0 hoặc vượt quá số lần sai dẫn đến "Game Over", toàn bộ tiến trình chơi, dữ liệu, vật phẩm và vũ khí của các ngươi sẽ bị reset hoàn toàn từ đầu—do đó hãy suy nghĩ và lựa chọn thật cẩn trọng.
-4. Đạt chiến thắng sẽ mang lại cho các ngươi tấm vé tự do và kết cục chân thực nhất của bản thử nghiệm này.
-
----------------------------------------------------
-Welcome to Vee's Quiz trial! There will be 10 multiple-choice questions testing your overall knowledge of the facility, item rarities, characters, and survival mechanics.
-
-Facility Rules & Penalties:
-1. Your objective is to answer at least 7 out of 10 questions correctly to defeat Twisted Vee and unlock the final escape door.
-2. For every incorrect answer, you will lose 1 Heart immediately.
-3. If your HP drops to 0 or you fail the trial completely resulting in "Game Over", all your progress data, items, and stats will be permanently reset!
-4. Victory grants passage to freedom and the true conclusion of this trial.
-
-Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
+        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
@@ -530,7 +533,6 @@ function playGameOverMusic() {
 function playVeeQuizMusic() {
     if (isMusicMuted) return;
     stopAllAudio();
-    // BGM Veemail 2 & Vee's Quiz từ YouTube cắt chuẩn từ 2:50 (170s) tới 4:00 (240s)
     document.getElementById('vee-quiz-iframe').src = "https://www.youtube.com/embed/97OhYWzKW_s?autoplay=1&start=170&end=240&loop=1&playlist=97OhYWzKW_s&enablejsapi=1";
 }
 
@@ -673,6 +675,9 @@ function toggleLanguage() {
     document.getElementById('lang-btn').innerText = currentLang === 'ENG' ? 'ENG / VIE' : 'VIE / ENG';
     document.getElementById('st-lang-btn').innerText = currentLang === 'ENG' ? 'VIE / ENG' : 'ENG / VIE';
     updateUIText();
+    if (document.getElementById('quiz-modal').style.display === 'flex') {
+        loadQuizQuestion();
+    }
 }
 
 function updateUIText() {
@@ -811,7 +816,8 @@ function startTwistedVeeFinalQuiz() {
 }
 
 function loadQuizQuestion() {
-    let cur = quizData[quizIndex];
+    let curObj = quizData[quizIndex];
+    let cur = curObj[currentLang] || curObj['ENG'];
     document.getElementById('quiz-title').innerText = `🧩 VEE'S QUIZ (Q${quizIndex + 1}/10)`;
     document.getElementById('quiz-question').innerText = cur.q;
     document.getElementById('opt-A').innerText = cur.opts[0];
@@ -873,21 +879,21 @@ function useInvItem(slot) {
     let item = inventory[slot];
     if (!item) return;
 
-    if (item === 'POP') { addCoins(2); inventory[slot] = null; alert("Drank Pop! Gained 2 Silver Coins!"); }
-    else if (item === 'CANDY') { addCoins(1); inventory[slot] = null; alert("Ate Candy! Gained 1 Silver Coin!"); }
+    if (item === 'POP') { addCoins(2); inventory[slot] = null; alert(currentLang === 'ENG' ? "Drank Pop! Gained 2 Silver Coins!" : "Đã uống nước ngọt! Nhận 2 Đồng Bạc!"); }
+    else if (item === 'CANDY') { addCoins(1); inventory[slot] = null; alert(currentLang === 'ENG' ? "Ate Candy! Gained 1 Silver Coin!" : "Đã ăn kẹo! Nhận 1 Đồng Bạc!"); }
     else if (item === 'BANDAGE') {
         if (activeChar === 'trio' && trioHP < maxHP) { trioHP++; inventory[slot] = null; }
         else if (activeChar === 'yatta' && yatta.hp < maxHP) { yatta.hp++; inventory[slot] = null; }
         else if (activeChar === 'looey' && looey.hp < maxHP) { looey.hp++; inventory[slot] = null; }
         else if (activeChar === 'blot' && blot.hp < maxHP) { blot.hp++; inventory[slot] = null; }
-        else alert("HP is FULL!");
+        else alert(currentLang === 'ENG' ? "HP is FULL!" : "Máu đã ĐẦY!");
     } else if (item === 'MEDKIT') {
         if (activeChar === 'trio') trioHP = maxHP;
         else if (activeChar === 'yatta') yatta.hp = maxHP;
         else if (activeChar === 'looey') looey.hp = maxHP;
         else if (activeChar === 'blot') blot.hp = maxHP;
         inventory[slot] = null;
-        alert("Used Medkit! Fully restored HP!");
+        alert(currentLang === 'ENG' ? "Used Medkit! Fully restored HP!" : "Đã dùng Hộp Cứu Thương! Phục hồi đầy máu!");
     }
     updateHPUI(); updateInvUI();
 }
@@ -897,7 +903,7 @@ function confirmLoot(yes) {
     if (yes && pendingLoot) {
         let emptyIdx = inventory.indexOf(null);
         if (emptyIdx !== -1) { inventory[emptyIdx] = pendingLoot; updateInvUI(); }
-        else alert("Inventory FULL!");
+        else alert(currentLang === 'ENG' ? "Inventory FULL!" : "Túi đồ đã ĐẦY!");
     }
     pendingLoot = null;
     saveGameData();
@@ -911,19 +917,19 @@ function openQuestDialog(npc) {
 
     if (npc.id === 'rodger') {
         title.innerText = "📜 RODGER & TOODLES QUEST";
-        if (questStatus.rodger === 'COMPLETED') text.innerText = "Rodger: 'Thank you for finding Toodles' Dog Plush!'";
-        else if (hasDogPlush) text.innerText = "Rodger: 'You found Toodles' Dog Plush! Press Accept to give it to us!'";
-        else text.innerText = "Rodger: 'Hello! Toodles lost her Dog Plush in one of the room chests. Can you help us find it?'";
+        if (questStatus.rodger === 'COMPLETED') text.innerText = currentLang === 'ENG' ? "Rodger: 'Thank you for finding Toodles' Dog Plush!'" : "Rodger: 'Cảm ơn bồ đã tìm thấy Thú Bông Chó cho Toodles!'";
+        else if (hasDogPlush) text.innerText = currentLang === 'ENG' ? "Rodger: 'You found Toodles' Dog Plush! Press Accept to give it to us!'" : "Rodger: 'Bồ tìm thấy Thú Bông Chó rồi! Bấm Đồng Ý để đưa cho tụi này nha!'";
+        else text.innerText = currentLang === 'ENG' ? "Rodger: 'Hello! Toodles lost her Dog Plush in one of the room chests. Can you help us find it?'" : "Rodger: 'Chào bồ! Toodles bị mất chú Thú Bông Chó trong rương phòng. Bồ giúp tìm lại được không?'";
     } else if (npc.id === 'gigi') {
         title.innerText = "🪙 GIGI QUEST";
-        if (questStatus.gigi === 'COMPLETED') text.innerText = "Gigi: 'Thanks for the donation!'";
-        else if (goldCoins >= 5) text.innerText = "Gigi: 'You have 5 Gold Coins! Press Accept to donate!'";
-        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'`;
+        if (questStatus.gigi === 'COMPLETED') text.innerText = currentLang === 'ENG' ? "Gigi: 'Thanks for the donation!'" : "Gigi: 'Cảm ơn bồ đã quyên góp nha!'";
+        else if (goldCoins >= 5) text.innerText = currentLang === 'ENG' ? "Gigi: 'You have 5 Gold Coins! Press Accept to donate!'" : "Gigi: 'Bồ có đủ 5 Tiền Vàng rồi! Bấm Đồng Ý để quyên góp nhé!'";
+        else text.innerText = currentLang === 'ENG' ? `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'` : `Gigi: 'Chào bồ! Quyên góp cho tui 5 Tiền Vàng được không? Bồ đang có ${goldCoins} Tiền Vàng.'`;
     } else if (npc.id === 'connie') {
         title.innerText = "👻 CONNIE QUEST";
-        if (questStatus.connie === 'COMPLETED') text.innerText = "Connie: 'Thank you for bringing my brother Soulvester back!'";
-        else if (soulvesterFollowing) text.innerText = "Connie: 'You brought Soulvester back! Press Accept to complete!'";
-        else text.innerText = "Connie: 'My brother Soulvester is lost somewhere in a room chest on high floors. Please find and bring him back!'";
+        if (questStatus.connie === 'COMPLETED') text.innerText = currentLang === 'ENG' ? "Connie: 'Thank you for bringing my brother Soulvester back!'" : "Connie: 'Cảm ơn bồ đã đưa anh trai Soulvester về với tui!'";
+        else if (soulvesterFollowing) text.innerText = currentLang === 'ENG' ? "Connie: 'You brought Soulvester back! Press Accept to complete!'" : "Connie: 'Bồ dẫn anh Soulvester về rồi! Bấm Đồng Ý để hoàn thành nha!'";
+        else text.innerText = currentLang === 'ENG' ? "Connie: 'My brother Soulvester is lost somewhere in a room chest on high floors. Please find and bring him back!'" : "Connie: 'Anh trai Soulvester của tui bị kẹt trong rương tầng cao. Giúp tui tìm anh ấy với!'";
     }
     box.style.display = 'flex';
 }
@@ -935,20 +941,20 @@ function handleQuestResponse(accepted) {
     if (activeNPC.id === 'rodger') {
         if (hasDogPlush && questStatus.rodger !== 'COMPLETED') {
             hasDogPlush = false; questStatus.rodger = 'COMPLETED';
-            capsuleCount += 2; alert("Completed Rodger's Quest! Received 2 Capsules!");
-        } else { questStatus.rodger = 'ACCEPTED'; alert("Quest Accepted! Search chests for Dog Plush!"); }
+            capsuleCount += 2; alert(currentLang === 'ENG' ? "Completed Rodger's Quest! Received 2 Capsules!" : "Đã xong nhiệm vụ Rodger! Nhận 2 Capsules!");
+        } else { questStatus.rodger = 'ACCEPTED'; alert(currentLang === 'ENG' ? "Quest Accepted! Search chests for Dog Plush!" : "Đã nhận nhiệm vụ! Hãy tìm Thú Bông Chó trong các rương!"); }
     } else if (activeNPC.id === 'gigi') {
         if (goldCoins >= 5 && questStatus.gigi !== 'COMPLETED') {
             goldCoins -= 5; questStatus.gigi = 'COMPLETED';
             gachaponCount += 2; batCount += 2; updateHPUI(); addCoins(0);
-            alert("Completed Gigi's Quest! Received 2 Gachapons + 2 Baseball Bats!");
-        } else { questStatus.gigi = 'ACCEPTED'; alert("Quest Accepted! Collect 5 Gold Coins!"); }
+            alert(currentLang === 'ENG' ? "Completed Gigi's Quest! Received 2 Gachapons + 2 Baseball Bats!" : "Đã xong nhiệm vụ Gigi! Nhận 2 Gachapons + 2 Gậy Bóng Chày!");
+        } else { questStatus.gigi = 'ACCEPTED'; alert(currentLang === 'ENG' ? "Quest Accepted! Collect 5 Gold Coins!" : "Đã nhận nhiệm vụ! Hãy thu thập đủ 5 Tiền Vàng!"); }
     } else if (activeNPC.id === 'connie') {
         if (soulvesterFollowing && questStatus.connie !== 'COMPLETED') {
             soulvesterFollowing = false; questStatus.connie = 'COMPLETED';
             maxHP = 4; trioHP = 4; yatta.hp = 4; looey.hp = 4; blot.hp = 4;
-            updateHPUI(); alert("Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max)!");
-        } else { questStatus.connie = 'ACCEPTED'; alert("Quest Accepted! Search room chests for Soulvester!"); }
+            updateHPUI(); alert(currentLang === 'ENG' ? "Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max)!" : "Đã xong nhiệm vụ Connie! Nhận +1 Tim Máu Tối Đa (Tối đa 4 HP)!");
+        } else { questStatus.connie = 'ACCEPTED'; alert(currentLang === 'ENG' ? "Quest Accepted! Search room chests for Soulvester!" : "Đã nhận nhiệm vụ! Hãy tìm Soulvester trong các rương!"); }
     }
     saveGameData();
 }
@@ -1003,7 +1009,7 @@ function answerQuiz(selectedOpt) {
             triggerGameOverScreen('VEE');
             return;
         } else {
-            alert("❌ Incorrect answer! Lost 1 Heart!");
+            alert(currentLang === 'ENG' ? "❌ Incorrect answer! Lost 1 Heart!" : "❌ Sai rồi! Bị trừ 1 Máu!");
         }
     }
 
@@ -1022,7 +1028,7 @@ function answerQuiz(selectedOpt) {
 
             document.getElementById('ending-sub1').innerText = (currentLang === 'ENG') ? "You escaped Gardenview (experimental game)" : "Bạn đã trốn thoát khỏi Gardenview (trò chơi thử nghiệm)";
             document.getElementById('ending-sub2').innerText = (currentLang === 'ENG') ? "(Everyone found you guys lying on the floor)" : "(Mọi người tìm thấy cả nhóm đang nằm bất tỉnh trên sàn nhà)";
-            document.getElementById('ending-btn').innerText = "RESTART GAME";
+            document.getElementById('ending-btn').innerText = currentLang === 'ENG' ? "RESTART GAME" : "BẮT ĐẦU LẠI GAME";
             currentGameOverType = 'VEE';
             document.getElementById('ending-screen').style.display = 'flex';
         } else {
@@ -1095,7 +1101,7 @@ window.addEventListener('keydown', (e) => {
                 blot.worldX = looey.worldX + 25;
                 yatta.y = 450; looey.y = 450; blot.y = 450;
                 onRopeState.active = false;
-                alert("Successfully walked across the Tightrope using alternate steps!");
+                alert(currentLang === 'ENG' ? "Successfully walked across the Tightrope using alternate steps!" : "Đã qua dây thừng thành công bằng cách bấm luân phiên A/D!");
             }
         }
         return;
@@ -1116,7 +1122,7 @@ window.addEventListener('keydown', (e) => {
                 blot.worldX = looey.worldX + 25;
                 yatta.y = 450; looey.y = 450; blot.y = 450;
                 onRingState.active = false;
-                alert("Successfully cleared all Circus Rings!");
+                alert(currentLang === 'ENG' ? "Successfully cleared all Circus Rings!" : "Đã vượt qua tất cả vòng xiếc thành công!");
             }
         }
         return;
@@ -1134,8 +1140,8 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'Digit7') switchChar('trio');
 
     if (e.code === 'KeyZ') {
-        if (batCount > 0) { batEquipped = !batEquipped; updateHPUI(); alert(batEquipped ? "Bat EQUIPPED!" : "Bat UNEQUIPPED."); }
-        else alert("No Baseball Bat!");
+        if (batCount > 0) { batEquipped = !batEquipped; updateHPUI(); alert(batEquipped ? (currentLang === 'ENG' ? "Bat EQUIPPED!" : "Đã TRANG BỊ Gậy!") : (currentLang === 'ENG' ? "Bat UNEQUIPPED." : "Đã CẤT Gậy.")); }
+        else alert(currentLang === 'ENG' ? "No Baseball Bat!" : "Không có Gậy Bóng Chày!");
     }
 
     if (e.code === 'KeyF') {
@@ -1148,9 +1154,9 @@ window.addEventListener('keydown', (e) => {
             if (currentTwisted.hp <= 0) {
                 let dropRand = Math.random();
                 let dropText = "";
-                if (dropRand < 0.4) { addCoins(2); dropText = "Dropped 2 Silver Coins!"; }
-                else if (dropRand < 0.7) { goldCoins++; addCoins(0); dropText = "Dropped 1 Gold Coin!"; }
-                else { pendingLoot = 'MEDKIT'; dropText = "Dropped 1 Medkit!"; }
+                if (dropRand < 0.4) { addCoins(2); dropText = currentLang === 'ENG' ? "Dropped 2 Silver Coins!" : "Rớt 2 Đồng Bạc!"; }
+                else if (dropRand < 0.7) { goldCoins++; addCoins(0); dropText = currentLang === 'ENG' ? "Dropped 1 Gold Coin!" : "Rớt 1 Tiền Vàng!"; }
+                else { pendingLoot = 'MEDKIT'; dropText = currentLang === 'ENG' ? "Dropped 1 Medkit!" : "Rớt 1 Hộp Cứu Thương!"; }
 
                 alert(`Defeated ${currentTwisted.type} Twisted! ${dropText} Floor ${currentFloor} is CLEARED!`);
                 floorCleared[currentFloor] = true; currentTwisted = null;
@@ -1208,7 +1214,7 @@ window.addEventListener('keydown', (e) => {
             yatta.worldX = nearRope.x; yatta.y = nearRope.y - 10;
             looey.worldX = yatta.worldX - 25; looey.y = nearRope.y - 10;
             blot.worldX = looey.worldX - 25; blot.y = nearRope.y - 10;
-            alert("Climbed on Tightrope! Alternate pressing [A] and [D] to walk across!");
+            alert(currentLang === 'ENG' ? "Climbed on Tightrope! Alternate pressing [A] and [D] to walk across!" : "Đã leo lên dây thừng! Bấm luân phiên [A] và [D] để bước đi!");
             return;
         }
 
@@ -1219,7 +1225,7 @@ window.addEventListener('keydown', (e) => {
                 yatta.worldX = firstRing.x; yatta.y = firstRing.y + 20;
                 looey.worldX = firstRing.x - 25; looey.y = firstRing.y + 20;
                 blot.worldX = firstRing.x - 50; blot.y = firstRing.y + 20;
-                alert("Grounded on Circus Ring 1! Press [D] or [Right Arrow] to swing to the next ring!");
+                alert(currentLang === 'ENG' ? "Grounded on Circus Ring 1! Press [D] or [Right Arrow] to swing to the next ring!" : "Đang bám vòng xiếc 1! Nhấn [D] hoặc [Mũi tên phải] để đu sang vòng tiếp!");
                 return;
             }
         }
@@ -1232,11 +1238,11 @@ window.addEventListener('keydown', (e) => {
                 currentTwisted = null;
                 isVeeQuizMode = true;
                 updateUIText();
-                playVeeQuizMusic(); // KÍCH HOẠT ĐOẠN NHẠC CẮT TỪ 2:50 - 4:00 KHI MỞ VEEMAIL THỨ 2
+                playVeeQuizMusic();
                 document.getElementById('veemail-modal').style.display = 'flex';
                 return;
             } else {
-                alert("This is the Final Escape Door! You need a Pumpkin Key forged from 8 Golden Keys to unlock it!");
+                alert(currentLang === 'ENG' ? "This is the Final Escape Door! You need a Pumpkin Key forged from 8 Golden Keys to unlock it!" : "Cửa thoát hiểm cuối cùng! Cần Pumpkin Key ghép từ 8 Chìa Khóa Vàng để mở!");
                 return;
             }
         }
@@ -1246,7 +1252,7 @@ window.addEventListener('keydown', (e) => {
                 currentRoom = d; gameState = 'INSIDE_ROOM';
                 if (Math.random() < 0.2) {
                     goldCoins++; addCoins(0);
-                    alert("Found a Gold Coin 🪙 right at the door!");
+                    alert(currentLang === 'ENG' ? "Found a Gold Coin 🪙 right at the door!" : "Nhặt được 1 Tiền Vàng 🪙 ngay tại cửa!");
                 }
             }
         });
@@ -1256,16 +1262,16 @@ window.addEventListener('keydown', (e) => {
             let rand = Math.random();
 
             if (questStatus.rodger === 'ACCEPTED' && !hasDogPlush && rand < 0.35) {
-                hasDogPlush = true; alert("Found Toodles' Dog Plush (🧸)! Return it to Rodger!");
+                hasDogPlush = true; alert(currentLang === 'ENG' ? "Found Toodles' Dog Plush (🧸)! Return it to Rodger!" : "Tìm thấy Thú Bông Chó (🧸)! Hãy đem về cho Rodger!");
             } else if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && rand < 0.25) {
-                soulvesterFollowing = true; alert("FOUND SOULVESTER INSIDE THE CHEST! He is now following you back to Connie!");
+                soulvesterFollowing = true; alert(currentLang === 'ENG' ? "FOUND SOULVESTER INSIDE THE CHEST! He is now following you back to Connie!" : "TÌM THẤY SOULVESTER TRONG RƯƠNG! Anh ấy đang đi theo bạn về gặp Connie!");
             } else {
                 let rarityRand = Math.random();
 
                 if (keysCount < 8 && rarityRand < 0.35) {
                     keysCount++;
                     updateHPUI();
-                    alert(`Found a Golden Key (🔑 ${keysCount}/8)!`);
+                    alert(currentLang === 'ENG' ? `Found a Golden Key (🔑 ${keysCount}/8)!` : `Tìm thấy Chìa Khóa Vàng (🔑 ${keysCount}/8)!`);
                     
                     if (keysCount === 8) {
                         setTimeout(() => {
@@ -1282,14 +1288,14 @@ window.addEventListener('keydown', (e) => {
                 if (rarityRand < 0.5) { pendingLoot = 'CANDY'; }
                 else if (rarityRand < 0.65) { pendingLoot = 'POP'; }
                 else if (rarityRand < 0.78) { 
-                    batCount += 2; updateHPUI(); alert("Found 2 Baseball Bats! ⚾⚾"); return; 
+                    batCount += 2; updateHPUI(); alert(currentLang === 'ENG' ? "Found 2 Baseball Bats! ⚾⚾" : "Nhặt được 2 Gậy Bóng Chày! ⚾⚾"); return; 
                 } else if (rarityRand < 0.9) { 
                     capsuleCount++; gachaponCount++; 
-                    alert("Found 1 Capsule & 1 Gachapon! Parkour routes and pits unlocked on next floors!"); 
+                    alert(currentLang === 'ENG' ? "Found 1 Capsule & 1 Gachapon! Parkour routes and pits unlocked on next floors!" : "Nhặt được 1 Capsule & 1 Gachapon! Tuyến parkour đã được mở!"); 
                     return; 
                 } else { pendingLoot = 'MEDKIT'; }
 
-                document.getElementById('loot-msg').innerText = `Found ${pendingLoot}! Store in Inventory?`;
+                document.getElementById('loot-msg').innerText = currentLang === 'ENG' ? `Found ${pendingLoot}! Store in Inventory?` : `Nhặt được ${pendingLoot}! Cất vào túi đồ?`;
                 document.getElementById('loot-dialog').style.display = 'flex';
             }
         }

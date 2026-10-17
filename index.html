@@ -130,7 +130,7 @@
 </head>
 <body>
 
-<!-- 3 FILE NHẠC NỀN CHUẨN XÁC -->
+<!-- 3 FILE NHẠC NỀN -->
 <audio id="bgm-locked-away" loop src="locked_away.mp3"></audio>
 <audio id="bgm-all-eyes" loop src="all_eyes_on_me.mp3"></audio>
 <audio id="bgm-clair-de-lune" src="clair_de_lune.mp3"></audio>
@@ -370,8 +370,8 @@ const texts = {
 - [L]: Open Elevator menu to jump between floors & active quests.
 - [1] [2] [3]: Use inventory items.
 - [4] [5] [6] [7]: Switch control between Yatta, Looey, Blot, and Trio.`,
-        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys... Signed: D`,
-        veemailVeeQuiz: `Welcome to Vee's Quiz. Answer at least 7 out of 10 correctly to defeat Twisted Vee. Signed: D`
+        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
+        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -398,12 +398,11 @@ const texts = {
 1. CÁCH CHƠI & MỤC TIÊU:
 - Khám phá các tầng, làm nhiệm vụ NPC, mở rương nhặt Capsule/Gachapon để mở khóa kỹ năng Parkour (đu dây, vòng xiếc), thu thập 8 Chìa Khóa Vàng.
 - Dùng Pumpkin Key mở cửa cuối để tham gia 'Vee's Quiz' tiêu diệt Twisted Vee và chiến thắng!`,
-        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta... Ký tên: D`,
-        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Trả lời đúng 7/10 câu hỏi để tiêu diệt Twisted Vee. Ký tên: D`
+        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
+        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
-// QUẢN LÝ PHÁT NHẠC (TUÂN THỦ CHÍNH XÁC CHECKBOX MUTE & TƯƠNG TÁC NGƯỜI DÙNG)
 function playMusic(trackId) {
     if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
@@ -494,7 +493,6 @@ function resetItemsAndQuestsKeepFloors() {
     location.reload();
 }
 
-// LOGIC MAP: DÂY THỪNG VÀ VÒNG XIẾC CHỈ XUẤT HIỆN KHI ĐÃ NHẶT ĐƯỢC CAPSULE / GACHAPON
 function loadOrCreateFloorMap(fl) {
     if (floorDataMemory[fl]) {
         let mem = floorDataMemory[fl];
@@ -518,8 +516,6 @@ function loadOrCreateFloorMap(fl) {
         ];
 
         let newPits = [{ x: 550, w: 180 }, { x: 1100, w: 200 }];
-        
-        // CHỈ TẠO PARKOUR NẾU ĐÃ NHẶT ĐƯỢC ITEM TƯƠNG ỨNG
         let newTightropes = capsuleCount > 0 ? [{ x: 560, y: 320, w: 160 }] : [];
         let newCircusRings = gachaponCount > 0 ? [{ x: 1130, y: 280 }, { x: 1210, y: 280 }, { x: 1290, y: 280 }] : [];
 
@@ -532,7 +528,7 @@ function loadOrCreateFloorMap(fl) {
 
             if (availableNPCs.length > 0 && Math.random() < 0.7) {
                 let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
-                newNPC = { ...picked, x: 780 }; // Đảm bảo an toàn không trùng hố
+                newNPC = { ...picked, x: 780 };
                 npcAssignedFloor[picked.id] = fl;
             }
         }
@@ -581,6 +577,9 @@ function updateUIText() {
     if (isHowToPlayMode) {
         document.getElementById('v-title').innerText = currentLang === 'ENG' ? "🖥️ HOW TO PLAY & GUIDE" : "🖥️ CÁCH CHƠI & HƯỚNG DẪN";
         document.getElementById('v-content').innerText = t.howToPlayText;
+    } else if (gameState === 'VEEMAIL_OPEN') {
+        document.getElementById('v-title').innerText = "🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION";
+        document.getElementById('v-content').innerText = isVeeQuizMode ? t.veemailVeeQuiz : t.veemailIntro;
     }
 }
 
@@ -588,6 +587,8 @@ function showHelp() {
     isHowToPlayMode = true;
     isVeeQuizMode = false;
     updateUIText();
+    document.getElementById('v-title').innerText = currentLang === 'ENG' ? "🖥️ HOW TO PLAY & GUIDE" : "🖥️ CÁCH CHƠI & HƯỚNG DẪN";
+    document.getElementById('v-content').innerText = texts[currentLang].howToPlayText;
     document.getElementById('veemail-modal').style.display = 'flex';
 }
 
@@ -653,7 +654,7 @@ function nextDialogue() {
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
-                playMusic('bgm-locked-away'); // Phát Locked Away từ Veemail đầu tiên
+                playMusic('bgm-locked-away');
             }, 2000);
         }
     }

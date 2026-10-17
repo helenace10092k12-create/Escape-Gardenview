@@ -126,14 +126,21 @@
         }
         #speaker-name { color: #ffb74d; font-weight: bold; font-size: 11px; }
         #dialogue-text { color: #00e676; font-size: 11px; line-height: 1.3; }
+        
+        /* Ẩn iframe YouTube chứa nhạc Clair de Lune */
+        .yt-audio-container { display: none; }
     </style>
 </head>
 <body>
 
-<!-- NHẠC NỀN CHÍNH & LINK CHUẨN DEBUSSY - CLAIR DE LUNE -->
+<!-- NHẠC NỀN TRỰC TUYẾN CHÍNH -->
 <audio id="bgm-locked-away" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
 <audio id="bgm-all-eyes" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
-<audio id="bgm-clair-de-lune" loop src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Claude_Debussy_-_Clair_de_lune.ogg"></audio>
+
+<!-- KHUNG YOUTUBE NHẠC CLAIR DE LUNE (ROUSSEAU) -->
+<div class="yt-audio-container" id="yt-player-box">
+    <iframe id="clair-iframe" width="200" height="200" src="" title="Clair de Lune" frameborder="0" allow="autoplay"></iframe>
+</div>
 
 <div id="game-box">
     <div id="top-ui">
@@ -466,14 +473,24 @@ Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
 function playMusic(trackId) {
     if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+    document.getElementById('clair-iframe').src = "";
+    
     let track = document.getElementById(trackId);
     if (track) { 
         track.play().catch(e => console.log("Audio waiting for user gesture")); 
     }
 }
 
+function playClairDeLune() {
+    if (isMusicMuted) return;
+    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+    // Bật nhạc Clair de Lune từ YouTube (Rousseau) với autoplay=1
+    document.getElementById('clair-iframe').src = "https://www.youtube.com/embed/WNcsUNKlAKw?autoplay=1&enablejsapi=1";
+}
+
 function stopAllMusic() {
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+    document.getElementById('clair-iframe').src = "";
 }
 
 function toggleMuteMusic() {
@@ -874,28 +891,10 @@ function handleQuestResponse(accepted) {
     saveGameData();
 }
 
-function startTwistedVeeFinalQuiz() {
-    quizIndex = 0;
-    quizScore = 0;
-    playMusic('bgm-all-eyes');
-    document.getElementById('quiz-modal').style.display = 'flex';
-    loadQuizQuestion();
-}
-
-function loadQuizQuestion() {
-    let q = quizData[quizIndex];
-    document.getElementById('quiz-title').innerText = `🧩 VEE'S QUIZ TRIAL (Q${quizIndex + 1}/10)`;
-    document.getElementById('quiz-question').innerText = q.q;
-    for (let i = 0; i < 4; i++) {
-        document.getElementById(`opt-${['A','B','C','D'][i]}`).innerText = q.opts[i];
-    }
-}
-
-// BẬT NHẠC CLAIR DE LUNE KHI GAME OVER HOẶC KẾT THÚC
+// BẬT NHẠC CLAIR DE LUNE TỪ YOUTUBE KHI GAME OVER HOẶC CHIẾN THẮNG
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
-    stopAllMusic();
-    playMusic('bgm-clair-de-lune');
+    playClairDeLune();
     currentGameOverType = type;
     
     let titleEl = document.getElementById('ending-title');
@@ -953,8 +952,7 @@ function answerQuiz(selectedOpt) {
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
-            stopAllMusic();
-            playMusic('bgm-clair-de-lune');
+            playClairDeLune();
             
             let titleEl = document.getElementById('ending-title');
             titleEl.innerText = "Good Ending?";

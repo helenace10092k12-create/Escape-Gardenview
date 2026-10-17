@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Escape Gardenview - Advanced Parkour & Rarity Update</title>
+    <title>Escape Gardenview (Demo)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -110,7 +110,7 @@
 
 <div id="game-box">
     <div id="top-ui">
-        <div class="title" id="ui-gametitle">GARDENVIEW: HALLOWEEN ESCAPE</div>
+        <div class="title" id="ui-gametitle">Escape Gardenview (Demo)</div>
         <div class="hud-right">
             <div class="hud-group">
                 <button class="toon-btn" id="btn-yatta" onclick="switchChar('yatta')">[4] Yatta</button>
@@ -136,16 +136,15 @@
         </div>
 
         <div id="keybinds-guide">
-            ⌨️ <b>PARKOUR CONTROLS:</b><br>
-            • A/D: Balance/Swing on Ropes & Rings<br>
-            • E: Grab Rope/Ring/Interact | Z: Equip Bat<br>
-            • F: Hit Twisted | T: Capsule | R: Gachapon<br>
-            • ⚠️ DO NOT USE BLOT FOR PARKOUR!
+            ⌨️ <b>CONTROLS:</b><br>
+            • WASD / Arrows: Move Selected Toon<br>
+            • Trio [7]: Move all | Yatta [4]/Looey [5]/Blot [6]: Move Solo<br>
+            • E: Interact / Parkour | Z: Equip Bat | F: Attack
         </div>
     </div>
 
     <div id="menu-screen">
-        <div class="menu-title" id="menu-main-title">ESCAPE GARDENVIEW</div>
+        <div class="menu-title" id="menu-main-title">Escape Gardenview (Demo)</div>
         <button class="menu-btn" id="btn-play" onclick="startGame()">PLAY / NEW GAME</button>
         <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
         <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting...')">EXIT</button>
@@ -216,58 +215,39 @@ let inventory = [null, null, null];
 let pendingLoot = null;
 
 let hasDogPlush = false;
-let foundSoulvester = false;
 let soulvesterFollowing = false;
 
 let activeNPC = null;
 let questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
-let lastNPCFloor = -3; // NPU SPAWN CÁCH 2-4 TẦNG
+let lastNPCFloor = -3;
 let currentNPCFloor = null;
 let floorCleared = {};
 
-// PARKOUR SYSTEM STATES
-let onTightrope = false;
-let tightropeProgress = 0;
-let onCircusRing = false;
-let currentRingIndex = -1;
-let ringSwingAngle = 0;
+// DỮ LIỆU MAP THAY ĐỔI THEO TẦNG
+let blocks = [];
+let pits = [];
+let circusRings = [];
+let tightropes = [];
+let doors = [];
+let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
-let blocks = [
-    { x: 300, y: 380, w: 60, h: 20 },
-    { x: 400, y: 320, w: 60, h: 20 },
-    { x: 1100, y: 350, w: 80, h: 20 }
-];
+let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
-let circusRings = [{ x: 650, y: 260 }, { x: 750, y: 260 }, { x: 850, y: 260 }];
-let tightropes  = [{ x: 1250, y: 320, w: 200 }];
-let elevator    = { x: 2100, y: 370, w: 60, h: 80 };
-
-let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' }; // GIẤU TRONG RƯƠNG PHÒNG BÍ MẬT
-
-let doors = [
-    { id: 1, worldX: 350, y: 300, opened: false },
-    { id: 2, worldX: 1120, y: 270, opened: false },
-    { id: 3, worldX: 1700, y: 370, opened: false }
-];
-
-let currentRoom = null;
-
-// TWISTED RARITY SPAWN SYSTEM
 let twistedTypes = [
-    { type: 'Common', hp: 1, maxHp: 1, speed: 2, color: '#e0e0e0', chance: 0.6 },
-    { type: 'Uncommon', hp: 2, maxHp: 2, speed: 2.2, color: '#00e676', chance: 0.25 },
-    { type: 'Rare', hp: 4, maxHp: 4, speed: 2.5, color: '#3d5aff', chance: 0.1 },
-    { type: 'Main', hp: 7, maxHp: 7, speed: 2.8, color: '#ff1744', chance: 0.05 }
+    { type: 'Common', hp: 1, maxHp: 1, speed: 2, color: '#e0e0e0' },
+    { type: 'Uncommon', hp: 2, maxHp: 2, speed: 2.2, color: '#00e676' },
+    { type: 'Rare', hp: 4, maxHp: 4, speed: 2.5, color: '#3d5aff' },
+    { type: 'Main', hp: 7, maxHp: 7, speed: 2.8, color: '#ff1744' }
 ];
 let currentTwisted = null;
 let twistedX = -400;
-let twistedFreezeTimer = 0; // HIỆU ỨNG FREEZE KHI BỊ ĐẬP GẬY
+let twistedFreezeTimer = 0;
 
 const keysInput = { left: false, right: false };
 
 const texts = {
     ENG: {
-        title: "GARDENVIEW: HALLOWEEN ESCAPE",
+        title: "Escape Gardenview (Demo)",
         play: "PLAY / NEW GAME", how: "HOW TO PLAY", exit: "EXIT",
         next: "Next [Space] >", accept: "ACCEPT", decline: "DECLINE",
         yes: "YES (Put in bag)", no: "NO (Leave behind)",
@@ -281,15 +261,14 @@ const texts = {
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
             { speaker: "SYSTEM", text: "Yatta presses the button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        veemail: `<strong>[GAME RULES & ADVANCED PARKOUR]</strong><br><br>
-            1. <b>PARKOUR RULES:</b> Yatta can do all parkour. Looey can do Tightrope & Ropes. Blot CANNOT do parkour!<br>
-            2. <b>WARNING:</b> If you force Blot to do parkour, Blot will fall off and disappear from your team forever!<br>
-            3. <b>ITEM RARITY:</b> Candy (Common), Pop (Uncommon), Bats/Medkits/Bandages (Rare).<br>
-            4. <b>CONNIE'S QUEST:</b> Soulvester is hidden inside room chests on high floors!<br><br>
+        veemail: `<strong>[GAME RULES & MECHANICS]</strong><br><br>
+            1. <b>SOLO MOVEMENT:</b> Selecting Yatta [4], Looey [5], or Blot [6] moves ONLY that character! The rest freeze in place.<br>
+            2. <b>PIT & PARKOUR:</b> Parkour with pits appears ONLY after getting both Capsule and Gachapon!<br>
+            3. <b>FALL DAMAGE:</b> Falling into pits: Yatta (-2 HP), Looey (-1 HP), Blot (Disappears forever!).<br><br>
             <i>Signed: D</i>`
     },
     VIE: {
-        title: "GARDENVIEW: TRỐN THOÁT HALLOWEEN",
+        title: "Escape Gardenview (Demo)",
         play: "CHƠI MỚI / BẮT ĐẦU", how: "HƯỚNG DẪN", exit: "THOÁT",
         next: "Tiếp tục [Space] >", accept: "ĐỒNG Ý", decline: "TỪ CHỐI",
         yes: "CÓ (Cất vào túi)", no: "KHÔNG (Bỏ lại)",
@@ -303,14 +282,48 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        veemail: `<strong>[LUẬT CHƠI & PARKOUR NÂNG CAO]</strong><br><br>
-            1. <b>LUẬT PARKOUR:</b> Yatta làm được hết. Looey đi dây & đu dây. Blot KHÔNG LÀM ĐƯỢC PARKOUR!<br>
-            2. <b>CẢNH BÁO:</b> Dùng Blot làm parkour sẽ khiến Blot ngã xuống vực và BIẾN MẤT VĨNH VIỄN!<br>
-            3. <b>RARITY ITEM:</b> Candy (Common), Pop (Uncommon), Bat/Bandage/Medkit (Rare hiếm).<br>
-            4. <b>NHIỆM VỤ CONNIE:</b> Soulvester bị giấu ngẫu nhiên trong rương ở tầng cao!<br><br>
+        veemail: `<strong>[LUẬT CHƠI & CƠ CHẾ SỐNG CÒN]</strong><br><br>
+            1. <b>DI CHUYỂN ĐƠN LẺ:</b> Chọn Yatta [4], Looey [5], hoặc Blot [6] chỉ điều khiển đúng Toon đó! Hai Toon còn lại đứng yên.<br>
+            2. <b>VỰC & PARKOUR:</b> Vực thẳm Parkour chỉ xuất hiện sau khi nhận đủ Capsule và Gachapon!<br>
+            3. <b>TÉ VỰC:</b> Yatta té (-2 HP), Looey té (-1 HP), Blot té (Biến mất vĩnh viễn!).<br><br>
             <i>Ký tên: D</i>`
     }
 };
+
+function generateRandomFloorMap() {
+    blocks = [];
+    pits = [];
+    circusRings = [];
+    tightropes = [];
+    doors = [];
+
+    let hasParkourPits = (capsuleCount > 0 && gachaponCount > 0);
+
+    // CỬA PHÒNG BỐ TRÍ RANDOM THEO TẦNG
+    let doorX1 = 300 + Math.floor(Math.random() * 150);
+    let doorX2 = 900 + Math.floor(Math.random() * 200);
+    let doorX3 = 1600 + Math.floor(Math.random() * 200);
+
+    doors = [
+        { id: 1, worldX: doorX1, y: 370, opened: false },
+        { id: 2, worldX: doorX2, y: 370, opened: false },
+        { id: 3, worldX: doorX3, y: 370, opened: false }
+    ];
+
+    // BLOCKS BỐ TRÍ RANDOM
+    blocks = [
+        { x: doorX1 - 40, y: 380, w: 60, h: 20 },
+        { x: doorX2 - 40, y: 350, w: 60, h: 20 },
+        { x: doorX3 - 40, y: 380, w: 60, h: 20 }
+    ];
+
+    // CHỈ TẠO VỰC VÀ PARKOUR NẾU ĐÃ CÓ CAPSULE VÀ GACHAPON
+    if (hasParkourPits) {
+        pits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
+        tightropes = [{ x: 610, y: 320, w: 230 }];
+        circusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
+    }
+}
 
 function toggleLanguage() {
     currentLang = currentLang === 'ENG' ? 'VIE' : 'ENG';
@@ -374,11 +387,11 @@ function closeVeemail() {
     document.getElementById('inventory-hud').style.display = 'flex';
     document.getElementById('keybinds-guide').style.display = 'block';
     gameState = 'SIDE_SCROLL';
+    generateRandomFloorMap();
     checkAndSpawnNPCForFloor();
     checkAndSpawnTwisted();
 }
 
-// NPC SPAWN NGẮT QUẢNG CÁCH 2-4 TẦNG
 function checkAndSpawnNPCForFloor() {
     currentNPCFloor = null;
     if (currentFloor - lastNPCFloor >= Math.floor(Math.random() * 3) + 2) {
@@ -389,13 +402,12 @@ function checkAndSpawnNPCForFloor() {
 
         if (availableNPCs.length > 0) {
             let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
-            currentNPCFloor = { ...picked, x: 700 };
+            currentNPCFloor = { ...picked, x: 750 };
             lastNPCFloor = currentFloor;
         }
     }
 }
 
-// TWISTED SPAWN THEO RARITY
 function checkAndSpawnTwisted() {
     if (!floorCleared[currentFloor]) {
         let rand = Math.random();
@@ -409,7 +421,7 @@ function checkAndSpawnTwisted() {
 }
 
 function switchChar(c) {
-    if (c === 'blot' && !blot.exists) { alert("Blot fell off during parkour and is no longer in the team!"); return; }
+    if (c === 'blot' && !blot.exists) { alert("Blot fell off and is no longer in the team!"); return; }
     activeChar = c;
     document.querySelectorAll('.toon-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('btn-' + c).classList.add('active');
@@ -474,14 +486,6 @@ function confirmLoot(yes) {
     pendingLoot = null;
 }
 
-// KHÍ BLOT LÀM PARKOUR SẼ BỊ RỚT VÀ MẤT VĨNH VIỄN (TRIO -> DUO)
-function triggerBlotFall() {
-    blot.exists = false; blot.active = false;
-    activeChar = 'yatta';
-    updateHPUI();
-    alert("⚠️ OH NO! Blot failed the parkour, fell off the edge, and disappeared from the team! Trio is now DUO!");
-}
-
 function openQuestDialog(npc) {
     activeNPC = npc;
     let box = document.getElementById('quest-box');
@@ -527,23 +531,13 @@ function handleQuestResponse(accepted) {
             soulvesterFollowing = false; questStatus.connie = 'COMPLETED';
             maxHP = 4; trioHP = 4; yatta.hp = 4; looey.hp = 4; blot.hp = 4;
             updateHPUI(); alert("Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max)!");
-        } else { questStatus.connie = 'ACCEPTED'; alert("Quest Accepted! Search room chests on higher floors for Soulvester!"); }
+        } else { questStatus.connie = 'ACCEPTED'; alert("Quest Accepted! Search room chests for Soulvester!"); }
     }
 }
 
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
     
-    // PARKOUR ĐI DÂY & ĐU VÒNG BẰNG A / D
-    if (onTightrope) {
-        if (e.code === 'KeyA' || e.code === 'ArrowLeft' || e.code === 'KeyD' || e.code === 'ArrowRight') {
-            tightropeProgress += 10;
-            yatta.worldX += 10;
-            if (tightropeProgress >= 200) { onTightrope = false; alert("Successfully crossed tightrope!"); }
-        }
-        return;
-    }
-
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
@@ -571,7 +565,7 @@ window.addEventListener('keydown', (e) => {
                 floorCleared[currentFloor] = true; currentTwisted = null;
             } else {
                 twistedX -= 250;
-                twistedFreezeTimer = 120; // HIỆU ỨNG FREEZE 2 GIÂY KHI BỊ ĐẬP GẬY
+                twistedFreezeTimer = 120;
                 alert(`Hit ${currentTwisted.type} Twisted! Slowed down! (${currentTwisted.hp} HP left)`);
             }
         } else alert(batEquipped ? "Twisted too far!" : "Press [Z] to EQUIP Bat first!");
@@ -602,7 +596,7 @@ window.addEventListener('keydown', (e) => {
             else if (choice === '2' && currentFloor > 1) currentFloor--;
 
             yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
-            doors.forEach(d => d.opened = false);
+            generateRandomFloorMap();
             checkAndSpawnNPCForFloor();
             checkAndSpawnTwisted();
             alert(`Traveled to Floor ${currentFloor}!`);
@@ -611,29 +605,18 @@ window.addEventListener('keydown', (e) => {
 
     if (e.code === 'KeyW' || e.code === 'ArrowUp') {
         if (gameState === 'SIDE_SCROLL' || gameState === 'HALLWAY_START') {
-            [yatta, looey, blot].forEach(p => {
+            let targets = getActiveToons();
+            targets.forEach(p => {
                 if (p.grounded && p.active) { p.vy = -12; p.grounded = false; }
             });
         }
     }
 
-    // TƯƠNG TÁC PHÍM [E] ĐU DÂY / ĐU VÒNG / MỞ RƯƠNG
     if (e.code === 'KeyE') {
         if (gameState === 'HALLWAY_START' && Math.abs(yatta.worldX - 80) < 80) {
             gameState = 'BLACKOUT_STORY'; dialogueStep = 0;
             document.getElementById('dialogue-box').style.display = 'flex';
             updateDialogue(); return;
-        }
-
-        // PHÁT HIỆN ĐI DÂY / ĐU VÒNG
-        if (gameState === 'SIDE_SCROLL') {
-            let tp = tightropes[0];
-            if (yatta.worldX >= tp.x - 20 && yatta.worldX <= tp.x + tp.w + 20) {
-                if (activeChar === 'blot') { triggerBlotFall(); return; }
-                onTightrope = true; tightropeProgress = 0;
-                alert("Started walking on Tightrope! Press A/D repeatedly to move forward!");
-                return;
-            }
         }
 
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
@@ -653,12 +636,11 @@ window.addEventListener('keydown', (e) => {
             } else if (questStatus.connie === 'ACCEPTED' && !soulvesterFollowing && rand < 0.2) {
                 soulvesterFollowing = true; alert("FOUND SOULVESTER INSIDE THE CHEST! He is now following you back to Connie!");
             } else {
-                // RARITY DROP RATE SYSTEM
                 let rarityRand = Math.random();
-                if (rarityRand < 0.5) { pendingLoot = 'CANDY'; } // COMMON
-                else if (rarityRand < 0.8) { pendingLoot = 'POP'; } // UNCOMMON
-                else if (rarityRand < 0.95) { pendingLoot = 'BAT'; batCount++; updateHPUI(); alert("Found Baseball Bat (Rare)!"); return; }
-                else { pendingLoot = 'MEDKIT'; } // RARE
+                if (rarityRand < 0.5) { pendingLoot = 'CANDY'; }
+                else if (rarityRand < 0.8) { pendingLoot = 'POP'; }
+                else if (rarityRand < 0.95) { pendingLoot = 'BAT'; batCount++; updateHPUI(); alert("Found Baseball Bat!"); return; }
+                else { pendingLoot = 'MEDKIT'; }
 
                 document.getElementById('loot-msg').innerText = `Found ${pendingLoot}! Store in Inventory?`;
                 document.getElementById('loot-dialog').style.display = 'flex';
@@ -673,6 +655,31 @@ window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = false;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = false;
 });
+
+// XÁC ĐỊNH TOON ĐANG ĐƯỢC CHỌN ĐỂ DI CHUYỂN
+function getActiveToons() {
+    if (activeChar === 'trio') return [yatta, looey, blot];
+    if (activeChar === 'yatta') return [yatta];
+    if (activeChar === 'looey') return [looey];
+    if (activeChar === 'blot' && blot.exists) return [blot];
+    return [];
+}
+
+function handlePitFall(toonName) {
+    if (toonName === 'yatta') {
+        yatta.hp -= 2; updateHPUI();
+        alert("Yatta fell into the pit! Lost 2 HP!");
+        yatta.worldX -= 120; yatta.y = 450;
+    } else if (toonName === 'looey') {
+        looey.hp -= 1; updateHPUI();
+        alert("Looey fell into the pit! Lost 1 HP!");
+        looey.worldX -= 120; looey.y = 450;
+    } else if (toonName === 'blot') {
+        blot.exists = false; blot.active = false;
+        activeChar = 'yatta'; updateHPUI();
+        alert("Blot fell into the pit and DISAPPEARED FOREVER! Trio is now DUO!");
+    }
+}
 
 function gameLoop() {
     ctx.clearRect(0, 0, 800, 560);
@@ -704,26 +711,36 @@ function gameLoop() {
         if (keysInput.left) moveX = -4;
         if (keysInput.right) moveX = 4;
 
-        [yatta, looey, blot].forEach(p => {
+        let movingToons = getActiveToons();
+
+        // CHỈ CÁC TOON ĐƯỢC CHỌN MỚI DI CHUYỂN, TOON KHÁC FREESE TẠI CHỐ
+        movingToons.forEach(p => {
             if (p.active) {
                 p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
+                
                 blocks.forEach(b => {
                     if (p.worldX > b.x - 15 && p.worldX < b.x + b.w + 15) {
                         if (p.y + p.vy >= b.y && p.y <= b.y + 12) { p.y = b.y; p.vy = 0; p.grounded = true; }
                     }
                 });
-                if (p.y >= 450) { p.y = 450; p.vy = 0; p.grounded = true; }
+
+                // KIỂM TRA TÉ VỰC THẲM (PIT)
+                let inPit = pits.some(pt => p.worldX >= pt.x && p.worldX <= pt.x + pt.w);
+                if (inPit && p.y >= 450) {
+                    if (p === yatta) handlePitFall('yatta');
+                    else if (p === looey) handlePitFall('looey');
+                    else if (p === blot) handlePitFall('blot');
+                } else if (p.y >= 450) {
+                    p.y = 450; p.vy = 0; p.grounded = true;
+                }
             }
         });
 
         if (soulvesterFollowing) { soulvesterNPC.x = yatta.worldX - 40; }
 
         if (currentTwisted) {
-            if (twistedFreezeTimer > 0) {
-                twistedFreezeTimer--; // FREEZE LÀM CHẬM QUÁI
-            } else {
-                twistedX += currentTwisted.speed;
-            }
+            if (twistedFreezeTimer > 0) twistedFreezeTimer--;
+            else twistedX += currentTwisted.speed;
 
             let isNearX = Math.abs(yatta.worldX - twistedX) < 30;
             let isGroundY = yatta.y >= 420;
@@ -753,6 +770,13 @@ function gameLoop() {
         ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
         ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'}`, 40, 30);
 
+        // VẼ SÀN ĐẤT & VỰC THẲM (PITS)
+        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
+        pits.forEach(pt => {
+            ctx.fillStyle = '#05020a'; ctx.fillRect(pt.x, 450, pt.w, 110); // VỰC ĐEN
+            ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 2; ctx.strokeRect(pt.x, 450, pt.w, 110);
+        });
+
         blocks.forEach(b => {
             ctx.fillStyle = '#ff7043'; ctx.fillRect(b.x, b.y, b.w, b.h);
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
@@ -761,13 +785,11 @@ function gameLoop() {
         circusRings.forEach(r => {
             ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.arc(r.x, r.y, 20, 0, Math.PI*2); ctx.stroke();
-            ctx.fillStyle = '#ff7043'; ctx.font = '8px Courier New'; ctx.fillText("RING [E]", r.x - 12, r.y - 25);
         });
 
         tightropes.forEach(tp => {
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
-            ctx.fillStyle = '#00e676'; ctx.font = '8px Courier New'; ctx.fillText("TIGHTROPE [E]", tp.x + 60, tp.y - 6);
         });
 
         doors.forEach(d => {
@@ -793,11 +815,8 @@ function gameLoop() {
             ctx.fillStyle = twistedFreezeTimer > 0 ? '#00e5ff' : currentTwisted.color;
             ctx.fillRect(twistedX - 12, 410, 24, 40);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 10px Courier New';
-            ctx.fillText(`${currentTwisted.type} ${twistedFreezeTimer > 0 ? '[FROZEN]' : ''} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 35, 395);
+            ctx.fillText(`${currentTwisted.type} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 35, 395);
         }
-
-        ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
-        ctx.fillStyle = '#7c4dff'; ctx.fillRect(0, 450, 2500, 4);
 
         if (yatta.active) drawChar(yatta.worldX, yatta.y, '#fff59d', 'yatta');
         if (looey.active) drawChar(looey.worldX, looey.y, '#ffee58', 'looey');
@@ -818,13 +837,13 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// KHÔI PHỤC MŨI TÊN CHỈ NHÂN VẬT DẪN ĐẦU (ACTIVE TOON)
+// VẼ MŨI TÊN CHỈ CHUẨN XÁC DÀNH CHO TOON ĐANG ĐƯỢC ĐIỀU KHIỂN RÊU LẺ
 function drawChar(x, y, color, type) {
     ctx.save(); ctx.translate(x, y);
     ctx.fillStyle = color; ctx.fillRect(-10, -35, 20, 28);
 
-    // MŨI TÊN CHỈ ĐẦU DÀNH CHO TOON ĐANG ĐIỀU KHIỂN
-    if (type === activeChar || (activeChar === 'trio' && type === 'yatta')) {
+    // MŨI TÊN CHỈ ĐẦU ĐƯỢC BẬT DÀNH CHO TOON CHỌN ĐƠN LẺ KHÁC TRIO
+    if (activeChar === type || (activeChar === 'trio' && type === 'yatta')) {
         ctx.fillStyle = '#ff1744';
         ctx.beginPath();
         ctx.moveTo(0, -48); ctx.lineTo(-6, -58); ctx.lineTo(6, -58);

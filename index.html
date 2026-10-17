@@ -78,7 +78,7 @@
         .veemail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e676; padding-bottom: 6px; }
         .veemail-title { color: #00e676; font-weight: bold; font-size: 12px; }
         .close-x { background: #ff1744; color: #fff; border: none; width: 22px; height: 22px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .veemail-body { color: #b9f6ca; font-size: 10px; line-height: 1.5; overflow-y: auto; max-height: 380px; }
+        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 380px; }
 
         #quest-box {
             position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
@@ -89,10 +89,10 @@
         #quest-text { color: #ffcc80; font-size: 11px; line-height: 1.4; }
         .quest-btns { display: flex; justify-content: center; gap: 15px; }
 
-        /* QUIZ MODAL CHO TWISTED VÊ */
+        /* QUIZ MODAL CHO TWISTED VEE TRƯỚC CỬA GOOD ENDING */
         #quiz-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 520px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ff1744;
+            width: 540px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ff1744;
             border-radius: 10px; padding: 20px; z-index: 250; display: none; flex-direction: column; gap: 12px; text-align: center;
         }
         #quiz-title { color: #ff1744; font-weight: bold; font-size: 13px; }
@@ -147,7 +147,8 @@
 
         <div id="keybinds-guide">
             ⌨️ <b id="ui-ctrl-title">CONTROLS:</b><br>
-            • WASD / Arrows: Move Toon<br>
+            • WASD / Arrows: Move Selected Toon<br>
+            • Trio [7]: Move all | Yatta [4]/Looey [5]/Blot [6]: Move Solo<br>
             • E: Interact | Z: Equip Bat | F: Hit Twisted
         </div>
     </div>
@@ -168,19 +169,9 @@
         </div>
     </div>
 
-    <!-- HỎI FORM CHÌA KHÓA THÀNH PUMPKIN KEY -->
-    <div id="quest-box" id="pumpkin-modal" style="display:none;">
-        <div id="pumpkin-title" style="color:#ff7043; font-weight:bold; font-size:13px;">PUMPKIN KEY TRANSFORMATION</div>
-        <div id="pumpkin-text" style="color:#ffeb3b; font-size:11px;">Do you want to transform your keys into Pumpkin Keys?</div>
-        <div class="quest-btns">
-            <button class="action-btn" onclick="responsePumpkinKey(true)">YES / CÓ</button>
-            <button class="action-btn" style="border-color:#ff1744; color:#ff8a80;" onclick="responsePumpkinKey(false)">NO / KHÔNG</button>
-        </div>
-    </div>
-
-    <!-- QUIZ MODAL GIẢI ĐỐ VỚI TWISTED VÊ (6/10 ĐÚNG PASSED, TRƯỢT MẤT 2 TIM) -->
+    <!-- QUIZ MODAL GIẢI ĐỐ VỚI TWISTED VEE TRƯỚC CỬA GOOD ENDING -->
     <div id="quiz-modal">
-        <div id="quiz-title">🧩 TWISTED VÊ CHALLENGE (Q1/10)</div>
+        <div id="quiz-title">🧩 TWISTED VEE GOOD ENDING TRIAL (Q1/10)</div>
         <div id="quiz-question">Question text here...</div>
         <div style="display:flex; flex-direction:column; gap:6px;">
             <button class="quiz-opt-btn" id="opt-A" onclick="answerQuiz(0)">A. ...</button>
@@ -219,7 +210,7 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let currentLang = 'ENG';
+let currentLang = 'ENG'; // DEFAULT LÀ ENG THEO YÊU CẦU
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
@@ -265,35 +256,35 @@ let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
+// TWISTED THƯỜNG (KHÔNG CÓ TWISTED VEE DẠO LINH TINH NỮA)
 let twistedTypes = [
     { type: 'Common', hp: 1, maxHp: 1, speed: 2, color: '#e0e0e0' },
     { type: 'Uncommon', hp: 2, maxHp: 2, speed: 2.2, color: '#00e676' },
-    { type: 'Rare', hp: 4, maxHp: 4, speed: 2.5, color: '#3d5aff' },
-    { type: 'Twisted Vê', hp: 10, maxHp: 10, speed: 2.8, color: '#ff1744', isQuizBoss: true }
+    { type: 'Rare', hp: 4, maxHp: 4, speed: 2.5, color: '#3d5aff' }
 ];
 let currentTwisted = null;
 let twistedX = -400;
 let twistedFreezeTimer = 0;
 
-// HỆ THỐNG QUIZ VỚI TWISTED VÊ (CHỌN A/B/C/D, 6/10 ĐÚNG PASSED)
+// QUIZ DATA CHO TWISTED VEE TRƯỚC CỬA GOOD ENDING
 let quizData = [
     { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"], ans: 1 },
     { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
     { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
     { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 1 },
     { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 2 HP", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
-    { q: "Which key type is mystical and forged from regular keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
+    { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
     { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
     { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
-    { q: "How many correct answers are needed to pass Twisted Vê's quiz?", opts: ["A. 4/10", "B. 5/10", "C. 6/10", "D. 8/10"], ans: 2 },
-    { q: "What penalty do you get if you fail Twisted Vê's quiz?", opts: ["A. Lose 2 HP", "B. Game Over", "C. Lose all items", "D. Lose 1 HP"], ans: 0 }
+    { q: "How many correct answers are needed to defeat Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 6/10", "D. 8/10"], ans: 2 },
+    { q: "What penalty do you get if you fail Twisted Vee's quiz?", opts: ["A. Lose 2 HP", "B. Game Over", "C. Lose all items", "D. Lose 1 HP"], ans: 0 }
 ];
 let quizIndex = 0;
 let quizScore = 0;
 
 const keysInput = { left: false, right: false };
 
-// ĐÃ TÁCH BIỆT HOÀN TOÀN ENG / VIE THEO ĐÚNG Ý BỒ
+// CHUẨN ĐOẠN VEEMAIL D VÀ DỊCH TIẾNG ANH THEO ĐÚNG YÊU CẦU
 const texts = {
     ENG: {
         title: "Escape Gardenview (Demo)",
@@ -311,11 +302,7 @@ const texts = {
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
             { speaker: "SYSTEM", text: "Yatta presses the rainbow button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        veemail: `<strong>[VEEMAIL TRANSMISSION - GARDENVIEW LORE]</strong><br><br>
-            • <b>THE INCIDENT:</b> After the grand circus show, the trio was trapped in a sudden supernatural blackout.<br>
-            • <b>PORTAL REALM:</b> The mysterious rainbow button activated a portal, dragging Yatta, Looey, and Blot deep into the distorted dimensions of Gardenview.<br>
-            • <b>SURVIVAL GOAL:</b> Solve NPC quests, conquer advanced parkour, forge Pumpkin Keys, and defeat Twisted entities to escape!<br><br>
-            <i>Signed: D</i>`
+        veemail: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed, D (the remaining text is obscured by a hand covered in Ichor).`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -333,11 +320,7 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        veemail: `<strong>[HỆ THỐNG VEEMAIL - CỐT TRUYỆN GARDENVIEW]</strong><br><br>
-            • <b>SỰ CỐ BÍ ẨN:</b> Sau buổi biểu diễn xiếc hoành tráng, nhóm Circus Trio bị kẹt trong một trận mất điện siêu nhiên.<br>
-            • <b>CỔNG KHÔNG GIAN:</b> Nút bấm ảo cầu vồng đã kích hoạt một cổng portal hút Yatta, Looey và Blot lạc vào thế giới dị biệt Gardenview.<br>
-            • <b>MỤC TIÊU SỐNG CÒN:</b> Hoàn thành nhiệm vụ NPC, vượt qua các thử thách parkour, chế tạo Pumpkin Key và đánh bại Twisted để trốn thoát!<br><br>
-            <i>Ký tên: D</i>`
+        veemail: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên. D (các chữ sau bị che khuất bởi 1 bàn tay Ichor).`
     }
 };
 
@@ -430,7 +413,7 @@ function updateUIText() {
     document.getElementById('btn-loot-yes').innerText = t.yes;
     document.getElementById('btn-loot-no').innerText = t.no;
     document.getElementById('ui-ctrl-title').innerText = t.ctrlTitle;
-    document.getElementById('v-content').innerHTML = t.veemail;
+    document.getElementById('v-content').innerText = t.veemail;
     if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') updateDialogue();
 }
 
@@ -455,12 +438,6 @@ function nextDialogue() {
             document.getElementById('dialogue-box').style.display = 'none';
             gameState = 'PORTAL_ANIMATION';
             setTimeout(() => {
-                // HỎI CÓ MUỐN FORM KEY THÀNH PUMPKIN KEY KHÔNG
-                let qPrompt = (currentLang === 'ENG') ? "Portal activated! Do you want to transform keys into Pumpkin Keys?" : "Cổng không gian đã kích hoạt! Bồ có muốn chuyển hóa chìa khóa thành Pumpkin Key không?";
-                if (confirm(qPrompt)) {
-                    hasPumpkinKey = true;
-                    alert(currentLang === 'ENG' ? "Successfully transformed into Pumpkin Key!" : "Đã biến đổi thành công thành Pumpkin Key!");
-                }
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
             }, 2000);
@@ -487,9 +464,9 @@ function closeVeemail() {
 function checkAndSpawnTwisted() {
     if (!floorCleared[currentFloor]) {
         let rand = Math.random();
-        if (rand < 0.7) {
+        if (rand < 0.6) {
             let subRand = Math.random();
-            let template = subRand < 0.5 ? twistedTypes[0] : subRand < 0.75 ? twistedTypes[1] : subRand < 0.9 ? twistedTypes[2] : twistedTypes[3];
+            let template = subRand < 0.6 ? twistedTypes[0] : subRand < 0.85 ? twistedTypes[1] : twistedTypes[2];
             currentTwisted = { ...template };
             twistedX = yatta.worldX - 600;
         } else currentTwisted = null;
@@ -507,6 +484,7 @@ function switchChar(c) {
 function updateHPUI() {
     let hpTxt = (activeChar === 'trio') ? trioHP : (activeChar === 'yatta') ? yatta.hp : (activeChar === 'looey') ? looey.hp : blot.hp;
     document.getElementById('hud-hp').innerText = `❤️ HP: ${hpTxt}/${maxHP}`;
+    document.getElementById('hud-keys').innerText = `🔑 Keys: ${keysCount}/8 ${hasPumpkinKey ? '🎃' : ''}`;
     document.getElementById('hud-bats').innerText = `⚾ Bat: ${batEquipped ? 'EQUIPPED' : 'Unarmed'} (${batCount})`;
     if (!blot.exists) document.getElementById('btn-blot').style.textDecoration = 'line-through';
 }
@@ -611,8 +589,8 @@ function handleQuestResponse(accepted) {
     }
 }
 
-// BẮT ĐẦU QUIZ VỚI TWISTED VÊ
-function startTwistedVQuiz() {
+// KHỞI ĐỘNG CÁC CÂU HỎI QUIZ KHI GẶP TWISTED VEE TẠI CỬA GOOD ENDING
+function startTwistedVeeFinalQuiz() {
     quizIndex = 0;
     quizScore = 0;
     document.getElementById('quiz-modal').style.display = 'flex';
@@ -621,7 +599,7 @@ function startTwistedVQuiz() {
 
 function loadQuizQuestion() {
     let q = quizData[quizIndex];
-    document.getElementById('quiz-title').innerText = `🧩 TWISTED VÊ CHALLENGE (Q${quizIndex + 1}/10)`;
+    document.getElementById('quiz-title').innerText = `🧩 TWISTED VEE FINAL GOOD ENDING TRIAL (Q${quizIndex + 1}/10)`;
     document.getElementById('quiz-question').innerText = q.q;
     for (let i = 0; i < 4; i++) {
         document.getElementById(`opt-${['A','B','C','D'][i]}`).innerText = q.opts[i];
@@ -638,11 +616,10 @@ function answerQuiz(selectedOpt) {
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 6) {
-            alert(`🎉 PASSED! You got ${quizScore}/10 correct! Floor ${currentFloor} CLEARED!`);
-            floorCleared[currentFloor] = true;
-            currentTwisted = null;
+            alert(`🎉 GOOD ENDING ACHIEVED! You scored ${quizScore}/10! Twisted Vee is defeated and the Pumpkin Key unlocked the final escape door! YOU WIN!`);
+            location.reload();
         } else {
-            alert(`❌ FAILED! You got ${quizScore}/10 correct (Need 6). Lost 2 HP!`);
+            alert(`❌ TRIAL FAILED! You scored ${quizScore}/10 (Need 6). Lost 2 HP! Twisted Vee knocks you back!`);
             if (activeChar === 'trio') trioHP -= 2;
             else if (activeChar === 'yatta') yatta.hp -= 2;
             else if (activeChar === 'looey') looey.hp -= 2;
@@ -650,7 +627,6 @@ function answerQuiz(selectedOpt) {
             updateHPUI();
             let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
             if (curHP <= 0) { alert("GAME OVER!"); location.reload(); }
-            currentTwisted = null;
         }
     }
 }
@@ -679,12 +655,6 @@ window.addEventListener('keydown', (e) => {
             batCount--;
             if (batCount === 0) batEquipped = false;
             updateHPUI();
-
-            // NẾU LÀ TWISTED VÊ THÌ MỞ QUIZ GIẢI ĐỐ
-            if (currentTwisted.isQuizBoss) {
-                startTwistedVQuiz();
-                return;
-            }
 
             currentTwisted.hp--;
             if (currentTwisted.hp <= 0) {
@@ -753,6 +723,18 @@ window.addEventListener('keydown', (e) => {
 
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
 
+        // MỞ CỬA FINAL ESCAPE (GOOD ENDING) KHI CÓ PUMPKIN KEY HỎI ĐỐ VỚI TWISTED VEE
+        if (gameState === 'SIDE_SCROLL' && Math.abs(yatta.worldX - (elevator.x + 120)) < 60) {
+            if (hasPumpkinKey) {
+                alert("⚠️ TWISTED VEE APPEARS AT THE GOOD ENDING DOOR! Answer her quiz trial to escape!");
+                startTwistedVeeFinalQuiz();
+                return;
+            } else {
+                alert("This is the Final Escape Door! You need a Pumpkin Key forged from 8 Golden Keys to unlock it!");
+                return;
+            }
+        }
+
         doors.forEach(d => {
             if (gameState === 'SIDE_SCROLL' && !d.opened && Math.abs(yatta.worldX - d.worldX) < 80) {
                 currentRoom = d; gameState = 'INSIDE_ROOM';
@@ -769,6 +751,26 @@ window.addEventListener('keydown', (e) => {
                 soulvesterFollowing = true; alert("FOUND SOULVESTER INSIDE THE CHEST! He is now following you back to Connie!");
             } else {
                 let rarityRand = Math.random();
+
+                // CƠ CHẾ RỚT CHÌA KHÓA VÀNG CHUẨN XÁC NÈ
+                if (keysCount < 8 && Math.random() < 0.3) {
+                    keysCount++;
+                    updateHPUI();
+                    alert(`Found a Golden Key (🔑 ${keysCount}/8)!`);
+                    
+                    // KHI ĐỦ ĐÚNG 8 CHÌA KHÓA VÀNG MỚI BẬT KHỎI HỎI FORM PUMPKIN KEY
+                    if (keysCount === 8) {
+                        setTimeout(() => {
+                            if (confirm(currentLang === 'ENG' ? "You collected all 8 Golden Keys! Form them into 1 Pumpkin Key?" : "Bồ đã kiếm đủ 8 chìa khóa vàng! Có muốn form thành 1 chiếc Pumpkin Key không?")) {
+                                hasPumpkinKey = true;
+                                updateHPUI();
+                                alert(currentLang === 'ENG' ? "Formed Pumpkin Key 🎃!" : "Đã tạo thành công Pumpkin Key 🎃!");
+                            }
+                        }, 200);
+                    }
+                    return;
+                }
+
                 if (rarityRand < 0.5) { pendingLoot = 'CANDY'; }
                 else if (rarityRand < 0.8) { pendingLoot = 'POP'; }
                 else if (rarityRand < 0.95) { pendingLoot = 'BAT'; batCount++; updateHPUI(); alert("Found Baseball Bat!"); return; }
@@ -903,7 +905,7 @@ function gameLoop() {
 
         ctx.fillStyle = '#0d021a'; ctx.fillRect(0, 0, 2500, 560);
         ctx.fillStyle = '#b71c1c'; ctx.font = '12px Courier New';
-        ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'} | Key: ${hasPumpkinKey ? 'Pumpkin Key 🎃' : 'Standard Key'}`, 40, 30);
+        ctx.fillText(`GARDENVIEW FLOOR ${currentFloor} - ${floorCleared[currentFloor] ? 'SAFE (CLEARED)' : 'DANGER'} | Key: ${hasPumpkinKey ? 'Pumpkin Key 🎃' : keysCount + '/8 Golden Keys'}`, 40, 30);
 
         ctx.fillStyle = '#281145'; ctx.fillRect(0, 450, 2500, 110);
         pits.forEach(pt => {
@@ -945,11 +947,15 @@ function gameLoop() {
         ctx.fillStyle = '#ffb74d'; ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
         ctx.fillStyle = '#000'; ctx.font = 'bold 9px Courier New'; ctx.fillText("ELEVATOR [L]", elevator.x + 2, elevator.y + 45);
 
+        // CỬA GOOD ENDING VỚI PHỦ BẢO VỆ CỦA TWISTED VEE
+        ctx.fillStyle = '#ff1744'; ctx.fillRect(elevator.x + 120, elevator.y, elevator.w, elevator.h);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 8px Courier New'; ctx.fillText("FINAL ESCAPE [E]", elevator.x + 115, elevator.y - 10);
+
         if (currentTwisted) {
             ctx.fillStyle = twistedFreezeTimer > 0 ? '#00e5ff' : currentTwisted.color;
             ctx.fillRect(twistedX - 12, 410, 24, 40);
             ctx.fillStyle = '#fff'; ctx.font = 'bold 10px Courier New';
-            ctx.fillText(`${currentTwisted.type} ${currentTwisted.isQuizBoss ? '[QUIZ BOSS]' : ''} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 45, 395);
+            ctx.fillText(`${currentTwisted.type} (${currentTwisted.hp}/${currentTwisted.maxHp} HP)`, twistedX - 35, 395);
         }
 
         if (yatta.active) drawChar(yatta.worldX, yatta.y, '#fff59d', 'yatta');

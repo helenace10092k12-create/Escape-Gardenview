@@ -130,9 +130,10 @@
 </head>
 <body>
 
-<audio id="bgm-locked-away" loop src=""></audio>
-<audio id="bgm-perfect-christmas" loop src=""></audio>
-<audio id="bgm-ending" loop src=""></audio>
+<!-- TÍCH HỢP AUDIO TỪ 3 VIDEO (Bồ có thể thay link trực tiếp vào src bên dưới) -->
+<audio id="bgm-gameplay" loop src="LINK_VIDEO_2_SOUND.mp3"></audio>
+<audio id="bgm-quiz" loop src="LINK_VIDEO_1_SOUND.mp3"></audio>
+<audio id="bgm-ending" src="LINK_VIDEO_3_SOUND.mp3"></audio>
 
 <div id="game-box">
     <div id="top-ui">
@@ -424,30 +425,35 @@ const texts = {
     }
 };
 
-function checkSaveExists() {
-    let raw = localStorage.getItem('EGV_SAVE_DATA');
-    let contBtn = document.getElementById('btn-continue');
-    if (raw) {
-        contBtn.style.display = 'block';
-    } else {
-        contBtn.style.display = 'none';
-    }
-}
-
+// HỆ THỐNG QUẢN LÝ AUDIO THEO ĐÚNG Ý BỒ
 function playMusic(trackId) {
     if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
-    if (track && track.src) { track.play().catch(e => console.log("Audio play blocked")); }
+    if (track && track.src && track.src !== window.location.href) { 
+        track.play().catch(e => console.log("Audio play blocked or missing source")); 
+    }
+}
+
+function stopAllMusic() {
+    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
 }
 
 function toggleMuteMusic() {
     isMusicMuted = document.getElementById('mute-checkbox').checked;
     if (isMusicMuted) {
-        document.querySelectorAll('audio').forEach(a => a.pause());
+        stopAllMusic();
     } else {
-        if (gameState === 'SIDE_SCROLL') playMusic('bgm-locked-away');
+        if (gameState === 'SIDE_SCROLL') playMusic('bgm-gameplay');
+        else if (isVeeQuizMode) playMusic('bgm-quiz');
     }
+}
+
+function checkSaveExists() {
+    let raw = localStorage.getItem('EGV_SAVE_DATA');
+    let contBtn = document.getElementById('btn-continue');
+    if (raw) contBtn.style.display = 'block';
+    else contBtn.style.display = 'none';
 }
 
 function saveGameData() {
@@ -620,7 +626,7 @@ function continueGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
-        playMusic('bgm-locked-away');
+        playMusic('bgm-gameplay'); // Phát nhạc video 2 khi tiếp tục chơi
         alert(currentLang === 'ENG' ? "Game progress loaded successfully!" : "Đã tải lại tiến trình chơi thành công!");
     } else {
         alert(currentLang === 'ENG' ? "No saved data found!" : "Không tìm thấy dữ liệu đã lưu!");
@@ -639,13 +645,24 @@ function startNewGame() {
     gameState = 'INTRO_STORY'; dialogueStep = 0;
     document.getElementById('dialogue-box').style.display = 'flex';
     updateUIText();
+    updateDialogue();
+}
+
+function updateDialogue() {
+    let script = (gameState === 'INTRO_STORY') ? texts[currentLang].intro : texts[currentLang].blackout;
+    if (dialogueStep < script.length) {
+        let cur = script[dialogueStep];
+        document.getElementById('speaker-name').innerText = cur.speaker;
+        document.getElementById('dialogue-text').innerText = cur.text;
+    }
 }
 
 function nextDialogue() {
     dialogueStep++;
     let script = (gameState === 'INTRO_STORY') ? texts[currentLang].intro : texts[currentLang].blackout;
-    if (dialogueStep < script.length) updateDialogue();
-    else {
+    if (dialogueStep < script.length) {
+        updateDialogue();
+    } else {
         if (gameState === 'INTRO_STORY') {
             document.getElementById('dialogue-box').style.display = 'none';
             gameState = 'HALLWAY_START';
@@ -660,6 +677,7 @@ function nextDialogue() {
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
+                playMusic('bgm-gameplay'); // KHỞI ĐỘNG NHẠC VIDEO 2 TỪ KHI HIỆN VEEMAIL ĐẦU TIÊN
             }, 2000);
         }
     }
@@ -676,10 +694,10 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        playMusic('bgm-perfect-christmas');
+        playMusic('bgm-quiz'); // Phát nhạc video 1 cho Vee's Quiz
         startTwistedVeeFinalQuiz();
     } else {
-        playMusic('bgm-locked-away');
+        playMusic('bgm-gameplay'); // Duy trì nhạc video 2 vòng lặp qua các tầng
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -822,6 +840,7 @@ function handleQuestResponse(accepted) {
 function startTwistedVeeFinalQuiz() {
     quizIndex = 0;
     quizScore = 0;
+    playMusic('bgm-quiz'); // Bắt đầu phát nhạc video 1 khi vào Vee's Quiz
     document.getElementById('quiz-modal').style.display = 'flex';
     loadQuizQuestion();
 }
@@ -837,6 +856,8 @@ function loadQuizQuestion() {
 
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
+    stopAllMusic();
+    playMusic('bgm-ending'); // Phát nhạc video 3 khi Game Over / Ending
     currentGameOverType = type;
     
     let titleEl = document.getElementById('ending-title');
@@ -894,7 +915,8 @@ function answerQuiz(selectedOpt) {
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
-            playMusic('bgm-ending');
+            stopAllMusic();
+            playMusic('bgm-ending'); // Phát nhạc video 3 khi đạt Good Ending
             
             let titleEl = document.getElementById('ending-title');
             titleEl.innerText = "Good Ending?";

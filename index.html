@@ -147,7 +147,7 @@
     <iframe id="gameover-iframe" width="200" height="200" src="" title="Game Over Track" frameborder="0" allow="autoplay"></iframe>
 </div>
 
-<!-- Player 4: Vee's Quiz & Veemail 2 BGM (Nhạc TikTok Vee's Quiz) -->
+<!-- Player 4: Vee's Quiz & Veemail 2 BGM (Đoạn 2:50 - 4:00 từ video 97OhYWzKW_s) -->
 <div class="yt-audio-container">
     <iframe id="vee-quiz-iframe" width="200" height="200" src="" title="Vee Quiz BGM" frameborder="0" allow="autoplay"></iframe>
 </div>
@@ -508,8 +508,8 @@ function playGameOverMusic() {
 function playVeeQuizMusic() {
     if (isMusicMuted) return;
     stopAllAudio();
-    // BGM dành riêng cho Veemail 2 & Vee's Quiz (Chuyển đổi sang ID âm nhạc phù hợp)
-    document.getElementById('vee-quiz-iframe').src = "https://www.youtube.com/embed/VeNEjvrVVKw?autoplay=1&loop=1&playlist=VeNEjvrVVKw&enablejsapi=1";
+    // BGM Veemail 2 & Vee's Quiz từ YouTube cắt chuẩn từ 2:50 (170s) tới 4:00 (240s)
+    document.getElementById('vee-quiz-iframe').src = "https://www.youtube.com/embed/97OhYWzKW_s?autoplay=1&start=170&end=240&loop=1&playlist=97OhYWzKW_s&enablejsapi=1";
 }
 
 function toggleMuteMusic() {
@@ -1210,7 +1210,7 @@ window.addEventListener('keydown', (e) => {
                 currentTwisted = null;
                 isVeeQuizMode = true;
                 updateUIText();
-                playVeeQuizMusic(); // KÍCH HOẠT NHẠC VEE'S QUIZ KHI MỞ VEEMAIL THỨ 2
+                playVeeQuizMusic(); // KÍCH HOẠT ĐOẠN NHẠC CẮT TỪ 2:50 - 4:00 KHI MỞ VEEMAIL THỨ 2
                 document.getElementById('veemail-modal').style.display = 'flex';
                 return;
             } else {

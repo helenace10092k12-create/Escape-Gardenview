@@ -591,7 +591,6 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        // ĐIỀU KIỆN CHUẨN: PHẢI CÓ ĐỦ CẢ HAI MỚI CHO SPAWN PARKOUR
         let hasBothParkourItems = (capsuleCount > 0 && gachaponCount > 0);
         let newPits = hasBothParkourItems ? [{ x: 550, w: 180 }, { x: 1100, w: 200 }] : [];
         let newTightropes = hasBothParkourItems ? [{ x: 560, y: 320, w: 160 }] : [];
@@ -1113,13 +1112,13 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyR') {
         if (!yatta.active || !looey.active) {
             let choice = prompt("Select Toon to RELEASE:\n1: Yatta\n2: Looey");
-            if (choice === '1') yatta.active = true;
-            if (choice === '2') looey.active = true;
+            if (choice === '1') { yatta.active = true; gachaponCount++; }
+            else if (choice === '2') { looey.active = true; gachaponCount++; }
         } else if (gachaponCount > 0) {
             let choice = prompt("Select Toon to STORE in Gachapon:\n1: Yatta\n2: Looey");
-            if (choice === '1') yatta.active = false;
-            if (choice === '2') gachaponCount--;
-        } else alert("No Gachapon!");
+            if (choice === '1') { yatta.active = false; gachaponCount--; alert("Stored Yatta in Gachapon!"); }
+            else if (choice === '2') { looey.active = false; gachaponCount--; alert("Stored Looey in Gachapon!"); }
+        } else alert("No Gachapon available!");
     }
 
     if (e.code === 'KeyL' && gameState === 'SIDE_SCROLL') {

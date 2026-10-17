@@ -1202,7 +1202,8 @@ window.addEventListener('keydown', (e) => {
             } else {
                 let rarityRand = Math.random();
 
-                if (keysCount < 8 && Math.random() < 0.12) {
+                // TĂNG TỶ LỆ RA CHÌA KHÓA VÀNG ĐỂ BỒ KHÔNG BỊ KẸT
+                if (keysCount < 8 && rarityRand < 0.35) {
                     keysCount++;
                     updateHPUI();
                     alert(`Found a Golden Key (🔑 ${keysCount}/8)!`);
@@ -1219,9 +1220,9 @@ window.addEventListener('keydown', (e) => {
                     return;
                 }
 
-                if (rarityRand < 0.3) { pendingLoot = 'CANDY'; }
-                else if (rarityRand < 0.55) { pendingLoot = 'POP'; }
-                else if (rarityRand < 0.8) { 
+                if (rarityRand < 0.5) { pendingLoot = 'CANDY'; }
+                else if (rarityRand < 0.65) { pendingLoot = 'POP'; }
+                else if (rarityRand < 0.78) { 
                     batCount += 2; updateHPUI(); alert("Found 2 Baseball Bats! ⚾⚾"); return; 
                 } else if (rarityRand < 0.9) { 
                     capsuleCount++; gachaponCount++; 
@@ -1452,7 +1453,7 @@ function drawChar(x, y, color, type) {
     ctx.restore();
 }
 
-checkSaveExists();
+CheckSaveExists();
 gameLoop();
 </script>
 </body>

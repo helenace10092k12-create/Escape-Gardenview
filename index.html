@@ -98,6 +98,7 @@
         #quiz-question { color: #ffeb3b; font-size: 11px; line-height: 1.4; }
         .quiz-opt-btn { background: #311b92; color: #fff; border: 2px solid #7c4dff; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; width: 100%; text-align: left; }
 
+        /* KHUNG MÀN HÌNH ENDING VÀ GAME OVER */
         #ending-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300;
@@ -189,11 +190,12 @@
         </div>
     </div>
 
+    <!-- MÀN HÌNH MỚI CHO CẢ GOOD ENDING VÀ GAME OVER -->
     <div id="ending-screen">
-        <h1 style="font-size: 38px; color: #00e676; text-shadow: 0 0 15px #00e676;">Good Ending?</h1>
+        <h1 id="ending-title" style="font-size: 38px; color: #00e676; text-shadow: 0 0 15px #00e676;">Good Ending?</h1>
         <p id="ending-sub1" style="font-size: 14px; color: #ffeb3b;"></p>
         <p id="ending-sub2" style="font-size: 12px; color: #b9f6ca; font-style: italic;"></p>
-        <button class="menu-btn" onclick="resetSaveDataAndRestart()" style="margin-top: 20px;">RESTART GAME</button>
+        <button class="menu-btn" id="ending-btn" onclick="handleEndingAction()" style="margin-top: 20px;">RESTART GAME</button>
     </div>
 
     <div id="loot-dialog">
@@ -270,9 +272,9 @@ let tightropes = [];
 let doors = [];
 let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
-// TRẠNG THÁI PARKOUR DÂY VÀ VÒNG XIẾC
 let onRopeState = { active: false, rope: null, progress: 0, lastKey: null };
 let onRingState = { active: false, ringIndex: 0 };
+let currentGameOverType = null; // LOẠI GAME OVER (HEALTH HOẶC VEE)
 
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
@@ -391,8 +393,30 @@ function loadGameData() {
     return false;
 }
 
+// RESET TOÀN BỘ TIẾN TRÌNH KHI BỊ TWISTED VEE ĐÁNH BẠI
 function resetSaveDataAndRestart() {
     localStorage.removeItem('EGV_SAVE_DATA');
+    location.reload();
+}
+
+// CHỈ RESET VẬT PHẨM VÀ NHIỆM VỤ KHI HẾT MÁU (GIỮ SỐ TẦNG VÀ CHÌA KHÓA VÀNG)
+function resetItemsAndQuestsKeepFloors() {
+    inventory = [null, null, null];
+    batCount = 0; batEquipped = false;
+    capsuleCount = 0; gachaponCount = 0;
+    hasDogPlush = false; soulvesterFollowing = false;
+    
+    // NỒI LẠI TOÀN BỘ MÁU CHO CÁC TOON
+    maxHP = 3; trioHP = 3;
+    yatta.hp = 3; looey.hp = 3; blot.hp = 3;
+    
+    // RESET TRẠNG THÁI NHIỆM VỤ ĐỂ NPC XUẤT HIỆN LẠI
+    questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
+    npcAssignedFloor = {};
+    floorDataMemory = {}; // TẠO LẠI BẢN ĐỒ CÓ NPC MỚI
+    
+    yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
+    saveGameData();
     location.reload();
 }
 
@@ -682,6 +706,41 @@ function loadQuizQuestion() {
     }
 }
 
+// BẬT MÀN HÌNH GAME OVER DỰA TRÊN LOẠI CHẾT
+function triggerGameOverScreen(type) {
+    document.getElementById('quiz-modal').style.display = 'none';
+    currentGameOverType = type;
+    
+    let titleEl = document.getElementById('ending-title');
+    let sub1El = document.getElementById('ending-sub1');
+    let sub2El = document.getElementById('ending-sub2');
+    let btnEl = document.getElementById('ending-btn');
+
+    titleEl.innerText = "Game Over";
+    titleEl.style.color = "#ff1744";
+    titleEl.style.textShadow = "0 0 15px #ff1744";
+
+    if (type === 'HEALTH') {
+        sub1El.innerText = (currentLang === 'ENG') ? "(You ran out of health)" : "(Bạn đã hết máu)";
+        sub2El.innerText = (currentLang === 'ENG') ? "Items, weapons and quests reset. Floor & Golden Keys kept!" : "Vật phẩm, vũ khí và nhiệm vụ đã reset. Tầng & Chìa khóa được giữ nguyên!";
+        btnEl.innerText = (currentLang === 'ENG') ? "RESPAWN / CONTINUE" : "HỒI SINH / TIẾP TỤC";
+    } else if (type === 'VEE') {
+        sub1El.innerText = (currentLang === 'ENG') ? "(You are defeated by Twisted Vee)" : "(Bạn đã bị Twisted Vee đánh bại)";
+        sub2El.innerText = (currentLang === 'ENG') ? "All game progress has been completely reset!" : "Toàn bộ tiến trình chơi đã bị reset hoàn toàn!";
+        btnEl.innerText = (currentLang === 'ENG') ? "RESTART GAME" : "BẮT ĐẦU LẠI TỪ ĐẦU";
+    }
+
+    document.getElementById('ending-screen').style.display = 'flex';
+}
+
+function handleEndingAction() {
+    if (currentGameOverType === 'HEALTH') {
+        resetItemsAndQuestsKeepFloors();
+    } else {
+        resetSaveDataAndRestart();
+    }
+}
+
 function answerQuiz(selectedOpt) {
     if (selectedOpt === quizData[quizIndex].ans) {
         quizScore++;
@@ -694,8 +753,7 @@ function answerQuiz(selectedOpt) {
         updateHPUI();
         let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
         if (curHP <= 0) {
-            alert("❌ GAME OVER! You ran out of hearts during Vee's Quiz! Save data will be RESET!");
-            resetSaveDataAndRestart();
+            triggerGameOverScreen('VEE');
             return;
         } else {
             alert("❌ Incorrect answer! Lost 1 Heart!");
@@ -709,8 +767,16 @@ function answerQuiz(selectedOpt) {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
             playMusic('bgm-ending');
+            
+            let titleEl = document.getElementById('ending-title');
+            titleEl.innerText = "Good Ending?";
+            titleEl.style.color = "#00e676";
+            titleEl.style.textShadow = "0 0 15px #00e676";
+
             document.getElementById('ending-sub1').innerText = (currentLang === 'ENG') ? "You escaped Gardenview (experimental game)" : "Bạn đã trốn thoát khỏi Gardenview (trò chơi thử nghiệm)";
             document.getElementById('ending-sub2').innerText = (currentLang === 'ENG') ? "(Everyone found you guys lying on the floor)" : "(Mọi người tìm thấy cả nhóm đang nằm bất tỉnh trên sàn nhà)";
+            document.getElementById('ending-btn').innerText = "RESTART GAME";
+            currentGameOverType = 'VEE';
             document.getElementById('ending-screen').style.display = 'flex';
         } else {
             alert(`❌ FAILED! You scored ${quizScore}/10 (Required 7). Twisted Vee knocks you back!`);
@@ -764,7 +830,6 @@ function handleElevatorNavigation() {
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
     
-    // CƠ CHẾ ĐI DÂY LUÂN PHIÊN A VÀ D (HOẶC MŨI TÊN TRAI/PHẢI)
     if (onRopeState.active) {
         let isA = (e.code === 'KeyA' || e.code === 'ArrowLeft');
         let isD = (e.code === 'KeyD' || e.code === 'ArrowRight');
@@ -789,7 +854,6 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
-    // CƠ CHẾ ĐU VÒNG XIẾC (NHẤN D HOẶC MŨI TÊN PHẢI ĐỂ SANG VÒNG TIẾP)
     if (onRingState.active) {
         if (e.code === 'KeyD' || e.code === 'ArrowRight') {
             onRingState.ringIndex++;
@@ -891,7 +955,6 @@ window.addEventListener('keydown', (e) => {
             updateDialogue(); return;
         }
 
-        // TƯƠNG TÁC LEO DÂY THỪNG
         let nearRope = tightropes.find(tp => yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + 50);
         if (gameState === 'SIDE_SCROLL' && nearRope && !onRopeState.active) {
             onRopeState = { active: true, rope: nearRope, progress: 0, lastKey: null };
@@ -902,7 +965,6 @@ window.addEventListener('keydown', (e) => {
             return;
         }
 
-        // TƯƠNG TÁC ĐU VÒNG XIẾC
         if (circusRings.length > 0 && !onRingState.active) {
             let firstRing = circusRings[0];
             if (Math.abs(yatta.worldX - firstRing.x) < 60) {
@@ -999,17 +1061,17 @@ function getActiveToons() {
     return [];
 }
 
-// XỬ LÝ YATTA TÉ HỐ BỊ TRỪ 1 MÁU (-1 HP)
 function handlePitFall(p) {
     if (p === yatta || activeChar === 'trio') {
         if (activeChar === 'trio') trioHP--;
         else yatta.hp--;
         
         updateHPUI();
-        alert("Yatta fell into the pit! Lost 1 Heart (-1 HP)!");
-        
         let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
-        if (curHP <= 0) { alert("GAME OVER!"); resetSaveDataAndRestart(); return; }
+        if (curHP <= 0) { 
+            triggerGameOverScreen('HEALTH'); 
+            return; 
+        }
     }
     p.worldX -= 120;
     p.y = 450;
@@ -1091,11 +1153,10 @@ function gameLoop() {
                 else if (activeChar === 'blot') blot.hp--;
 
                 updateHPUI();
-                alert(`Caught by ${currentTwisted.type} Twisted! Lost 1 Heart!`);
                 twistedX -= 300;
 
                 let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
-                if (curHP <= 0) { alert("GAME OVER!"); resetSaveDataAndRestart(); }
+                if (curHP <= 0) { triggerGameOverScreen('HEALTH'); return; }
             }
         }
 
@@ -1120,7 +1181,6 @@ function gameLoop() {
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
         });
 
-        // VẼ VÒNG XIẾC VÀ NÚT INTERACT [E]
         circusRings.forEach((r, idx) => {
             ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.arc(r.x, r.y, 20, 0, Math.PI*2); ctx.stroke();
@@ -1131,7 +1191,6 @@ function gameLoop() {
             }
         });
 
-        // VẼ DÂY THỪNG VÀ HUỚNG DẪN BẤM [E]
         tightropes.forEach(tp => {
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();

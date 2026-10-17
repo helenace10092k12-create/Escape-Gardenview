@@ -130,7 +130,7 @@
 </head>
 <body>
 
-<!-- THẺ AUDIO QUẢN LÝ 3 FILE NHẠC -->
+<!-- 3 FILE NHẠC NỀN CHUẨN XÁC -->
 <audio id="bgm-locked-away" loop src="locked_away.mp3"></audio>
 <audio id="bgm-all-eyes" loop src="all_eyes_on_me.mp3"></audio>
 <audio id="bgm-clair-de-lune" src="clair_de_lune.mp3"></audio>
@@ -170,10 +170,9 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH (MAIN MENU + NÚT BẬT NHẠC ĐỂ TRÁNH BỊ CHẶN AUDIO) -->
+    <!-- MÀN HÌNH CHÍNH -->
     <div id="menu-screen">
         <div class="menu-title" id="menu-main-title">Escape Gardenview (Demo)</div>
-        <button class="menu-btn" id="btn-audio-fix" onclick="forceUnlockAudio()" style="background:#00e676; color:#000; border-color:#00c853;">🎵 BẬT NHẠC / PLAY AUDIO</button>
         <button class="menu-btn" id="btn-continue" onclick="continueGame()" style="display:none;">CONTINUE</button>
         <button class="menu-btn" id="btn-play" onclick="startNewGame()">NEW GAME</button>
         <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
@@ -181,7 +180,7 @@
         <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting...')">EXIT</button>
     </div>
 
-    <!-- MODAL CÀI ĐẶT (SETTINGS) -->
+    <!-- MODAL CÀI ĐẶT -->
     <div id="settings-modal">
         <div class="settings-title" id="st-title">⚙️ SETTINGS / CÀI ĐẶT</div>
         <div style="display:flex; flex-direction:column; gap:10px; text-align:left; font-size:11px; padding: 10px;">
@@ -255,7 +254,6 @@ const ctx = canvas.getContext('2d');
 
 let currentLang = 'ENG';
 let isMusicMuted = false;
-let audioUnlocked = false;
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
@@ -371,15 +369,9 @@ const texts = {
 - [F]: Attack Twisted Toons using equipped Bat.
 - [L]: Open Elevator menu to jump between floors & active quests.
 - [1] [2] [3]: Use inventory items.
-- [4] [5] [6] [7]: Switch control between Yatta, Looey, Blot, and Trio.
-
-3. ITEM RARITY GUIDE:
-- COMMON (🍬 Candy, 🥤 Pop): Easy to find in chests. Gives silver coins when consumed.
-- UNCOMMON (🩹 Bandage, ⚾ Baseball Bat): Restores HP or used as a melee weapon to stun/defeat Twisted enemies.
-- RARE (💊 Medkit, 🔑 Golden Key, 🧸 Dog Plush, 👻 Soulvester): Vital items for quests, full healing, and progression.
-- LEGENDARY (🎃 Pumpkin Key): Forged from 8 Golden Keys to unlock the final escape door.`,
-        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
-        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
+- [4] [5] [6] [7]: Switch control between Yatta, Looey, Blot, and Trio.`,
+        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys... Signed: D`,
+        veemailVeeQuiz: `Welcome to Vee's Quiz. Answer at least 7 out of 10 correctly to defeat Twisted Vee. Signed: D`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -404,44 +396,20 @@ const texts = {
         howToPlayText: `=== CÁCH CHƠI & HƯỚNG DẪN ESCAPE GARDENVIEW ===
 
 1. CÁCH CHƠI & MỤC TIÊU:
-- Khám phá các tầng của Gardenview, tương tác với NPC để nhận nhiệm vụ, mở rương trong phòng để nhặt vật phẩm, và thu thập đủ 8 Chìa Khóa Vàng để tạo thành Pumpkin Key.
-- Dùng Pumpkin Key tại cánh cửa thoát hiểm cuối cùng để tham gia 'Vee's Quiz' tiêu diệt Twisted Vee và chiến thắng!
-
-2. CÁC PHÍM BẤM (CONTROLS):
-- [A] / [D] hoặc [Mũi tên Trái/Phải]: Di chuyển nhân vật.
-- [W] hoặc [Mũi tên Lên]: Nhảy lên.
-- [E]: Tương tác với cửa, NPC, leo dây thừng (Tightrope luân phiên A/D) hoặc đu vòng xiếc (Nhấn D).
-- [Z]: Trang bị / Gỡ Gậy bóng chày (Bat).
-- [F]: Tấn công quái Twisted bằng gậy.
-- [L]: Mở bảng Thang Máy (Elevator) để di chuyển nhanh giữa các tầng & NPC làm nhiệm vụ.
-- [1] [2] [3]: Sử dụng vật phẩm trong túi đồ.
-- [4] [5] [6] [7]: Chuyển đổi điều khiển giữa Yatta, Looey, Blot và Trio.
-
-3. ĐỘ HIẾM CỦA VẬT PHẨM (RARITY):
-- COMMON (Thường - 🍬 Kẹo, 🥤 Nước ngọt): Dễ tìm trong rương. Dùng để đổi thành đồng bạc.
-- UNCOMMON (Ít gặp - 🩹 Băng cá nhân, ⚾ Gậy bóng chày): Hồi máu hoặc dùng làm vũ khí tự vệ trước Twisted.
-- RARE (Hiếm - 💊 Hộp cứu thương, 🔑 Chìa khóa vàng, 🧸 Thú bông, 👻 Soulvester): Vật phẩm cốt lõi làm nhiệm vụ, hồi đầy máu và tiến độ game.
-- LEGENDARY (Huyền thoại - 🎃 Pumpkin Key): Được tạo từ 8 Chìa Khóa Vàng để mở cửa trốn thoát cuối cùng.`,
-        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
-        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
+- Khám phá các tầng, làm nhiệm vụ NPC, mở rương nhặt Capsule/Gachapon để mở khóa kỹ năng Parkour (đu dây, vòng xiếc), thu thập 8 Chìa Khóa Vàng.
+- Dùng Pumpkin Key mở cửa cuối để tham gia 'Vee's Quiz' tiêu diệt Twisted Vee và chiến thắng!`,
+        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta... Ký tên: D`,
+        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Trả lời đúng 7/10 câu hỏi để tiêu diệt Twisted Vee. Ký tên: D`
     }
 };
 
-// NÚT KÍCH HOẠT ÂM THANH ĐỂ TRÁNH LỖI TRÌNH DUYỆT CHẶN AUTOPLAY
-function forceUnlockAudio() {
-    audioUnlocked = true;
-    let btn = document.getElementById('btn-audio-fix');
-    btn.style.display = 'none';
-    playMusic('bgm-locked-away');
-    alert(currentLang === 'ENG' ? "Audio unlocked successfully! Let's play!" : "Đã bật nhạc thành công! Bắt đầu trải nghiệm nào!");
-}
-
+// QUẢN LÝ PHÁT NHẠC (TUÂN THỦ CHÍNH XÁC CHECKBOX MUTE & TƯƠNG TÁC NGƯỜI DÙNG)
 function playMusic(trackId) {
-    if (isMusicMuted || !audioUnlocked) return;
+    if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
-    if (track && track.src) { 
-        track.play().catch(e => console.log("Audio play blocked by browser")); 
+    if (track) { 
+        track.play().catch(e => console.log("Audio waiting for user gesture")); 
     }
 }
 
@@ -455,7 +423,7 @@ function toggleMuteMusic() {
         stopAllMusic();
     } else {
         if (isVeeQuizMode) playMusic('bgm-all-eyes');
-        else if (gameState === 'SIDE_SCROLL') playMusic('bgm-locked-away');
+        else if (gameState === 'SIDE_SCROLL' || gameState === 'VEEMAIL_OPEN') playMusic('bgm-locked-away');
     }
 }
 
@@ -526,7 +494,7 @@ function resetItemsAndQuestsKeepFloors() {
     location.reload();
 }
 
-// LOGIC TẠO MAP CHUẨN: ĐẢM BẢO NPC KHÔNG BAO GIỜ TRÙNG VÀO HỐ (PIT)
+// LOGIC MAP: DÂY THỪNG VÀ VÒNG XIẾC CHỈ XUẤT HIỆN KHI ĐÃ NHẶT ĐƯỢC CAPSULE / GACHAPON
 function loadOrCreateFloorMap(fl) {
     if (floorDataMemory[fl]) {
         let mem = floorDataMemory[fl];
@@ -549,10 +517,11 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        // Hố đặt ở khoảng cách an toàn, cố định vùng đất trống cho NPC
         let newPits = [{ x: 550, w: 180 }, { x: 1100, w: 200 }];
-        let newTightropes = [{ x: 560, y: 320, w: 160 }];
-        let newCircusRings = [{ x: 1130, y: 280 }, { x: 1210, y: 280 }, { x: 1290, y: 280 }];
+        
+        // CHỈ TẠO PARKOUR NẾU ĐÃ NHẶT ĐƯỢC ITEM TƯƠNG ỨNG
+        let newTightropes = capsuleCount > 0 ? [{ x: 560, y: 320, w: 160 }] : [];
+        let newCircusRings = gachaponCount > 0 ? [{ x: 1130, y: 280 }, { x: 1210, y: 280 }, { x: 1290, y: 280 }] : [];
 
         let newNPC = null;
         if (fl > 1) {
@@ -563,8 +532,7 @@ function loadOrCreateFloorMap(fl) {
 
             if (availableNPCs.length > 0 && Math.random() < 0.7) {
                 let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
-                // Đảm bảo vị trí X của NPC luôn nằm trên mặt đất an toàn (không bị lọt hố)
-                newNPC = { ...picked, x: 780 };
+                newNPC = { ...picked, x: 780 }; // Đảm bảo an toàn không trùng hố
                 npcAssignedFloor[picked.id] = fl;
             }
         }
@@ -648,15 +616,6 @@ function continueGame() {
 }
 
 function startNewGame() {
-    if (!audioUnlocked) {
-        alert(currentLang === 'ENG' ? "Please click 'BẬT NHẠC / PLAY AUDIO' first so music can play!" : "Vui lòng bấm nút 'BẬT NHẠC / PLAY AUDIO' trước để nhạc phát được nhé!");
-        return;
-    }
-    if (localStorage.getItem('EGV_SAVE_DATA')) {
-        if (!confirm(currentLang === 'ENG' ? "Starting a new game will overwrite your current progress. Proceed?" : "Tạo game mới sẽ xóa tiến trình cũ. Bạn có chắc chắn muốn tiếp tục?")) {
-            return;
-        }
-    }
     localStorage.removeItem('EGV_SAVE_DATA');
     document.getElementById('menu-screen').style.display = 'none';
     gameState = 'INTRO_STORY'; dialogueStep = 0;
@@ -694,7 +653,7 @@ function nextDialogue() {
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
-                playMusic('bgm-locked-away');
+                playMusic('bgm-locked-away'); // Phát Locked Away từ Veemail đầu tiên
             }, 2000);
         }
     }
@@ -819,7 +778,7 @@ function openQuestDialog(npc) {
         title.innerText = "🪙 GIGI QUEST";
         if (questStatus.gigi === 'COMPLETED') text.innerText = "Gigi: 'Thanks for the donation!'";
         else if (goldCoins >= 5) text.innerText = "Gigi: 'You have 5 Gold Coins! Press Accept to donate!'";
-        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins. (Rewards: 2 Gachapons + 2 Bats)'`;
+        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'`;
     } else if (npc.id === 'connie') {
         title.innerText = "👻 CONNIE QUEST";
         if (questStatus.connie === 'COMPLETED') text.innerText = "Connie: 'Thank you for bringing my brother Soulvester back!'";
@@ -1203,7 +1162,9 @@ window.addEventListener('keydown', (e) => {
                 else if (rarityRand < 0.8) { 
                     batCount += 2; updateHPUI(); alert("Found 2 Baseball Bats! ⚾⚾"); return; 
                 } else if (rarityRand < 0.9) { 
-                    capsuleCount++; gachaponCount++; alert("Found 1 Capsule & 1 Gachapon!"); return; 
+                    capsuleCount++; gachaponCount++; 
+                    alert("Found 1 Capsule & 1 Gachapon! Parkour routes unlocked on next floors!"); 
+                    return; 
                 } else { pendingLoot = 'MEDKIT'; }
 
                 document.getElementById('loot-msg').innerText = `Found ${pendingLoot}! Store in Inventory?`;

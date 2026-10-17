@@ -132,15 +132,20 @@
 </head>
 <body>
 
-<div class="yt-audio-container" id="yt-player-box">
+<!-- Player 1: Locked Away -->
+<div class="yt-audio-container">
     <iframe id="game-audio-iframe" width="200" height="200" src="" title="Locked Away" frameborder="0" allow="autoplay"></iframe>
 </div>
 
+<!-- Player 2: Good Ending (Clair de Lune - ZlM2EB9aE3A) -->
 <div class="yt-audio-container">
     <iframe id="clair-iframe" width="200" height="200" src="" title="Clair de Lune" frameborder="0" allow="autoplay"></iframe>
 </div>
 
-<audio id="bgm-all-eyes" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+<!-- Player 3: Game Over & Vee's Quiz (OBKAbzpu0fM) -->
+<div class="yt-audio-container">
+    <iframe id="gameover-iframe" width="200" height="200" src="" title="Game Over Track" frameborder="0" allow="autoplay"></iframe>
+</div>
 
 <div id="game-box">
     <div id="top-ui">
@@ -470,32 +475,37 @@ Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
+function stopAllAudio() {
+    document.getElementById('game-audio-iframe').src = "";
+    document.getElementById('clair-iframe').src = "";
+    document.getElementById('gameover-iframe').src = "";
+}
+
 function playLockedAway() {
     if (isMusicMuted) return;
-    document.getElementById('clair-iframe').src = "";
+    stopAllAudio();
     document.getElementById('game-audio-iframe').src = "https://www.youtube.com/embed/VeNEjvrVVKw?autoplay=1&loop=1&playlist=VeNEjvrVVKw&enablejsapi=1";
 }
 
 function playClairDeLune() {
     if (isMusicMuted) return;
-    document.getElementById('game-audio-iframe').src = "";
-    document.getElementById('clair-iframe').src = "https://www.youtube.com/embed/WNcsUNKlAKw?autoplay=1&loop=1&playlist=WNcsUNKlAKw&enablejsapi=1";
+    stopAllAudio();
+    document.getElementById('clair-iframe').src = "https://www.youtube.com/embed/ZlM2EB9aE3A?autoplay=1&loop=1&playlist=ZlM2EB9aE3A&enablejsapi=1";
 }
 
-function stopAllMusic() {
-    document.getElementById('game-audio-iframe').src = "";
-    document.getElementById('clair-iframe').src = "";
-    document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
+function playGameOverMusic() {
+    if (isMusicMuted) return;
+    stopAllAudio();
+    document.getElementById('gameover-iframe').src = "https://www.youtube.com/embed/OBKAbzpu0fM?autoplay=1&loop=1&playlist=OBKAbzpu0fM&enablejsapi=1";
 }
 
 function toggleMuteMusic() {
     isMusicMuted = document.getElementById('mute-checkbox').checked;
     if (isMusicMuted) {
-        stopAllMusic();
+        stopAllAudio();
     } else {
         if (isVeeQuizMode) {
-            let aud = document.getElementById('bgm-all-eyes');
-            aud.play().catch(e => console.log("Audio waiting"));
+            playGameOverMusic();
         } else if (gameState === 'SIDE_SCROLL' || gameState === 'VEEMAIL_OPEN') {
             playLockedAway();
         }
@@ -749,9 +759,7 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        let aud = document.getElementById('bgm-all-eyes');
-        document.getElementById('game-audio-iframe').src = "";
-        aud.play().catch(e => console.log("Audio waiting"));
+        playGameOverMusic();
         startTwistedVeeFinalQuiz();
     } else {
         playLockedAway();
@@ -759,6 +767,23 @@ function closeVeemail() {
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
     }
+}
+
+function startTwistedVeeFinalQuiz() {
+    quizIndex = 0;
+    quizScore = 0;
+    document.getElementById('quiz-modal').style.display = 'flex';
+    loadQuizQuestion();
+}
+
+function loadQuizQuestion() {
+    let cur = quizData[quizIndex];
+    document.getElementById('quiz-title').innerText = `🧩 VEE'S QUIZ (Q${quizIndex + 1}/10)`;
+    document.getElementById('quiz-question').innerText = cur.q;
+    document.getElementById('opt-A').innerText = cur.opts[0];
+    document.getElementById('opt-B').innerText = cur.opts[1];
+    document.getElementById('opt-C').innerText = cur.opts[2];
+    document.getElementById('opt-D').innerText = cur.opts[3];
 }
 
 function checkAndSpawnTwisted() {
@@ -896,7 +921,7 @@ function handleQuestResponse(accepted) {
 
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
-    playClairDeLune();
+    playGameOverMusic();
     currentGameOverType = type;
     
     let titleEl = document.getElementById('ending-title');
@@ -967,7 +992,7 @@ function answerQuiz(selectedOpt) {
             currentGameOverType = 'VEE';
             document.getElementById('ending-screen').style.display = 'flex';
         } else {
-            alert(`❌ FAILED! You scored ${quizScore}/10 (Required 7). Twisted Vee knocks you back!`);
+            triggerGameOverScreen('VEE');
         }
     }
 }

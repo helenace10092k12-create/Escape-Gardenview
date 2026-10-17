@@ -130,10 +130,10 @@
 </head>
 <body>
 
-<!-- 3 FILE NHẠC NỀN -->
-<audio id="bgm-locked-away" loop src="locked_away.mp3"></audio>
-<audio id="bgm-all-eyes" loop src="all_eyes_on_me.mp3"></audio>
-<audio id="bgm-clair-de-lune" src="clair_de_lune.mp3"></audio>
+<!-- NHẠC NỀN CHÍNH & LINK CHUẨN DEBUSSY - CLAIR DE LUNE -->
+<audio id="bgm-locked-away" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+<audio id="bgm-all-eyes" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+<audio id="bgm-clair-de-lune" loop src="https://upload.wikimedia.org/wikipedia/commons/e/e3/Claude_Debussy_-_Clair_de_lune.ogg"></audio>
 
 <div id="game-box">
     <div id="top-ui">
@@ -170,7 +170,6 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH -->
     <div id="menu-screen">
         <div class="menu-title" id="menu-main-title">Escape Gardenview (Demo)</div>
         <button class="menu-btn" id="btn-continue" onclick="continueGame()" style="display:none;">CONTINUE</button>
@@ -180,7 +179,6 @@
         <button class="menu-btn" id="btn-exit" style="border-color:#ff1744; color:#ff8a80;" onclick="alert('Exiting...')">EXIT</button>
     </div>
 
-    <!-- MODAL CÀI ĐẶT -->
     <div id="settings-modal">
         <div class="settings-title" id="st-title">⚙️ SETTINGS / CÀI ĐẶT</div>
         <div style="display:flex; flex-direction:column; gap:10px; text-align:left; font-size:11px; padding: 10px;">
@@ -355,23 +353,49 @@ const texts = {
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
             { speaker: "SYSTEM", text: "Yatta presses the rainbow button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        howToPlayText: `=== ESCAPE GARDENVIEW: HOW TO PLAY ===
+        howToPlayText: `=== ESCAPE GARDENVIEW: HOW TO PLAY & MASTER GUIDE ===
 
-1. GAMEPLAY & OBJECTIVE:
-- Explore floors of Gardenview, interact with NPCs to take quests, open room chests to loot items, and collect 8 Golden Keys to forge the Pumpkin Key.
-- Use the Pumpkin Key at the final escape door to trigger 'Vee's Quiz' and defeat Twisted Vee to win!
+1. GAMEPLAY OBJECTIVES & PROGRESSION:
+- Explore the multi-floor facility of Gardenview, search room chests for essential loot, and interact with surviving NPCs to accept or decline side quests.
+- Your ultimate goal is to collect 8 Golden Keys scattered across floors, combine them into a Legendary Pumpkin Key, and use it at the final escape door.
+- Triggering the final door initiates 'Vee's Quiz'. Answer at least 7 out of 10 questions correctly to defeat Twisted Vee and achieve the Good Ending!
 
-2. CONTROLS (KEYBINDS):
-- [A] / [D] or [Left/Right Arrows]: Move selected character.
-- [W] or [Up Arrow]: Jump.
-- [E]: Interact with doors, NPCs, climb tightropes, or swing circus rings.
-- [Z]: Equip / Unequip Baseball Bat.
-- [F]: Attack Twisted Toons using equipped Bat.
-- [L]: Open Elevator menu to jump between floors & active quests.
-- [1] [2] [3]: Use inventory items.
-- [4] [5] [6] [7]: Switch control between Yatta, Looey, Blot, and Trio.`,
-        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
-        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
+2. DETAILED CONTROLS & KEYBINDS:
+- [A] / [D] or [Left / Right Arrows]: Move the active character left and right smoothly across platforms.
+- [W] or [Up Arrow]: Jump across gaps, obstacles, and pits.
+- [E]: Multifunctional interaction key. Use it to open room doors, talk to NPCs, climb tightropes (using alternate A/D steps), or swing across circus rings.
+- [Z]: Equip or unequip your Baseball Bat weapon for combat readiness.
+- [F]: Attack Twisted Toons within melee range using your equipped Bat to stun them or clear the floor.
+- [L]: Open the Elevator Navigation menu to fast-travel between floors and active quest locations.
+- [1] [2] [3]: Instantly consume or use items stored in your 3 inventory slots.
+- [4] [5] [6] [7]: Switch active character control between Yatta, Looey, Blot, and the Circus Trio group.
+
+3. ITEM RARITY & INVENTORY MANAGEMENT:
+- COMMON RARITY (🍬 Candy, 🥤 Pop): Easily found inside room chests. Consuming them converts them directly into silver coins (3 Silver = 1 Gold Coin).
+- UNCOMMON RARITY (🩹 Bandage, ⚾ Baseball Bat): Essential survival tools. Bandages restore lost HP, while Baseball Bats act as your primary melee defense against Twisted enemies.
+- RARE RARITY (💊 Medkit, 🔑 Golden Key, 🧸 Dog Plush, 👻 Soulvester): Critical storyline and quest items. Medkits fully restore your health pool, while Golden Keys and quest items drive your core progression.
+- LEGENDARY RARITY (🎃 Pumpkin Key): Forged exclusively from 8 Golden Keys. Required to unlock the final escape threshold.
+
+4. PARKOUR & CAPSULE/GACHAPON MECHANICS:
+- Pits, tightropes, and circus rings ONLY appear on floors AFTER you have successfully looted Capsules (for tightropes) and Gachapons (for circus rings) from room chests or NPC quests!`,
+        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. 
+
+Additional Facility Guidelines:
+- Inspect every room thoroughly. Not all chests contain helpful treasures; some harbor traps or dangerous entities.
+- Keep track of your coin economy. Silver and gold coins collected from candies and sodas can be vital for trading with certain mysterious entities.
+- Parkour equipment such as Capsules and Gachapons are hidden deep within high-tier containers. Acquiring them is mandatory to unlock advanced traversal routes like tightropes and circus rings on subsequent floors.
+- Stay alert, manage your team's health pool across Yatta, Looey, and Blot, and do not let your guard down for a single second. Good luck escaping this nightmare.
+
+Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
+        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions testing your knowledge of the facility, item rarities, characters, and survival mechanics. 
+
+Facility Rules & Penalties:
+1. Your task is to answer at least 7 out of 10 questions correctly in order to successfully defeat Twisted Vee and open the ultimate exit door.
+2. For every incorrect answer you submit, you will instantly lose 1 heart.
+3. If your health pool drops to zero or you fail the trial completely resulting in "Game Over," all your facility progress data, items, and weapon stats will be permanently reset—so choose your answers with extreme care and deliberation.
+4. Achieving victory will grant you passage to freedom and the true conclusion of this experimental trial.
+
+Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -393,13 +417,49 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        howToPlayText: `=== CÁCH CHƠI & HƯỚNG DẪN ESCAPE GARDENVIEW ===
+        howToPlayText: `=== HƯỚNG DẪN TOÀN TẬP & CÁCH CHƠI ESCAPE GARDENVIEW ===
 
-1. CÁCH CHƠI & MỤC TIÊU:
-- Khám phá các tầng, làm nhiệm vụ NPC, mở rương nhặt Capsule/Gachapon để mở khóa kỹ năng Parkour (đu dây, vòng xiếc), thu thập 8 Chìa Khóa Vàng.
-- Dùng Pumpkin Key mở cửa cuối để tham gia 'Vee's Quiz' tiêu diệt Twisted Vee và chiến thắng!`,
-        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
-        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
+1. MỤC TIÊU & LỐI CHƠI CHÍNH:
+- Khám phá các tầng lầu kỳ bí của Gardenview, lục soát các rương trong phòng để nhặt vật phẩm sinh tồn, và gặp gỡ các NPC chưa bị biến đổi để nhận hoặc từ chối nhiệm vụ phụ.
+- Mục tiêu tối thượng của nhóm là thu thập đủ 8 Chìa Khóa Vàng (Golden Keys) rải rác trên các tầng, hợp nhất chúng thành Chìa Khóa Bí Ngô Huyền Thoại (Pumpkin Key).
+- Mang Pumpkin Key đến cánh cửa thoát hiểm cuối cùng để kích hoạt thử thách 'Vee's Quiz'. Trả lời đúng tối thiểu 7/10 câu hỏi để tiêu diệt Twisted Vee và giành chiến thắng Good Ending!
+
+2. HỆ THỐNG PHÍM ĐIỀU KHIỂN CHI TIẾT:
+- [A] / [D] hoặc [Mũi tên Trái / Phải]: Di chuyển nhân vật qua lại mượt mà trên các nền tảng.
+- [W] hoặc [Mũi tên Lên]: Nhảy vượt qua các hố sâu, chướng ngại vật và bẫy rập.
+- [E]: Phím tương tác đa năng cực kỳ quan trọng. Dùng để mở cửa phòng, nói chuyện với NPC, leo dây thừng (bấm luân phiên A/D) hoặc đu vòng xiếc (nhấn D).
+- [Z]: Trang bị hoặc cất gậy bóng chày (Baseball Bat) để sẵn sàng chiến đấu tự vệ.
+- [F]: Tấn công trực diện kẻ địch Twisted trong phạm vi cận chiến bằng gậy để làm chậm hoặc tiêu diệt chúng.
+- [L]: Mở bảng điều khiển Thang Máy (Elevator) để dịch chuyển nhanh giữa các tầng đã khám phá và vị trí NPC làm nhiệm vụ.
+- [1] [2] [3]: Sử dụng nhanh các vật phẩm trong 3 ô túi đồ cá nhân.
+- [4] [5] [6] [7]: Chuyển đổi linh hoạt quyền điều khiển giữa Yatta, Looey, Blot và cả nhóm Circus Trio.
+
+3. PHÂN LOẠI ĐỘ HIẾM VẬT PHẨM & TÚI ĐỒ:
+- ĐỘ HIẾM COMMON (Thường - 🍬 Kẹo, 🥤 Nước ngọt): Rất dễ tìm trong rương. Khi sử dụng sẽ tự động chuyển hóa thành đồng bạc (3 Bạc = 1 Vàng).
+- ĐỘ HIẾM UNCOMMON (Ít gặp - 🩹 Băng cá nhân, ⚾ Gậy bóng chày): Trang bị sinh tồn thiết yếu. Băng hồi máu, gậy dùng làm vũ khí cận chiến phòng thân trước các đợt tấn công của Twisted.
+- ĐỘ HIẾM RARE (Hiếm - 💊 Hộp cứu thương, 🔑 Chìa khóa vàng, 🧸 Thú bông, 👻 Soulvester): Vật phẩm cốt truyện và nhiệm vụ cốt lõi giúp hồi phục hoàn toàn HP hoặc thúc đẩy tiến trình cốt truyện.
+- ĐỘ HIẾM LEGENDARY (Huyền thoại - 🎃 Pumpkin Key): Được hợp thành từ 8 Chìa Khóa Vàng, chìa khóa duy nhất để mở cánh cửa thoát hiểm cuối cùng.
+
+4. CƠ CHẾ PARKOUR & CAPSULE/GACHAPON:
+- Các hố sâu, dây thừng (tightropes) và vòng xiếc (circus rings) CHỈ XUẤT HIỆN khi bồ đã nhặt được Capsule và Gachapon từ rương hoặc hoàn thành nhiệm vụ NPC!`,
+        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. 
+
+Quy định bổ sung tại cơ sở thí nghiệm:
+- Hãy kiểm tra mọi căn phòng một cách tỉ mỉ. Không phải chiếc rương nào cũng chứa kho báu hữu ích; đôi khi ẩn chứa cạm bẫy hoặc các thực thể nguy hiểm chực chờ.
+- Theo dõi sát sao kinh tế tiền tệ của nhóm. Tiền bạc thu được từ kẹo và nước ngọt có thể cực kỳ quan trọng để giao dịch với những thực thể bí ẩn dọc đường.
+- Các thiết bị hỗ trợ Parkour như Capsule và Gachapon được giấu kín sâu bên trong các rương cấp cao. Việc sở hữu chúng là bắt buộc để mở khóa các tuyến đường đu dây thừng và vòng xiếc ở các tầng cao hơn.
+- Hãy luôn cảnh giác, quản lý lượng máu của toàn đội qua Yatta, Looey và Blot, và đừng lơ đễnh dù chỉ một giây phút. Chúc các ngươi may mắn trốn thoát khỏi cơn ác mộng này.
+
+Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
+        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm kiểm tra hiểu biết của các ngươi về cơ sở thí nghiệm, độ hiếm vật phẩm, nhân vật và cơ chế sinh tồn. 
+
+Quy định & Hình phạt tại Thử Thách:
+1. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát cuối cùng.
+2. Với mỗi câu trả lời sai, các ngươi sẽ ngay lập tức bị trừ 1 tim máu.
+3. Nếu lượng HP rơi về 0 hoặc vượt quá số lần sai dẫn đến "Game Over", toàn bộ tiến trình chơi, dữ liệu, vật phẩm và vũ khí của các ngươi sẽ bị reset hoàn toàn từ đầu—do đó hãy suy nghĩ và lựa chọn thật cẩn trọng.
+4. Đạt chiến thắng sẽ mang lại cho các ngươi tấm vé tự do và kết cục chân thực nhất của bản thử nghiệm này.
+
+Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
 
@@ -515,7 +575,7 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        let newPits = [{ x: 550, w: 180 }, { x: 1100, w: 200 }];
+        let newPits = (capsuleCount > 0 || gachaponCount > 0) ? [{ x: 550, w: 180 }, { x: 1100, w: 200 }] : [];
         let newTightropes = capsuleCount > 0 ? [{ x: 560, y: 320, w: 160 }] : [];
         let newCircusRings = gachaponCount > 0 ? [{ x: 1130, y: 280 }, { x: 1210, y: 280 }, { x: 1290, y: 280 }] : [];
 
@@ -831,6 +891,7 @@ function loadQuizQuestion() {
     }
 }
 
+// BẬT NHẠC CLAIR DE LUNE KHI GAME OVER HOẶC KẾT THÚC
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
     stopAllMusic();
@@ -1164,7 +1225,7 @@ window.addEventListener('keydown', (e) => {
                     batCount += 2; updateHPUI(); alert("Found 2 Baseball Bats! ⚾⚾"); return; 
                 } else if (rarityRand < 0.9) { 
                     capsuleCount++; gachaponCount++; 
-                    alert("Found 1 Capsule & 1 Gachapon! Parkour routes unlocked on next floors!"); 
+                    alert("Found 1 Capsule & 1 Gachapon! Parkour routes and pits unlocked on next floors!"); 
                     return; 
                 } else { pendingLoot = 'MEDKIT'; }
 

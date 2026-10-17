@@ -89,7 +89,7 @@
         #quest-text { color: #ffcc80; font-size: 11px; line-height: 1.4; }
         .quest-btns { display: flex; justify-content: center; gap: 15px; }
 
-        /* QUIZ MODAL CHO TWISTED VEE TRƯỚC CỬA GOOD ENDING */
+        /* QUIZ MODAL VEE'S QUIZ */
         #quiz-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 540px; background: rgba(15, 5, 30, 0.98); border: 4px solid #ff1744;
@@ -98,6 +98,13 @@
         #quiz-title { color: #ff1744; font-weight: bold; font-size: 13px; }
         #quiz-question { color: #ffeb3b; font-size: 11px; line-height: 1.4; }
         .quiz-opt-btn { background: #311b92; color: #fff; border: 2px solid #7c4dff; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; width: 100%; text-align: left; }
+
+        /* ENDING SCREEN */
+        #ending-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300;
+            text-align: center; color: #fff; gap: 15px;
+        }
 
         #loot-dialog {
             position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
@@ -149,7 +156,7 @@
             ⌨️ <b id="ui-ctrl-title">CONTROLS:</b><br>
             • WASD / Arrows: Move Selected Toon<br>
             • Trio [7]: Move all | Yatta [4]/Looey [5]/Blot [6]: Move Solo<br>
-            • E: Interact | Z: Equip Bat | F: Hit Twisted
+            • E: Interact | Z: Equip Bat | F: Hit Twisted | L: Elevator
         </div>
     </div>
 
@@ -169,9 +176,8 @@
         </div>
     </div>
 
-    <!-- QUIZ MODAL GIẢI ĐỐ VỚI TWISTED VEE TRƯỚC CỬA GOOD ENDING -->
     <div id="quiz-modal">
-        <div id="quiz-title">🧩 TWISTED VEE GOOD ENDING TRIAL (Q1/10)</div>
+        <div id="quiz-title">🧩 VEE'S QUIZ (Q1/10)</div>
         <div id="quiz-question">Question text here...</div>
         <div style="display:flex; flex-direction:column; gap:6px;">
             <button class="quiz-opt-btn" id="opt-A" onclick="answerQuiz(0)">A. ...</button>
@@ -179,6 +185,13 @@
             <button class="quiz-opt-btn" id="opt-C" onclick="answerQuiz(2)">C. ...</button>
             <button class="quiz-opt-btn" id="opt-D" onclick="answerQuiz(3)">D. ...</button>
         </div>
+    </div>
+
+    <div id="ending-screen">
+        <h1 style="font-size: 38px; color: #00e676; text-shadow: 0 0 15px #00e676;">Good Ending?</h1>
+        <p id="ending-sub1" style="font-size: 14px; color: #ffeb3b;"></p>
+        <p id="ending-sub2" style="font-size: 12px; color: #b9f6ca; font-style: italic;"></p>
+        <button class="menu-btn" onclick="resetSaveDataAndRestart()" style="margin-top: 20px;">RESTART GAME</button>
     </div>
 
     <div id="loot-dialog">
@@ -210,10 +223,11 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-let currentLang = 'ENG'; // DEFAULT LÀ ENG THEO YÊU CẦU
+let currentLang = 'ENG';
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
+let lastExploredFloor = 1; // NHỚ TẦNG ĐANG LEO DỞ ĐỂ QUAY LẠI
 let cameraX = 0;
 
 let maxHP = 3;
@@ -256,7 +270,6 @@ let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
-// TWISTED THƯỜNG (KHÔNG CÓ TWISTED VEE DẠO LINH TINH NỮA)
 let twistedTypes = [
     { type: 'Common', hp: 1, maxHp: 1, speed: 2, color: '#e0e0e0' },
     { type: 'Uncommon', hp: 2, maxHp: 2, speed: 2.2, color: '#00e676' },
@@ -266,7 +279,10 @@ let currentTwisted = null;
 let twistedX = -400;
 let twistedFreezeTimer = 0;
 
-// QUIZ DATA CHO TWISTED VEE TRƯỚC CỬA GOOD ENDING
+let quizIndex = 0;
+let quizScore = 0;
+let isVeeQuizMode = false;
+
 let quizData = [
     { q: "What is Circus Trio's main performance?", opts: ["A. Magic show", "B. Comedy and circus acrobatics", "C. Cooking contest", "D. Racing cars"], ans: 1 },
     { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
@@ -276,15 +292,12 @@ let quizData = [
     { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
     { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
     { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
-    { q: "How many correct answers are needed to defeat Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 6/10", "D. 8/10"], ans: 2 },
-    { q: "What penalty do you get if you fail Twisted Vee's quiz?", opts: ["A. Lose 2 HP", "B. Game Over", "C. Lose all items", "D. Lose 1 HP"], ans: 0 }
+    { q: "How many correct answers are needed to defeat Twisted Vee?", opts: ["A. 4/10", "B. 5/10", "C. 7/10", "D. 8/10"], ans: 2 },
+    { q: "What penalty do you get if you answer 1 question wrong in Vee's Quiz?", opts: ["A. Lose 1 Heart", "B. Game Over", "C. Lose all items", "D. Lose 2 HP"], ans: 0 }
 ];
-let quizIndex = 0;
-let quizScore = 0;
 
 const keysInput = { left: false, right: false };
 
-// CHUẨN ĐOẠN VEEMAIL D VÀ DỊCH TIẾNG ANH THEO ĐÚNG YÊU CẦU
 const texts = {
     ENG: {
         title: "Escape Gardenview (Demo)",
@@ -302,7 +315,8 @@ const texts = {
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
             { speaker: "SYSTEM", text: "Yatta presses the rainbow button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        veemail: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed, D (the remaining text is obscured by a hand covered in Ichor).`
+        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
+        veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
@@ -320,22 +334,63 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        veemail: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên. D (các chữ sau bị che khuất bởi 1 bàn tay Ichor).`
+        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
+        veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
+
+// ================= HỆ THỐNG LƯU GAME AUTO-SAVE =================
+function saveGameData() {
+    let saveData = {
+        currentFloor, lastExploredFloor, trioHP, yatta, looey, blot,
+        keysCount, hasPumpkinKey, batCount, capsuleCount, gachaponCount,
+        silverCoins, goldCoins, inventory, hasDogPlush, soulvesterFollowing,
+        questStatus, floorDataMemory, npcAssignedFloor, floorCleared
+    };
+    localStorage.setItem('EGV_SAVE_DATA', JSON.stringify(saveData));
+}
+
+function loadGameData() {
+    let raw = localStorage.getItem('EGV_SAVE_DATA');
+    if (raw) {
+        try {
+            let d = JSON.parse(raw);
+            currentFloor = d.currentFloor || 1;
+            lastExploredFloor = d.lastExploredFloor || 1;
+            trioHP = d.trioHP || 3;
+            yatta = d.yatta; looey = d.looey; blot = d.blot;
+            keysCount = d.keysCount || 0;
+            hasPumpkinKey = d.hasPumpkinKey || false;
+            batCount = d.batCount || 0;
+            capsuleCount = d.capsuleCount || 0;
+            gachaponCount = d.gachaponCount || 0;
+            silverCoins = d.silverCoins || 0;
+            goldCoins = d.goldCoins || 0;
+            inventory = d.inventory || [null, null, null];
+            hasDogPlush = d.hasDogPlush || false;
+            soulvesterFollowing = d.soulvesterFollowing || false;
+            questStatus = d.questStatus || { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
+            floorDataMemory = d.floorDataMemory || {};
+            npcAssignedFloor = d.npcAssignedFloor || {};
+            floorCleared = d.floorCleared || {};
+            return true;
+        } catch (e) { return false; }
+    }
+    return false;
+}
+
+function resetSaveDataAndRestart() {
+    localStorage.removeItem('EGV_SAVE_DATA');
+    location.reload();
+}
 
 function loadOrCreateFloorMap(fl) {
     if (floorDataMemory[fl]) {
         let mem = floorDataMemory[fl];
-        doors = mem.doors;
-        blocks = mem.blocks;
-        pits = mem.pits;
-        tightropes = mem.tightropes;
-        circusRings = mem.circusRings;
-        currentNPCFloor = mem.npc;
+        doors = mem.doors; blocks = mem.blocks; pits = mem.pits;
+        tightropes = mem.tightropes; circusRings = mem.circusRings; currentNPCFloor = mem.npc;
     } else {
         let hasParkourPits = (capsuleCount > 0 && gachaponCount > 0);
-
         let doorX1 = 300 + Math.floor(Math.random() * 150);
         let doorX2 = 900 + Math.floor(Math.random() * 200);
         let doorX3 = 1600 + Math.floor(Math.random() * 200);
@@ -352,10 +407,7 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        let newPits = [];
-        let newTightropes = [];
-        let newCircusRings = [];
-
+        let newPits = []; let newTightropes = []; let newCircusRings = [];
         if (hasParkourPits) {
             newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
             newTightropes = [{ x: 610, y: 320, w: 230 }];
@@ -377,21 +429,14 @@ function loadOrCreateFloorMap(fl) {
         }
 
         floorDataMemory[fl] = {
-            doors: newDoors,
-            blocks: newBlocks,
-            pits: newPits,
-            tightropes: newTightropes,
-            circusRings: newCircusRings,
-            npc: newNPC
+            doors: newDoors, blocks: newBlocks, pits: newPits,
+            tightropes: newTightropes, circusRings: newCircusRings, npc: newNPC
         };
 
-        doors = newDoors;
-        blocks = newBlocks;
-        pits = newPits;
-        tightropes = newTightropes;
-        circusRings = newCircusRings;
-        currentNPCFloor = newNPC;
+        doors = newDoors; blocks = newBlocks; pits = newPits;
+        tightropes = newTightropes; circusRings = newCircusRings; currentNPCFloor = newNPC;
     }
+    saveGameData();
 }
 
 function toggleLanguage() {
@@ -413,17 +458,31 @@ function updateUIText() {
     document.getElementById('btn-loot-yes').innerText = t.yes;
     document.getElementById('btn-loot-no').innerText = t.no;
     document.getElementById('ui-ctrl-title').innerText = t.ctrlTitle;
-    document.getElementById('v-content').innerText = t.veemail;
+    document.getElementById('v-content').innerText = isVeeQuizMode ? t.veemailVeeQuiz : t.veemailIntro;
     if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') updateDialogue();
 }
 
-function showHelp() { document.getElementById('veemail-modal').style.display = 'flex'; }
+function showHelp() {
+    isVeeQuizMode = false;
+    updateUIText();
+    document.getElementById('veemail-modal').style.display = 'flex';
+}
 
 function startGame() {
-    document.getElementById('menu-screen').style.display = 'none';
-    gameState = 'INTRO_STORY'; dialogueStep = 0;
-    document.getElementById('dialogue-box').style.display = 'flex';
-    updateUIText();
+    if (loadGameData()) {
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('inventory-hud').style.display = 'flex';
+        document.getElementById('keybinds-guide').style.display = 'block';
+        gameState = 'SIDE_SCROLL';
+        loadOrCreateFloorMap(currentFloor);
+        updateHPUI(); updateInvUI();
+        alert("Welcome back! Game progress loaded successfully!");
+    } else {
+        document.getElementById('menu-screen').style.display = 'none';
+        gameState = 'INTRO_STORY'; dialogueStep = 0;
+        document.getElementById('dialogue-box').style.display = 'flex';
+        updateUIText();
+    }
 }
 
 function nextDialogue() {
@@ -438,6 +497,8 @@ function nextDialogue() {
             document.getElementById('dialogue-box').style.display = 'none';
             gameState = 'PORTAL_ANIMATION';
             setTimeout(() => {
+                isVeeQuizMode = false;
+                updateUIText();
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
             }, 2000);
@@ -456,9 +517,14 @@ function closeVeemail() {
     document.getElementById('veemail-modal').style.display = 'none';
     document.getElementById('inventory-hud').style.display = 'flex';
     document.getElementById('keybinds-guide').style.display = 'block';
-    gameState = 'SIDE_SCROLL';
-    loadOrCreateFloorMap(currentFloor);
-    checkAndSpawnTwisted();
+    
+    if (isVeeQuizMode) {
+        startTwistedVeeFinalQuiz();
+    } else {
+        gameState = 'SIDE_SCROLL';
+        loadOrCreateFloorMap(currentFloor);
+        checkAndSpawnTwisted();
+    }
 }
 
 function checkAndSpawnTwisted() {
@@ -487,12 +553,14 @@ function updateHPUI() {
     document.getElementById('hud-keys').innerText = `🔑 Keys: ${keysCount}/8 ${hasPumpkinKey ? '🎃' : ''}`;
     document.getElementById('hud-bats').innerText = `⚾ Bat: ${batEquipped ? 'EQUIPPED' : 'Unarmed'} (${batCount})`;
     if (!blot.exists) document.getElementById('btn-blot').style.textDecoration = 'line-through';
+    saveGameData();
 }
 
 function addCoins(silver) {
     silverCoins += silver;
     while (silverCoins >= 3) { silverCoins -= 3; goldCoins++; }
     document.getElementById('coin-txt').innerText = `🪙 Gold: ${goldCoins} (Silver: ${silverCoins}/3)`;
+    saveGameData();
 }
 
 function updateInvUI() {
@@ -538,6 +606,7 @@ function confirmLoot(yes) {
         else alert("Inventory FULL!");
     }
     pendingLoot = null;
+    saveGameData();
 }
 
 function openQuestDialog(npc) {
@@ -587,9 +656,9 @@ function handleQuestResponse(accepted) {
             updateHPUI(); alert("Completed Connie's Quest! Gained +1 Extra Max Heart (4 HP max)!");
         } else { questStatus.connie = 'ACCEPTED'; alert("Quest Accepted! Search room chests for Soulvester!"); }
     }
+    saveGameData();
 }
 
-// KHỞI ĐỘNG CÁC CÂU HỎI QUIZ KHI GẶP TWISTED VEE TẠI CỬA GOOD ENDING
 function startTwistedVeeFinalQuiz() {
     quizIndex = 0;
     quizScore = 0;
@@ -599,7 +668,7 @@ function startTwistedVeeFinalQuiz() {
 
 function loadQuizQuestion() {
     let q = quizData[quizIndex];
-    document.getElementById('quiz-title').innerText = `🧩 TWISTED VEE FINAL GOOD ENDING TRIAL (Q${quizIndex + 1}/10)`;
+    document.getElementById('quiz-title').innerText = `🧩 VEE'S QUIZ TRIAL (Q${quizIndex + 1}/10)`;
     document.getElementById('quiz-question').innerText = q.q;
     for (let i = 0; i < 4; i++) {
         document.getElementById(`opt-${['A','B','C','D'][i]}`).innerText = q.opts[i];
@@ -609,26 +678,82 @@ function loadQuizQuestion() {
 function answerQuiz(selectedOpt) {
     if (selectedOpt === quizData[quizIndex].ans) {
         quizScore++;
+    } else {
+        // SAI 1 CÂU = MẤT 1 TIM (1 HP)
+        if (activeChar === 'trio') trioHP--;
+        else if (activeChar === 'yatta') yatta.hp--;
+        else if (activeChar === 'looey') looey.hp--;
+        else blot.hp--;
+        
+        updateHPUI();
+        let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
+        if (curHP <= 0) {
+            alert("❌ GAME OVER! You ran out of hearts during Vee's Quiz! Save data will be RESET!");
+            resetSaveDataAndRestart();
+            return;
+        } else {
+            alert("❌ Incorrect answer! Lost 1 Heart!");
+        }
     }
+
     quizIndex++;
     if (quizIndex < quizData.length) {
         loadQuizQuestion();
     } else {
         document.getElementById('quiz-modal').style.display = 'none';
-        if (quizScore >= 6) {
-            alert(`🎉 GOOD ENDING ACHIEVED! You scored ${quizScore}/10! Twisted Vee is defeated and the Pumpkin Key unlocked the final escape door! YOU WIN!`);
-            location.reload();
+        if (quizScore >= 7) {
+            // TRIGGER GOOD ENDING THÀNH CÔNG
+            document.getElementById('ending-sub1').innerText = (currentLang === 'ENG') ? "You escaped Gardenview (experimental game)" : "Bạn đã trốn thoát khỏi Gardenview (trò chơi thử nghiệm)";
+            document.getElementById('ending-sub2').innerText = (currentLang === 'ENG') ? "(Everyone found you guys lying on the floor)" : "(Mọi người tìm thấy cả nhóm đang nằm bất tỉnh trên sàn nhà)";
+            document.getElementById('ending-screen').style.display = 'flex';
         } else {
-            alert(`❌ TRIAL FAILED! You scored ${quizScore}/10 (Need 6). Lost 2 HP! Twisted Vee knocks you back!`);
-            if (activeChar === 'trio') trioHP -= 2;
-            else if (activeChar === 'yatta') yatta.hp -= 2;
-            else if (activeChar === 'looey') looey.hp -= 2;
-            else blot.hp -= 2;
-            updateHPUI();
-            let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
-            if (curHP <= 0) { alert("GAME OVER!"); location.reload(); }
+            alert(`❌ FAILED! You scored ${quizScore}/10 (Required 7). Twisted Vee knocks you back!`);
         }
     }
+}
+
+// ================= THANG MÁY NÂNG CẤP ĐA TỰ CHỌN (OPTION 3,4,5...) =================
+function handleElevatorNavigation() {
+    let activeQuests = [];
+    if (questStatus.connie === 'ACCEPTED' && npcAssignedFloor.connie) activeQuests.push({ name: 'Connie', floor: npcAssignedFloor.connie });
+    if (questStatus.rodger === 'ACCEPTED' && npcAssignedFloor.rodger) activeQuests.push({ name: 'Rodger & Toodles', floor: npcAssignedFloor.rodger });
+    if (questStatus.gigi === 'ACCEPTED' && npcAssignedFloor.gigi) activeQuests.push({ name: 'Gigi', floor: npcAssignedFloor.gigi });
+
+    let menuText = `ELEVATOR SYSTEM (Current Floor: ${currentFloor}):\n1: Go UP to Floor ${currentFloor + 1}\n2: Go DOWN to Floor ${Math.max(1, currentFloor - 1)}`;
+    let optionMap = {};
+    let optIndex = 3;
+
+    activeQuests.forEach(q => {
+        if (q.floor !== currentFloor) {
+            let dirText = q.floor > currentFloor ? "UP" : "DOWN";
+            menuText += `\n${optIndex}: Go ${dirText} to Floor ${q.floor} (${q.name})`;
+            optionMap[optIndex] = q.floor;
+            optIndex++;
+        }
+    });
+
+    if (lastExploredFloor && lastExploredFloor !== currentFloor) {
+        menuText += `\n${optIndex}: Return to Floor ${lastExploredFloor} (Current Progress)`;
+        optionMap[optIndex] = lastExploredFloor;
+    }
+
+    let choice = prompt(menuText);
+    if (!choice) return;
+
+    if (choice === '1') {
+        lastExploredFloor = Math.max(lastExploredFloor, currentFloor + 1);
+        currentFloor++;
+    } else if (choice === '2' && currentFloor > 1) {
+        currentFloor--;
+    } else if (optionMap[choice]) {
+        if (!activeQuests.some(q => q.floor === currentFloor)) lastExploredFloor = currentFloor;
+        currentFloor = optionMap[choice];
+    }
+
+    yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
+    loadOrCreateFloorMap(currentFloor);
+    checkAndSpawnTwisted();
+    alert(`Traveled to Floor ${currentFloor}!`);
 }
 
 window.addEventListener('keydown', (e) => {
@@ -694,14 +819,7 @@ window.addEventListener('keydown', (e) => {
 
     if (e.code === 'KeyL' && gameState === 'SIDE_SCROLL') {
         if (Math.abs(yatta.worldX - elevator.x) < 60) {
-            let choice = prompt(`ELEVATOR SYSTEM (Current Floor: ${currentFloor}):\n1: Go UP to Floor ${currentFloor + 1}\n2: Go DOWN to Floor ${Math.max(1, currentFloor - 1)}`);
-            if (choice === '1') currentFloor++;
-            else if (choice === '2' && currentFloor > 1) currentFloor--;
-
-            yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
-            loadOrCreateFloorMap(currentFloor);
-            checkAndSpawnTwisted();
-            alert(`Traveled to Floor ${currentFloor}!`);
+            handleElevatorNavigation();
         }
     }
 
@@ -723,11 +841,12 @@ window.addEventListener('keydown', (e) => {
 
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
 
-        // MỞ CỬA FINAL ESCAPE (GOOD ENDING) KHI CÓ PUMPKIN KEY HỎI ĐỐ VỚI TWISTED VEE
+        // MỞ CỬA GOOD ENDING & KÍCH HOẠT VEE'S QUIZ VEEMAIL
         if (gameState === 'SIDE_SCROLL' && Math.abs(yatta.worldX - (elevator.x + 120)) < 60) {
             if (hasPumpkinKey) {
-                alert("⚠️ TWISTED VEE APPEARS AT THE GOOD ENDING DOOR! Answer her quiz trial to escape!");
-                startTwistedVeeFinalQuiz();
+                isVeeQuizMode = true;
+                updateUIText();
+                document.getElementById('veemail-modal').style.display = 'flex';
                 return;
             } else {
                 alert("This is the Final Escape Door! You need a Pumpkin Key forged from 8 Golden Keys to unlock it!");
@@ -752,13 +871,11 @@ window.addEventListener('keydown', (e) => {
             } else {
                 let rarityRand = Math.random();
 
-                // CƠ CHẾ RỚT CHÌA KHÓA VÀNG CHUẨN XÁC NÈ
-                if (keysCount < 8 && Math.random() < 0.3) {
+                if (keysCount < 8 && Math.random() < 0.35) {
                     keysCount++;
                     updateHPUI();
                     alert(`Found a Golden Key (🔑 ${keysCount}/8)!`);
                     
-                    // KHI ĐỦ ĐÚNG 8 CHÌA KHÓA VÀNG MỚI BẬT KHỎI HỎI FORM PUMPKIN KEY
                     if (keysCount === 8) {
                         setTimeout(() => {
                             if (confirm(currentLang === 'ENG' ? "You collected all 8 Golden Keys! Form them into 1 Pumpkin Key?" : "Bồ đã kiếm đủ 8 chìa khóa vàng! Có muốn form thành 1 chiếc Pumpkin Key không?")) {
@@ -893,7 +1010,7 @@ function gameLoop() {
                 twistedX -= 300;
 
                 let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
-                if (curHP <= 0) { alert("GAME OVER!"); location.reload(); }
+                if (curHP <= 0) { alert("GAME OVER!"); resetSaveDataAndRestart(); }
             }
         }
 
@@ -947,7 +1064,6 @@ function gameLoop() {
         ctx.fillStyle = '#ffb74d'; ctx.fillRect(elevator.x, elevator.y, elevator.w, elevator.h);
         ctx.fillStyle = '#000'; ctx.font = 'bold 9px Courier New'; ctx.fillText("ELEVATOR [L]", elevator.x + 2, elevator.y + 45);
 
-        // CỬA GOOD ENDING VỚI PHỦ BẢO VỆ CỦA TWISTED VEE
         ctx.fillStyle = '#ff1744'; ctx.fillRect(elevator.x + 120, elevator.y, elevator.w, elevator.h);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 8px Courier New'; ctx.fillText("FINAL ESCAPE [E]", elevator.x + 115, elevator.y - 10);
 

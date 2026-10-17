@@ -157,7 +157,8 @@
         <div id="keybinds-guide">
             ⌨️ <b id="ui-ctrl-title">CONTROLS:</b><br>
             • WASD / Arrows: Move Toon<br>
-            • E: Interact / Climb Tightrope | Z: Equip Bat | F: Hit Twisted | L: Elevator
+            • E: Interact / Climb | Alternate A/D: Walk Tightrope | D: Swing Ring<br>
+            • Z: Equip Bat | F: Hit Twisted | L: Elevator
         </div>
     </div>
 
@@ -269,6 +270,10 @@ let tightropes = [];
 let doors = [];
 let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
+// TRẠNG THÁI PARKOUR DÂY VÀ VÒNG XIẾC
+let onRopeState = { active: false, rope: null, progress: 0, lastKey: null };
+let onRingState = { active: false, ringIndex: 0 };
+
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
 let twistedTypes = [
@@ -290,7 +295,7 @@ let quizData = [
     { q: "Which item is considered Common rarity?", opts: ["A. Medkit", "B. Bat", "C. Candy", "D. Pumpkin Key"], ans: 2 },
     { q: "Who among the Trio cannot do parkour?", opts: ["A. Yatta", "B. Looey", "C. Blot", "D. Everyone"], ans: 2 },
     { q: "How many Gold coins does Gigi request for her quest?", opts: ["A. 5", "B. 10", "C. 20", "D. 50"], ans: 0 },
-    { q: "What happens if Yatta falls into a pit?", opts: ["A. Resets to edge safely", "B. Loses 1 HP", "C. Disappears", "D. Nothing"], ans: 0 },
+    { q: "What happens if Yatta falls into a pit?", opts: ["A. Loses 1 HP", "B. Resets without penalty", "C. Disappears", "D. Nothing"], ans: 0 },
     { q: "Which key type is forged from 8 golden keys?", opts: ["A. Golden Key", "B. Pumpkin Key", "C. Silver Key", "D. Iron Key"], ans: 1 },
     { q: "Who is Connie's lost brother?", opts: ["A. Rodger", "B. Soulvester", "C. Toodles", "D. Gigi"], ans: 1 },
     { q: "What button equips the baseball bat?", opts: ["A. [E]", "B. [Z]", "C. [F]", "D. [L]"], ans: 1 },
@@ -397,7 +402,6 @@ function loadOrCreateFloorMap(fl) {
         doors = mem.doors; blocks = mem.blocks; pits = mem.pits;
         tightropes = mem.tightropes; circusRings = mem.circusRings; currentNPCFloor = mem.npc;
     } else {
-        let hasParkourPits = true; // LUÔN CHO TẠO BÃI PARKOUR VÀ DÂY THỪNG TẠO ĐỘ HAY
         let doorX1 = 300 + Math.floor(Math.random() * 150);
         let doorX2 = 900 + Math.floor(Math.random() * 200);
         let doorX3 = 1600 + Math.floor(Math.random() * 200);
@@ -416,7 +420,7 @@ function loadOrCreateFloorMap(fl) {
 
         let newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
         let newTightropes = [{ x: 610, y: 320, w: 230 }];
-        let newCircusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
+        let newCircusRings = [{ x: 1230, y: 280 }, { x: 1330, y: 280 }, { x: 1430, y: 280 }];
 
         let newNPC = null;
         if (fl > 1) {
@@ -440,6 +444,8 @@ function loadOrCreateFloorMap(fl) {
         doors = newDoors; blocks = newBlocks; pits = newPits;
         tightropes = newTightropes; circusRings = newCircusRings; currentNPCFloor = newNPC;
     }
+    onRopeState = { active: false, rope: null, progress: 0, lastKey: null };
+    onRingState = { active: false, ringIndex: 0 };
     saveGameData();
 }
 
@@ -755,10 +761,56 @@ function handleElevatorNavigation() {
     alert(`Traveled to Floor ${currentFloor}!`);
 }
 
-// BẮT SỰ KIỆN PHÍM DI CHUYỂN
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space' && (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY')) nextDialogue();
     
+    // CƠ CHẾ ĐI DÂY LUÂN PHIÊN A VÀ D (HOẶC MŨI TÊN TRAI/PHẢI)
+    if (onRopeState.active) {
+        let isA = (e.code === 'KeyA' || e.code === 'ArrowLeft');
+        let isD = (e.code === 'KeyD' || e.code === 'ArrowRight');
+
+        if ((isA && onRopeState.lastKey !== 'A') || (isD && onRopeState.lastKey !== 'D')) {
+            onRopeState.lastKey = isA ? 'A' : 'D';
+            onRopeState.progress += 25;
+
+            yatta.worldX = onRopeState.rope.x + onRopeState.progress;
+            looey.worldX = yatta.worldX - 25;
+            blot.worldX = looey.worldX - 25;
+
+            if (onRopeState.progress >= onRopeState.rope.w) {
+                yatta.worldX = onRopeState.rope.x + onRopeState.rope.w + 30;
+                looey.worldX = yatta.worldX + 25;
+                blot.worldX = looey.worldX + 25;
+                yatta.y = 450; looey.y = 450; blot.y = 450;
+                onRopeState.active = false;
+                alert("Successfully walked across the Tightrope using alternate steps!");
+            }
+        }
+        return;
+    }
+
+    // CƠ CHẾ ĐU VÒNG XIẾC (NHẤN D HOẶC MŨI TÊN PHẢI ĐỂ SANG VÒNG TIẾP)
+    if (onRingState.active) {
+        if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+            onRingState.ringIndex++;
+            if (onRingState.ringIndex < circusRings.length) {
+                let r = circusRings[onRingState.ringIndex];
+                yatta.worldX = r.x; yatta.y = r.y + 20;
+                looey.worldX = r.x - 25; looey.y = r.y + 20;
+                blot.worldX = r.x - 50; blot.y = r.y + 20;
+            } else {
+                let lastR = circusRings[circusRings.length - 1];
+                yatta.worldX = lastR.x + 80;
+                looey.worldX = yatta.worldX + 25;
+                blot.worldX = looey.worldX + 25;
+                yatta.y = 450; looey.y = 450; blot.y = 450;
+                onRingState.active = false;
+                alert("Successfully cleared all Circus Rings!");
+            }
+        }
+        return;
+    }
+
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = true;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = true;
 
@@ -839,15 +891,28 @@ window.addEventListener('keydown', (e) => {
             updateDialogue(); return;
         }
 
-        // TƯƠNG TÁC BẤM [E] ĐỂ LEO NÊN DÂY THỪNG (TIGHTROPE) SANG HỐ
-        let nearRope = tightropes.find(tp => yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + tp.w + 40);
-        if (gameState === 'SIDE_SCROLL' && nearRope) {
-            yatta.worldX = nearRope.x + nearRope.w + 20;
-            looey.worldX = yatta.worldX + 30;
-            blot.worldX = looey.worldX + 30;
-            yatta.y = 450; looey.y = 450; blot.y = 450;
-            alert("Successfully climbed across the Tightrope!");
+        // TƯƠNG TÁC LEO DÂY THỪNG
+        let nearRope = tightropes.find(tp => yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + 50);
+        if (gameState === 'SIDE_SCROLL' && nearRope && !onRopeState.active) {
+            onRopeState = { active: true, rope: nearRope, progress: 0, lastKey: null };
+            yatta.worldX = nearRope.x; yatta.y = nearRope.y - 10;
+            looey.worldX = yatta.worldX - 25; looey.y = nearRope.y - 10;
+            blot.worldX = looey.worldX - 25; blot.y = nearRope.y - 10;
+            alert("Climbed on Tightrope! Alternate pressing [A] and [D] to walk across!");
             return;
+        }
+
+        // TƯƠNG TÁC ĐU VÒNG XIẾC
+        if (circusRings.length > 0 && !onRingState.active) {
+            let firstRing = circusRings[0];
+            if (Math.abs(yatta.worldX - firstRing.x) < 60) {
+                onRingState = { active: true, ringIndex: 0 };
+                yatta.worldX = firstRing.x; yatta.y = firstRing.y + 20;
+                looey.worldX = firstRing.x - 25; looey.y = firstRing.y + 20;
+                blot.worldX = firstRing.x - 50; blot.y = firstRing.y + 20;
+                alert("Grounded on Circus Ring 1! Press [D] or [Right Arrow] to swing to the next ring!");
+                return;
+            }
         }
 
         if (currentNPCFloor && Math.abs(yatta.worldX - currentNPCFloor.x) < 80) openQuestDialog(currentNPCFloor);
@@ -921,7 +986,6 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyX' && gameState === 'INSIDE_ROOM') { gameState = 'SIDE_SCROLL'; currentRoom = null; }
 });
 
-// NHẢ PHÍM ĐỂ DỪNG NGAY LẬP TỨC (TRÁNH TRƯỢT TỰ DO)
 window.addEventListener('keyup', (e) => {
     if (e.code === 'KeyA' || e.code === 'ArrowLeft') keysInput.left = false;
     if (e.code === 'KeyD' || e.code === 'ArrowRight') keysInput.right = false;
@@ -935,9 +999,19 @@ function getActiveToons() {
     return [];
 }
 
-// KHÔNG CÒN TRỪ MÁU VO LÝ NỮA, CHỈ LÙI LẠI MÉP AN TOÀN!
+// XỬ LÝ YATTA TÉ HỐ BỊ TRỪ 1 MÁU (-1 HP)
 function handlePitFall(p) {
-    p.worldX -= 80;
+    if (p === yatta || activeChar === 'trio') {
+        if (activeChar === 'trio') trioHP--;
+        else yatta.hp--;
+        
+        updateHPUI();
+        alert("Yatta fell into the pit! Lost 1 Heart (-1 HP)!");
+        
+        let curHP = (activeChar === 'trio') ? trioHP : yatta.hp;
+        if (curHP <= 0) { alert("GAME OVER!"); resetSaveDataAndRestart(); return; }
+    }
+    p.worldX -= 120;
     p.y = 450;
     p.vy = 0;
 }
@@ -974,30 +1048,32 @@ function gameLoop() {
         ctx.textAlign = 'left';
 
     } else if (gameState === 'SIDE_SCROLL') {
-        let moveX = 0;
-        if (keysInput.left) moveX = -4;
-        if (keysInput.right) moveX = 4;
+        if (!onRopeState.active && !onRingState.active) {
+            let moveX = 0;
+            if (keysInput.left) moveX = -4;
+            if (keysInput.right) moveX = 4;
 
-        let movingToons = getActiveToons();
+            let movingToons = getActiveToons();
 
-        movingToons.forEach(p => {
-            if (p.active) {
-                p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
-                
-                blocks.forEach(b => {
-                    if (p.worldX > b.x - 15 && p.worldX < b.x + b.w + 15) {
-                        if (p.y + p.vy >= b.y && p.y <= b.y + 12) { p.y = b.y; p.vy = 0; p.grounded = true; }
+            movingToons.forEach(p => {
+                if (p.active) {
+                    p.worldX += moveX; p.vy += 0.45; p.y += p.vy;
+                    
+                    blocks.forEach(b => {
+                        if (p.worldX > b.x - 15 && p.worldX < b.x + b.w + 15) {
+                            if (p.y + p.vy >= b.y && p.y <= b.y + 12) { p.y = b.y; p.vy = 0; p.grounded = true; }
+                        }
+                    });
+
+                    let inPit = pits.some(pt => p.worldX >= pt.x && p.worldX <= pt.x + pt.w);
+                    if (inPit && p.y >= 450) {
+                        handlePitFall(p);
+                    } else if (p.y >= 450) {
+                        p.y = 450; p.vy = 0; p.grounded = true;
                     }
-                });
-
-                let inPit = pits.some(pt => p.worldX >= pt.x && p.worldX <= pt.x + pt.w);
-                if (inPit && p.y >= 450) {
-                    handlePitFall(p);
-                } else if (p.y >= 450) {
-                    p.y = 450; p.vy = 0; p.grounded = true;
                 }
-            }
-        });
+            });
+        }
 
         if (soulvesterFollowing) { soulvesterNPC.x = yatta.worldX - 40; }
 
@@ -1044,17 +1120,23 @@ function gameLoop() {
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
         });
 
-        circusRings.forEach(r => {
+        // VẼ VÒNG XIẾC VÀ NÚT INTERACT [E]
+        circusRings.forEach((r, idx) => {
             ctx.strokeStyle = '#ffeb3b'; ctx.lineWidth = 3;
             ctx.beginPath(); ctx.arc(r.x, r.y, 20, 0, Math.PI*2); ctx.stroke();
+
+            if (idx === 0 && Math.abs(yatta.worldX - r.x) < 60 && !onRingState.active) {
+                ctx.fillStyle = '#ffeb3b'; ctx.font = 'bold 10px Courier New';
+                ctx.fillText("Press [E] to Swing Ring 🎪", r.x - 35, r.y - 25);
+            }
         });
 
-        // VẼ DÂY THỪNG VÀ HƯỚNG DẪN BẤM [E] LEO DÂY
+        // VẼ DÂY THỪNG VÀ HUỚNG DẪN BẤM [E]
         tightropes.forEach(tp => {
             ctx.strokeStyle = '#00e676'; ctx.lineWidth = 4;
             ctx.beginPath(); ctx.moveTo(tp.x, tp.y); ctx.lineTo(tp.x + tp.w, tp.y); ctx.stroke();
 
-            if (yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + tp.w + 40) {
+            if (yatta.worldX >= tp.x - 40 && yatta.worldX <= tp.x + 50 && !onRopeState.active) {
                 ctx.fillStyle = '#00e676'; ctx.font = 'bold 10px Courier New';
                 ctx.fillText("Press [E] to Climb Tightrope 🧗‍♂️", tp.x + 20, tp.y - 15);
             }

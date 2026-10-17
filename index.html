@@ -130,10 +130,10 @@
 </head>
 <body>
 
-<!-- TÍCH HỢP AUDIO TỪ 3 VIDEO (Bồ có thể thay link trực tiếp vào src bên dưới) -->
-<audio id="bgm-gameplay" loop src="LINK_VIDEO_2_SOUND.mp3"></audio>
-<audio id="bgm-quiz" loop src="LINK_VIDEO_1_SOUND.mp3"></audio>
-<audio id="bgm-ending" src="LINK_VIDEO_3_SOUND.mp3"></audio>
+<!-- GÁN ĐÚNG VỊ TRÍ 3 BÀI NHẠC -->
+<audio id="bgm-locked-away" loop src="locked_away.mp3"></audio>
+<audio id="bgm-all-eyes" loop src="all_eyes_on_me.mp3"></audio>
+<audio id="bgm-clair-de-lune" src="clair_de_lune.mp3"></audio>
 
 <div id="game-box">
     <div id="top-ui">
@@ -425,13 +425,13 @@ const texts = {
     }
 };
 
-// HỆ THỐNG QUẢN LÝ AUDIO THEO ĐÚNG Ý BỒ
+// ĐIỀU KHIỂN AUDIO QUẢN LÝ 3 FILE NHẠC
 function playMusic(trackId) {
     if (isMusicMuted) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
-    if (track && track.src && track.src !== window.location.href) { 
-        track.play().catch(e => console.log("Audio play blocked or missing source")); 
+    if (track && track.src) { 
+        track.play().catch(e => console.log("Audio play blocked")); 
     }
 }
 
@@ -444,8 +444,8 @@ function toggleMuteMusic() {
     if (isMusicMuted) {
         stopAllMusic();
     } else {
-        if (gameState === 'SIDE_SCROLL') playMusic('bgm-gameplay');
-        else if (isVeeQuizMode) playMusic('bgm-quiz');
+        if (isVeeQuizMode) playMusic('bgm-all-eyes');
+        else if (gameState === 'SIDE_SCROLL') playMusic('bgm-locked-away');
     }
 }
 
@@ -626,7 +626,7 @@ function continueGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
-        playMusic('bgm-gameplay'); // Phát nhạc video 2 khi tiếp tục chơi
+        playMusic('bgm-locked-away'); // Tiếp tục Locked Away khi bấm continue
         alert(currentLang === 'ENG' ? "Game progress loaded successfully!" : "Đã tải lại tiến trình chơi thành công!");
     } else {
         alert(currentLang === 'ENG' ? "No saved data found!" : "Không tìm thấy dữ liệu đã lưu!");
@@ -677,7 +677,7 @@ function nextDialogue() {
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
-                playMusic('bgm-gameplay'); // KHỞI ĐỘNG NHẠC VIDEO 2 TỪ KHI HIỆN VEEMAIL ĐẦU TIÊN
+                playMusic('bgm-locked-away'); // Phát Locked Away từ Veemail đầu tiên
             }, 2000);
         }
     }
@@ -694,10 +694,10 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        playMusic('bgm-quiz'); // Phát nhạc video 1 cho Vee's Quiz
+        playMusic('bgm-all-eyes'); // Chuyển sang All Eyes On Me khi vào Vee's Quiz
         startTwistedVeeFinalQuiz();
     } else {
-        playMusic('bgm-gameplay'); // Duy trì nhạc video 2 vòng lặp qua các tầng
+        playMusic('bgm-locked-away'); // Duy trì Locked Away xuyên suốt các tầng
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -840,7 +840,7 @@ function handleQuestResponse(accepted) {
 function startTwistedVeeFinalQuiz() {
     quizIndex = 0;
     quizScore = 0;
-    playMusic('bgm-quiz'); // Bắt đầu phát nhạc video 1 khi vào Vee's Quiz
+    playMusic('bgm-all-eyes'); // Phát All Eyes On Me khi bắt đầu Vee's Quiz
     document.getElementById('quiz-modal').style.display = 'flex';
     loadQuizQuestion();
 }
@@ -857,7 +857,7 @@ function loadQuizQuestion() {
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
     stopAllMusic();
-    playMusic('bgm-ending'); // Phát nhạc video 3 khi Game Over / Ending
+    playMusic('bgm-clair-de-lune'); // Phát Clair de Lune khi Game Over / Ending
     currentGameOverType = type;
     
     let titleEl = document.getElementById('ending-title');
@@ -916,7 +916,7 @@ function answerQuiz(selectedOpt) {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
             stopAllMusic();
-            playMusic('bgm-ending'); // Phát nhạc video 3 khi đạt Good Ending
+            playMusic('bgm-clair-de-lune'); // Phát Clair de Lune khi đạt Good Ending
             
             let titleEl = document.getElementById('ending-title');
             titleEl.innerText = "Good Ending?";

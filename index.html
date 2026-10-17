@@ -72,13 +72,13 @@
 
         #veemail-modal {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 680px; height: 480px; background: rgba(8, 22, 12, 0.96); border: 4px solid #00e676;
+            width: 700px; height: 500px; background: rgba(8, 22, 12, 0.96); border: 4px solid #00e676;
             border-radius: 10px; padding: 20px; z-index: 200; display: none; flex-direction: column; justify-content: space-between;
         }
         .veemail-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00e676; padding-bottom: 6px; }
         .veemail-title { color: #00e676; font-weight: bold; font-size: 12px; }
         .close-x { background: #ff1744; color: #fff; border: none; width: 22px; height: 22px; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 380px; }
+        .veemail-body { color: #b9f6ca; font-size: 11px; line-height: 1.5; overflow-y: auto; max-height: 400px; }
 
         #quest-box {
             position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
@@ -98,7 +98,6 @@
         #quiz-question { color: #ffeb3b; font-size: 11px; line-height: 1.4; }
         .quiz-opt-btn { background: #311b92; color: #fff; border: 2px solid #7c4dff; padding: 6px; font-size: 10px; cursor: pointer; border-radius: 4px; width: 100%; text-align: left; }
 
-        /* KHUNG MÀN HÌNH ENDING VÀ GAME OVER */
         #ending-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300;
@@ -190,7 +189,6 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH MỚI CHO CẢ GOOD ENDING VÀ GAME OVER -->
     <div id="ending-screen">
         <h1 id="ending-title" style="font-size: 38px; color: #00e676; text-shadow: 0 0 15px #00e676;">Good Ending?</h1>
         <p id="ending-sub1" style="font-size: 14px; color: #ffeb3b;"></p>
@@ -208,7 +206,7 @@
 
     <div id="veemail-modal">
         <div class="veemail-header">
-            <span class="veemail-title" id="v-title">🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION</span>
+            <span class="veemail-title" id="v-title">🖥️ HOW TO PLAY & GUIDE</span>
             <button class="close-x" onclick="closeVeemail()">X</button>
         </div>
         <div class="veemail-body" id="v-content"></div>
@@ -274,7 +272,8 @@ let elevator = { x: 2100, y: 370, w: 60, h: 80 };
 
 let onRopeState = { active: false, rope: null, progress: 0, lastKey: null };
 let onRingState = { active: false, ringIndex: 0 };
-let currentGameOverType = null; // LOẠI GAME OVER (HEALTH HOẶC VEE)
+let currentGameOverType = null;
+let isHowToPlayMode = false; // XÁC ĐỊNH MỞ MODAL HOW TO PLAY TỪ MENU
 
 let soulvesterNPC = { x: -999, y: 450, name: 'Soulvester' };
 
@@ -324,12 +323,32 @@ const texts = {
             { speaker: "LOOEY", text: "Wait, look! A rainbow-glowing virtual button is right in front of us!" },
             { speaker: "SYSTEM", text: "Yatta presses the rainbow button... Portal activates and sucks everyone into Gardenview!" }
         ],
-        veemailIntro: `Welcome to my experimental game. Your task is to collect 8 golden keys, which will combine to form a single, cryptic-looking key—the key needed to unlock the door. But beware: many Toons in this game have been transformed into "Twisted." You must either evade them or defeat them; doing the latter may even yield useful items. You can also acquire weapons and other helpful gear by interacting with Toons who have not yet succumbed to the Twisted state—they may offer you quests (which you are free to accept or decline)—or by opening chests that appear randomly throughout the world. Choose your actions with great care. Signed: D (the remaining text is obscured by an Ichor-stained hand)`,
+        howToPlayText: `=== ESCAPE GARDENVIEW: HOW TO PLAY ===
+
+1. GAMEPLAY & OBJECTIVE:
+- Explore floors of Gardenview, interact with NPCs to take quests, open room chests to loot items, and collect 8 Golden Keys to forge the Pumpkin Key.
+- Use the Pumpkin Key at the final escape door to trigger 'Vee's Quiz' and defeat Twisted Vee to win!
+
+2. CONTROLS (KEYBINDS):
+- [A] / [D] or [Left/Right Arrows]: Move selected character.
+- [W] or [Up Arrow]: Jump.
+- [E]: Interact with doors, NPCs, climb tightropes, or swing circus rings.
+- [Z]: Equip / Unequip Baseball Bat.
+- [F]: Attack Twisted Toons using equipped Bat.
+- [L]: Open Elevator menu to jump between floors & active quests.
+- [1] [2] [3]: Use inventory items.
+- [4] [5] [6] [7]: Switch control between Yatta, Looey, Blot, and Trio.
+
+3. ITEM RARITY GUIDE:
+- COMMON (🍬 Candy, 🥤 Pop): Easy to find in chests. Gives silver coins when consumed.
+- UNCOMMON (🩹 Bandage, ⚾ Baseball Bat): Restores HP or used as a melee weapon to stun/defeat Twisted enemies.
+- RARE (💊 Medkit, 🔑 Golden Key, 🧸 Dog Plush, 👻 Soulvester): Vital items for quests, full healing, and progression.
+- LEGENDARY (🎃 Pumpkin Key): Forged from 8 Golden Keys to unlock the final escape door.`,
         veemailVeeQuiz: `Welcome to Vee's Quiz. There will be 10 multiple-choice questions. Your task is to answer at least 7 out of 10 questions correctly in order to defeat Twisted Vee and open the exit door. For every incorrect answer, you will lose 1 heart. If you reach "Game Over," all your progress data will be reset—so choose carefully. Signed: D (the remaining text is obscured by an Ichor-stained hand)`
     },
     VIE: {
         title: "Escape Gardenview (Demo)",
-        play: "CHƠI MỚI / BẮT ĐẦU", how: "HƯỚNG DẪN", exit: "THOÁT",
+        play: "CHƠI MỚI / BẮT ĐẦU", how: "CÁCH CHƠI & HƯỚNG DẪN", exit: "THOÁT",
         next: "Tiếp tục [Space] >", accept: "ĐỒNG Ý", decline: "TỪ CHỐI",
         yes: "CÓ (Cất vào túi)", no: "KHÔNG (Bỏ lại)",
         ctrlTitle: "ĐIỀU KHIỂN:",
@@ -343,7 +362,27 @@ const texts = {
             { speaker: "LOOEY", text: "Khoan đã, nhìn kìa! Có một nút bấm ảo màu cầu vồng đang phát sáng kìa!" },
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
-        veemailIntro: `Chào mừng đến với trò chơi thử nghiệm của ta. Trong trò chơi này, các ngươi có nhiệm vụ phải kiếm đủ 8 chiếc chìa khóa vàng để nó form thành 1 chiếc khóa có hình bí ngô để mở khóa cánh cửa. Nhưng các ngươi phải cẩn trọng, trong trò chơi này có rất nhiều Toon đã bị biến thành Twisted, né tránh hoặc đánh bại chúng để nhận được 1 số vật phẩm. Các ngươi có thể kiếm được vũ khí và các vật phẩm hữu ích bằng cách tương tác với Toon chưa bị hóa Twisted trên đường đi kiếm chìa khóa để nhận nhiệm vụ (các ngươi có thể chấp nhận hoặc từ chối nhiệm vụ) và mở các chiếc rương được spawn random. Hãy cẩn trọng với bất kì những gì các ngươi lựa chọn. Ký tên: D (các chữ sau bị che bởi 1 bàn tay Ichor)`,
+        howToPlayText: `=== CÁCH CHƠI & HƯỚNG DẪN ESCAPE GARDENVIEW ===
+
+1. CÁCH CHƠI & MỤC TIÊU:
+- Khám phá các tầng của Gardenview, tương tác với NPC để nhận nhiệm vụ, mở rương trong phòng để nhặt vật phẩm, và thu thập đủ 8 Chìa Khóa Vàng để tạo thành Pumpkin Key.
+- Dùng Pumpkin Key tại cánh cửa thoát hiểm cuối cùng để tham gia 'Vee's Quiz' tiêu diệt Twisted Vee và chiến thắng!
+
+2. CÁC PHÍM BẤM (CONTROLS):
+- [A] / [D] hoặc [Mũi tên Trái/Phải]: Di chuyển nhân vật.
+- [W] hoặc [Mũi tên Lên]: Nhảy lên.
+- [E]: Tương tác với cửa, NPC, leo dây thừng (Tightrope luân phiên A/D) hoặc đu vòng xiếc (Nhấn D).
+- [Z]: Trang bị / Gỡ Gậy bóng chày (Bat).
+- [F]: Tấn công quái Twisted bằng gậy.
+- [L]: Mở bảng Thang Máy (Elevator) để di chuyển nhanh giữa các tầng & NPC làm nhiệm vụ.
+- [1] [2] [3]: Sử dụng vật phẩm trong túi đồ.
+- [4] [5] [6] [7]: Chuyển đổi điều khiển giữa Yatta, Looey, Blot và Trio.
+
+3. ĐỘ HIẾM CỦA VẬT PHẨM (RARITY):
+- COMMON (Thường - 🍬 Kẹo, 🥤 Nước ngọt): Dễ tìm trong rương. Dùng để đổi thành đồng bạc.
+- UNCOMMON (Ít gặp - 🩹 Băng cá nhân, ⚾ Gậy bóng chày): Hồi máu hoặc dùng làm vũ khí tự vệ trước Twisted.
+- RARE (Hiếm - 💊 Hộp cứu thương, 🔑 Chìa khóa vàng, 🧸 Thú bông, 👻 Soulvester): Vật phẩm cốt lõi làm nhiệm vụ, hồi đầy máu và tiến độ game.
+- LEGENDARY (Huyền thoại - 🎃 Pumpkin Key): Được tạo từ 8 Chìa Khóa Vàng để mở cửa trốn thoát cuối cùng.`,
         veemailVeeQuiz: `Chào mừng đến với Vee's Quiz. Sẽ có 10 câu hỏi trắc nghiệm. Nhiệm vụ của các ngươi là trả lời đúng từ 7/10 câu hỏi trở lên để có thể tiêu diệt Twisted Vee và mở cánh cửa trốn thoát. Nếu sai 1 câu, các ngươi sẽ bị trừ 1 máu. Nếu Game Over thì toàn bộ dữ liệu chơi sẽ bị reset, nên hãy cẩn trọng khi lựa chọn. Ký tên: D (các chữ sau đã bị che bởi 1 bàn tay Ichor)`
     }
 };
@@ -393,28 +432,21 @@ function loadGameData() {
     return false;
 }
 
-// RESET TOÀN BỘ TIẾN TRÌNH KHI BỊ TWISTED VEE ĐÁNH BẠI
 function resetSaveDataAndRestart() {
     localStorage.removeItem('EGV_SAVE_DATA');
     location.reload();
 }
 
-// CHỈ RESET VẬT PHẨM VÀ NHIỆM VỤ KHI HẾT MÁU (GIỮ SỐ TẦNG VÀ CHÌA KHÓA VÀNG)
 function resetItemsAndQuestsKeepFloors() {
     inventory = [null, null, null];
     batCount = 0; batEquipped = false;
     capsuleCount = 0; gachaponCount = 0;
     hasDogPlush = false; soulvesterFollowing = false;
-    
-    // NỒI LẠI TOÀN BỘ MÁU CHO CÁC TOON
     maxHP = 3; trioHP = 3;
     yatta.hp = 3; looey.hp = 3; blot.hp = 3;
-    
-    // RESET TRẠNG THÁI NHIỆM VỤ ĐỂ NPC XUẤT HIỆN LẠI
     questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
     npcAssignedFloor = {};
-    floorDataMemory = {}; // TẠO LẠI BẢN ĐỒ CÓ NPC MỚI
-    
+    floorDataMemory = {};
     yatta.worldX = 100; looey.worldX = 135; blot.worldX = 170;
     saveGameData();
     location.reload();
@@ -492,11 +524,19 @@ function updateUIText() {
     document.getElementById('btn-loot-yes').innerText = t.yes;
     document.getElementById('btn-loot-no').innerText = t.no;
     document.getElementById('ui-ctrl-title').innerText = t.ctrlTitle;
-    document.getElementById('v-content').innerText = isVeeQuizMode ? t.veemailVeeQuiz : t.veemailIntro;
+    
+    if (isHowToPlayMode) {
+        document.getElementById('v-title').innerText = currentLang === 'ENG' ? "🖥️ HOW TO PLAY & GUIDE" : "🖥️ CÁCH CHƠI & HƯỚNG DẪN";
+        document.getElementById('v-content').innerText = t.howToPlayText;
+    } else if (isVeeQuizMode) {
+        document.getElementById('v-title').innerText = "🖥️ VEEMAIL SYSTEM - VEE'S QUIZ";
+        document.getElementById('v-content').innerText = t.veemailVeeQuiz;
+    }
     if (gameState === 'INTRO_STORY' || gameState === 'BLACKOUT_STORY') updateDialogue();
 }
 
 function showHelp() {
+    isHowToPlayMode = true;
     isVeeQuizMode = false;
     updateUIText();
     document.getElementById('veemail-modal').style.display = 'flex';
@@ -532,8 +572,11 @@ function nextDialogue() {
             document.getElementById('dialogue-box').style.display = 'none';
             gameState = 'PORTAL_ANIMATION';
             setTimeout(() => {
+                isHowToPlayMode = false;
                 isVeeQuizMode = false;
                 updateUIText();
+                document.getElementById('v-title').innerText = "🖥️ VEEMAIL SYSTEM - INCOMING TRANSMISSION";
+                document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
             }, 2000);
@@ -546,6 +589,11 @@ function closeVeemail() {
     document.getElementById('inventory-hud').style.display = 'flex';
     document.getElementById('keybinds-guide').style.display = 'block';
     
+    if (isHowToPlayMode) {
+        isHowToPlayMode = false;
+        return; // CHỈ ĐÓNG BẢNG HƯỚNG DẪN Ở MENU, KHÔNG ĐỔI GAMSTATE
+    }
+
     if (isVeeQuizMode) {
         playMusic('bgm-perfect-christmas');
         startTwistedVeeFinalQuiz();
@@ -706,7 +754,6 @@ function loadQuizQuestion() {
     }
 }
 
-// BẬT MÀN HÌNH GAME OVER DỰA TRÊN LOẠI CHẾT
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
     currentGameOverType = type;
@@ -929,7 +976,7 @@ window.addEventListener('keydown', (e) => {
         } else if (gachaponCount > 0) {
             let choice = prompt("Select Toon to STORE in Gachapon:\n1: Yatta\n2: Looey");
             if (choice === '1') yatta.active = false;
-            if (choice === '2') looey.active = false;
+            if (choice === '2') gachaponCount--; // Đã fix trừ gachapon
         } else alert("No Gachapon!");
     }
 

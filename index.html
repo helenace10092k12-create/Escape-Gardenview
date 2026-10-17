@@ -130,7 +130,7 @@
 </head>
 <body>
 
-<!-- GÁN ĐÚNG VỊ TRÍ 3 BÀI NHẠC -->
+<!-- THẺ AUDIO QUẢN LÝ 3 FILE NHẠC -->
 <audio id="bgm-locked-away" loop src="locked_away.mp3"></audio>
 <audio id="bgm-all-eyes" loop src="all_eyes_on_me.mp3"></audio>
 <audio id="bgm-clair-de-lune" src="clair_de_lune.mp3"></audio>
@@ -170,9 +170,10 @@
         </div>
     </div>
 
-    <!-- MÀN HÌNH CHÍNH (MAIN MENU) -->
+    <!-- MÀN HÌNH CHÍNH (MAIN MENU + NÚT BẬT NHẠC ĐỂ TRÁNH BỊ CHẶN AUDIO) -->
     <div id="menu-screen">
         <div class="menu-title" id="menu-main-title">Escape Gardenview (Demo)</div>
+        <button class="menu-btn" id="btn-audio-fix" onclick="forceUnlockAudio()" style="background:#00e676; color:#000; border-color:#00c853;">🎵 BẬT NHẠC / PLAY AUDIO</button>
         <button class="menu-btn" id="btn-continue" onclick="continueGame()" style="display:none;">CONTINUE</button>
         <button class="menu-btn" id="btn-play" onclick="startNewGame()">NEW GAME</button>
         <button class="menu-btn" id="btn-how" onclick="showHelp()">HOW TO PLAY</button>
@@ -254,6 +255,7 @@ const ctx = canvas.getContext('2d');
 
 let currentLang = 'ENG';
 let isMusicMuted = false;
+let audioUnlocked = false;
 let gameState = 'MENU';
 let dialogueStep = 0;
 let currentFloor = 1;
@@ -425,13 +427,21 @@ const texts = {
     }
 };
 
-// ĐIỀU KHIỂN AUDIO QUẢN LÝ 3 FILE NHẠC
+// NÚT KÍCH HOẠT ÂM THANH ĐỂ TRÁNH LỖI TRÌNH DUYỆT CHẶN AUTOPLAY
+function forceUnlockAudio() {
+    audioUnlocked = true;
+    let btn = document.getElementById('btn-audio-fix');
+    btn.style.display = 'none';
+    playMusic('bgm-locked-away');
+    alert(currentLang === 'ENG' ? "Audio unlocked successfully! Let's play!" : "Đã bật nhạc thành công! Bắt đầu trải nghiệm nào!");
+}
+
 function playMusic(trackId) {
-    if (isMusicMuted) return;
+    if (isMusicMuted || !audioUnlocked) return;
     document.querySelectorAll('audio').forEach(a => { a.pause(); a.currentTime = 0; });
     let track = document.getElementById(trackId);
     if (track && track.src) { 
-        track.play().catch(e => console.log("Audio play blocked")); 
+        track.play().catch(e => console.log("Audio play blocked by browser")); 
     }
 }
 
@@ -516,15 +526,16 @@ function resetItemsAndQuestsKeepFloors() {
     location.reload();
 }
 
+// LOGIC TẠO MAP CHUẨN: ĐẢM BẢO NPC KHÔNG BAO GIỜ TRÙNG VÀO HỐ (PIT)
 function loadOrCreateFloorMap(fl) {
     if (floorDataMemory[fl]) {
         let mem = floorDataMemory[fl];
         doors = mem.doors; blocks = mem.blocks; pits = mem.pits;
         tightropes = mem.tightropes; circusRings = mem.circusRings; currentNPCFloor = mem.npc;
     } else {
-        let doorX1 = 300 + Math.floor(Math.random() * 150);
-        let doorX2 = 900 + Math.floor(Math.random() * 200);
-        let doorX3 = 1600 + Math.floor(Math.random() * 200);
+        let doorX1 = 300 + Math.floor(Math.random() * 100);
+        let doorX2 = 850 + Math.floor(Math.random() * 100);
+        let doorX3 = 1450 + Math.floor(Math.random() * 150);
 
         let newDoors = [
             { id: 1, worldX: doorX1, y: 370, opened: false },
@@ -538,9 +549,10 @@ function loadOrCreateFloorMap(fl) {
             { x: doorX3 - 40, y: 380, w: 60, h: 20 }
         ];
 
-        let newPits = [{ x: 600, w: 250 }, { x: 1200, w: 300 }];
-        let newTightropes = [{ x: 610, y: 320, w: 230 }];
-        let newCircusRings = [{ x: 1230, y: 280 }, { x: 1330, y: 280 }, { x: 1430, y: 280 }];
+        // Hố đặt ở khoảng cách an toàn, cố định vùng đất trống cho NPC
+        let newPits = [{ x: 550, w: 180 }, { x: 1100, w: 200 }];
+        let newTightropes = [{ x: 560, y: 320, w: 160 }];
+        let newCircusRings = [{ x: 1130, y: 280 }, { x: 1210, y: 280 }, { x: 1290, y: 280 }];
 
         let newNPC = null;
         if (fl > 1) {
@@ -549,9 +561,10 @@ function loadOrCreateFloorMap(fl) {
             if (!npcAssignedFloor.gigi) availableNPCs.push({ id: 'gigi', name: 'Gigi' });
             if (!npcAssignedFloor.connie) availableNPCs.push({ id: 'connie', name: 'Connie' });
 
-            if (availableNPCs.length > 0 && Math.random() < 0.6) {
+            if (availableNPCs.length > 0 && Math.random() < 0.7) {
                 let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
-                newNPC = { ...picked, x: 750 };
+                // Đảm bảo vị trí X của NPC luôn nằm trên mặt đất an toàn (không bị lọt hố)
+                newNPC = { ...picked, x: 780 };
                 npcAssignedFloor[picked.id] = fl;
             }
         }
@@ -626,7 +639,7 @@ function continueGame() {
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         updateHPUI(); updateInvUI();
-        playMusic('bgm-locked-away'); // Tiếp tục Locked Away khi bấm continue
+        playMusic('bgm-locked-away');
         alert(currentLang === 'ENG' ? "Game progress loaded successfully!" : "Đã tải lại tiến trình chơi thành công!");
     } else {
         alert(currentLang === 'ENG' ? "No saved data found!" : "Không tìm thấy dữ liệu đã lưu!");
@@ -635,6 +648,10 @@ function continueGame() {
 }
 
 function startNewGame() {
+    if (!audioUnlocked) {
+        alert(currentLang === 'ENG' ? "Please click 'BẬT NHẠC / PLAY AUDIO' first so music can play!" : "Vui lòng bấm nút 'BẬT NHẠC / PLAY AUDIO' trước để nhạc phát được nhé!");
+        return;
+    }
     if (localStorage.getItem('EGV_SAVE_DATA')) {
         if (!confirm(currentLang === 'ENG' ? "Starting a new game will overwrite your current progress. Proceed?" : "Tạo game mới sẽ xóa tiến trình cũ. Bạn có chắc chắn muốn tiếp tục?")) {
             return;
@@ -677,7 +694,7 @@ function nextDialogue() {
                 document.getElementById('v-content').innerText = texts[currentLang].veemailIntro;
                 gameState = 'VEEMAIL_OPEN';
                 document.getElementById('veemail-modal').style.display = 'flex';
-                playMusic('bgm-locked-away'); // Phát Locked Away từ Veemail đầu tiên
+                playMusic('bgm-locked-away');
             }, 2000);
         }
     }
@@ -694,10 +711,10 @@ function closeVeemail() {
     }
 
     if (isVeeQuizMode) {
-        playMusic('bgm-all-eyes'); // Chuyển sang All Eyes On Me khi vào Vee's Quiz
+        playMusic('bgm-all-eyes');
         startTwistedVeeFinalQuiz();
     } else {
-        playMusic('bgm-locked-away'); // Duy trì Locked Away xuyên suốt các tầng
+        playMusic('bgm-locked-away');
         gameState = 'SIDE_SCROLL';
         loadOrCreateFloorMap(currentFloor);
         checkAndSpawnTwisted();
@@ -802,7 +819,7 @@ function openQuestDialog(npc) {
         title.innerText = "🪙 GIGI QUEST";
         if (questStatus.gigi === 'COMPLETED') text.innerText = "Gigi: 'Thanks for the donation!'";
         else if (goldCoins >= 5) text.innerText = "Gigi: 'You have 5 Gold Coins! Press Accept to donate!'";
-        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins.'`;
+        else text.innerText = `Gigi: 'Hi! Can you donate 5 Gold Coins to me? You currently have ${goldCoins} Gold Coins. (Rewards: 2 Gachapons + 2 Bats)'`;
     } else if (npc.id === 'connie') {
         title.innerText = "👻 CONNIE QUEST";
         if (questStatus.connie === 'COMPLETED') text.innerText = "Connie: 'Thank you for bringing my brother Soulvester back!'";
@@ -840,7 +857,7 @@ function handleQuestResponse(accepted) {
 function startTwistedVeeFinalQuiz() {
     quizIndex = 0;
     quizScore = 0;
-    playMusic('bgm-all-eyes'); // Phát All Eyes On Me khi bắt đầu Vee's Quiz
+    playMusic('bgm-all-eyes');
     document.getElementById('quiz-modal').style.display = 'flex';
     loadQuizQuestion();
 }
@@ -857,7 +874,7 @@ function loadQuizQuestion() {
 function triggerGameOverScreen(type) {
     document.getElementById('quiz-modal').style.display = 'none';
     stopAllMusic();
-    playMusic('bgm-clair-de-lune'); // Phát Clair de Lune khi Game Over / Ending
+    playMusic('bgm-clair-de-lune');
     currentGameOverType = type;
     
     let titleEl = document.getElementById('ending-title');
@@ -916,7 +933,7 @@ function answerQuiz(selectedOpt) {
         document.getElementById('quiz-modal').style.display = 'none';
         if (quizScore >= 7) {
             stopAllMusic();
-            playMusic('bgm-clair-de-lune'); // Phát Clair de Lune khi đạt Good Ending
+            playMusic('bgm-clair-de-lune');
             
             let titleEl = document.getElementById('ending-title');
             titleEl.innerText = "Good Ending?";

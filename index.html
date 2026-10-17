@@ -220,10 +220,8 @@ let soulvesterFollowing = false;
 let activeNPC = null;
 let questStatus = { rodger: 'NONE', gigi: 'NONE', connie: 'NONE' };
 
-// BỘ TRÍ LƯU TRẠNG THÁI TẦNG (TẦNG NÀO CÓ NPC NÀO, CỬA NÀO ĐÃ LOOTED)
 let floorDataMemory = {};
-let npcAssignedFloor = {}; // LƯU VỊ TRÍ TẦNG CỦA CÁC NPC
-
+let npcAssignedFloor = {};
 let floorCleared = {};
 
 let blocks = [];
@@ -264,8 +262,8 @@ const texts = {
             { speaker: "SYSTEM", text: "Yatta presses the button... Portal activates and sucks everyone into Gardenview!" }
         ],
         veemail: `<strong>[GAME RULES & MECHANICS]</strong><br><br>
-            1. <b>FLOOR MEMORY:</b> Doors you looted will STAY looted even if you change floors!<br>
-            2. <b>NPC LOCATIONS:</b> NPCs stay permanently on their assigned floors so you can return to them anytime!<br><br>
+            1. <b>DEFEAT TWISTED:</b> Defeating Twisted drops Coins or Rare Items!<br>
+            2. <b>NPC LOCATIONS:</b> NPCs stay permanently on their assigned floors so you can return anytime!<br><br>
             <i>Signed: D</i>`
     },
     VIE: {
@@ -284,13 +282,12 @@ const texts = {
             { speaker: "HỆ THỐNG", text: "Yatta bấm nút cầu vồng... Cổng Không Gian kích hoạt hút cả nhóm vào Gardenview!" }
         ],
         veemail: `<strong>[LUẬT CHƠI & CƠ CHẾ SỐNG CÒN]</strong><br><br>
-            1. <b>GHI NHỚ TẦNG:</b> Cửa phòng đã loot sẽ GIỮ NGUYÊN trạng thái khi bồ đi thang máy qua lại!<br>
-            2. <b>NPC CỐ ĐỊNH:</b> NPC sẽ ở cố định đúng tầng của họ để bồ dễ dàng quay lại trả nhiệm vụ!<br><br>
+            1. <b>ĐẬP QUÁI RỚT ĐỒ:</b> Tiêu diệt Twisted rớt trực tiếp Tiền và Item xịn!<br>
+            2. <b>NPC CỐ ĐỊNH:</b> NPC sẽ ở cố định đúng tầng của họ để bồ quay lại trả nhiệm vụ mượt mà!<br><br>
             <i>Ký tên: D</i>`
     }
 };
 
-// LOAD NẾU ĐÃ CÓ MAP TẦNG CŨ, HOẶC TẠO MỚI VÀ LƯU VÀO MEMORY NẾU CHƯA CÓ
 function loadOrCreateFloorMap(fl) {
     if (floorDataMemory[fl]) {
         let mem = floorDataMemory[fl];
@@ -329,7 +326,6 @@ function loadOrCreateFloorMap(fl) {
             newCircusRings = [{ x: 1230, y: 260 }, { x: 1330, y: 260 }, { x: 1430, y: 260 }];
         }
 
-        // KIỂM TRA PHÂN BỔ NPC VÀ LƯU CỐ ĐỊNH TẦNG
         let newNPC = null;
         if (fl > 1) {
             let availableNPCs = [];
@@ -340,7 +336,7 @@ function loadOrCreateFloorMap(fl) {
             if (availableNPCs.length > 0 && Math.random() < 0.6) {
                 let picked = availableNPCs[Math.floor(Math.random() * availableNPCs.length)];
                 newNPC = { ...picked, x: 750 };
-                npcAssignedFloor[picked.id] = fl; // LƯU CỐ ĐỊNH TẦNG
+                npcAssignedFloor[picked.id] = fl;
             }
         }
 
@@ -574,6 +570,7 @@ window.addEventListener('keydown', (e) => {
         else alert("No Baseball Bat!");
     }
 
+    // ĐẬP QUÁI [F] RỚT ĐỒ THEO YẦU CẦU DẶN
     if (e.code === 'KeyF') {
         if (batEquipped && batCount > 0 && currentTwisted && Math.abs(yatta.worldX - twistedX) < 140) {
             batCount--;
@@ -581,7 +578,14 @@ window.addEventListener('keydown', (e) => {
             updateHPUI();
             currentTwisted.hp--;
             if (currentTwisted.hp <= 0) {
-                alert(`Defeated ${currentTwisted.type} Twisted! Floor ${currentFloor} is CLEARED!`);
+                // RỚT ĐỒ KHI QUÁI CHẾT
+                let dropRand = Math.random();
+                let dropText = "";
+                if (dropRand < 0.4) { addCoins(2); dropText = "Dropped 2 Silver Coins!"; }
+                else if (dropRand < 0.7) { goldCoins++; addCoins(0); dropText = "Dropped 1 Gold Coin!"; }
+                else { pendingLoot = 'MEDKIT'; dropText = "Dropped 1 Medkit!"; }
+
+                alert(`Defeated ${currentTwisted.type} Twisted! ${dropText} Floor ${currentFloor} is CLEARED!`);
                 floorCleared[currentFloor] = true; currentTwisted = null;
             } else {
                 twistedX -= 250;
